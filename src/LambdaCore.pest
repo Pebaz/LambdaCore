@@ -1,0 +1,11 @@
+WHITESPACE = _{ " " }
+chars_identifier = { ASCII_ALPHANUMERIC | "-" | "_" | "*" | "+" | "-" | "/"}
+identifier = @{ char+ }
+
+program = { identifier+ }
+
+file = {
+    SOI ~ // Start of Input
+    program* ~
+    EOI   // End of Input
+}
