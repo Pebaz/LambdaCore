@@ -1,11 +1,39 @@
-WHITESPACE = _{ " " }
-chars_identifier = { ASCII_ALPHANUMERIC | "-" | "_" | "*" | "+" | "-" | "/"}
-identifier = @{ char+ }
+// Make sure to generally ignore whitespace
+WHITESPACE = _{ " " | NEWLINE | "\t" }
 
-program = { identifier+ }
+// Programs are constructed from one or more functions
+Program = { SOI ~ Function* ~ EOI }
 
-file = {
-    SOI ~ // Start of Input
-    program* ~
-    EOI   // End of Input
+// Functions are identifiers possibly followed by more identifiers or values
+Function = { "(" ~ Identifier ~ (Identifier | Value | Function)* ~ ")" }
+
+Identifier = @{ (ASCII_ALPHANUMERIC | "-" | "_")+ }
+
+// Don't keep the parsed `Value` object
+Value = _{ Array | String | Number | Boolean | Null }
+
+Array = { "[" ~ (Identifier | Value | Function)* ~ "]" }
+
+Boolean = { "True" | "False" }
+
+Null = { "Null" }
+
+String = ${ "\"" ~ StringContents ~ "\"" }
+
+// Keep the whitespace (literal) characters in the string
+StringContents = @{ Character* }
+
+Character = {
+    !("\"" | "\\") ~ ANY
+    | "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
+    | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
 }
+
+Number = @{
+    "-"?
+    ~ ("0" | ASCII_NONZERO_DIGIT ~ ASCII_DIGIT*)
+    ~ ("." ~ ASCII_DIGIT*)?
+    ~ (^"e" ~ ("+" | "-")? ~ ASCII_DIGIT+)?
+}
+
+// Comment = _{ "::" ~ ANY ~ NEWLINE }

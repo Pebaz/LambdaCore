@@ -37,3 +37,41 @@ A small Lisp written in Rust.
 (defn get-age [person]
 	(ret person/age))
 ```
+
+### Grammar
+
+```javascript
+// Programs are constructed from one or more functions
+Program = { SOI ~ Function+ ~ EOI }
+
+// Functions are identifiers possibly followed by more identifiers or values
+Function = { "(" ~ Identifier ~ (Identifier | Value)* ~ ")" }
+
+Identifier = { (ASCII_ALPHANUMERIC | "-" | "_")+ }
+
+// Don't keep the parsed `Value` object
+Value = _{ String | Number | Boolean | Null }
+
+Boolean = { "True" | "False" }
+
+Null = { "Null" }
+
+String = ${ "\"" ~ StringContents ~ "\"" }
+
+// Keep the whitespace (literal) characters in the string
+StringContents = @{ Character* }
+
+Character = {
+    !("\"" | "\\") ~ ANY
+    | "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
+    | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
+}
+
+Number = @{
+    "-"?
+    ~ ("0" | ASCII_NONZERO_DIGIT ~ ASCII_DIGIT*)
+    ~ ("." ~ ASCII_DIGIT*)?
+    ~ (^"e" ~ ("+" | "-")? ~ ASCII_DIGIT+)?
+}
+```
+
