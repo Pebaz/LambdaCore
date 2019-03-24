@@ -2,10 +2,15 @@
 WHITESPACE = _{ " " | NEWLINE | "\t" }
 
 // Programs are constructed from one or more functions
-Program = { SOI ~ Function* ~ EOI }
+//Program = { SOI ~ (Function | Comment)* ~ EOI }
+Program = _{ SOI ~ Comments* ~ EOI }
+
+Comments = _{ (LineComment)+ }
+LineComment = @{ "::" ~ ANY* }
+/*
 
 // Functions are identifiers possibly followed by more identifiers or values
-Function = { "(" ~ Identifier ~ (Identifier | Value | Function)* ~ ")" }
+Function = { "(" ~ Identifier ~ (Identifier | Value | Function | Comment)* ~ ")" }
 
 Identifier = @{ (ASCII_ALPHANUMERIC | "-" | "_")+ }
 
@@ -35,5 +40,4 @@ Number = @{
     ~ ("." ~ ASCII_DIGIT*)?
     ~ (^"e" ~ ("+" | "-")? ~ ASCII_DIGIT+)?
 }
-
-// Comment = _{ "::" ~ ANY ~ NEWLINE }
+*/

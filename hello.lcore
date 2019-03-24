@@ -1,0 +1,12 @@
+(say 3.14)
+
+(print "Hello World")
+
+(defn hello [x y z]
+	(print "Hello World")
+	(print 5)
+	(print [1 2 3])
+	(print Null)
+	(print True False)
+	(3.14)
+	(3.14e+10))
