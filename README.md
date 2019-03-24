@@ -1,3 +1,5 @@
+<img src="dev/logo/LambdaCoreLogo.png" width=256 />
+
 # LambdaCore
 A small Lisp written in Rust.
 
