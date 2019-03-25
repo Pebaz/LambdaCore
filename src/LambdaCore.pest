@@ -1,16 +1,22 @@
 // Make sure to generally ignore whitespace
-WHITESPACE = _{ " " | NEWLINE | "\t" }
+//WHITESPACE = { " " | "\t" | "\r" | "\n" }
 
 // Programs are constructed from one or more functions
 //Program = { SOI ~ (Function | Comment)* ~ EOI }
-Program = _{ SOI ~ Comments* ~ EOI }
+Program = _{ SOI ~ (LineComment)* ~ EOI }
 
-Comments = _{ (LineComment)+ }
-LineComment = @{ "::" ~ ANY* }
+//Program = { SOI ~ ANY* ~ EOI }
+
+
+// LINK: https://pest.rs/book/examples/json.html#writing-the-grammar
+Comments = { (LineComment)+ }
+    LineComment = @{ "::" ~ "f" ~ NEWLINE }
+
+
+
 /*
-
 // Functions are identifiers possibly followed by more identifiers or values
-Function = { "(" ~ Identifier ~ (Identifier | Value | Function | Comment)* ~ ")" }
+Function = { "(" ~ Identifier ~ (Identifier | Value | Function | Comments)* ~ ")" }
 
 Identifier = @{ (ASCII_ALPHANUMERIC | "-" | "_")+ }
 

@@ -5,18 +5,23 @@ A small Lisp written in Rust.
 
 ### Plan
 
-1. Read Lisp file in. File extension: `.lc`
+1. Read Lisp file in. File extension: `.lcore`
 2. Parse Lisp syntax.
 3. Agree upon data types.
 4. Call function from Rust in LambdaCore.
 5. Print formatted syntax to HTML with colors.
 6. Infinitely Extend. 😃
 
+##### Quoting
+
+This is going to be an interesting undertaking. Look at quoting, quasi-quoting, back-quoting?
+
 ### Runtime
 
  * Plant variable into root namespace named `SYMBOL_TABLE`.
 	* Use this variable to manage the language from within itself.
 	* Scopes are lists of symbols just like Craft (aka Wing v1).
+ * [Tail-call recursion optimization](https://github.com/murarth/ketos/blob/master/docs/README.md)
 
 ### Data Types
 
