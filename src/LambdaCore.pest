@@ -3,42 +3,43 @@
 WHITESPACE = _{ " " | "\t" }
 
 // Programs are constructed from one or more functions
-//Program = { SOI ~ (Function | Comment)* ~ EOI }
-Program = { SOI ~ (LineComment | NEWLINE)* ~ EOI }
+Program = { SOI ~ (LineComment | Function | NEWLINE)* ~ EOI }
 
+LineComment = @{ "::" ~ LineCommentContents* }
+	LineCommentContents = { !(NEWLINE) ~ ANY }
 
-// LINK: https://pest.rs/book/examples/json.html#writing-the-grammar
-Comments = ${ (LineComment)+ }
-    LineComment = @{ "::" ~ LineCommentContents* }
-        LineCommentContents = { !(NEWLINE) ~ ANY }
-
-
+// It is assumed that you cannot call a value (e.g.: `(True)` or `(3.14)`)
+Function = {
+	"(" ~
+	Identifier ~
+	(Value | Identifier | Function | LineComment | NEWLINE)* ~
+	")"
+}
 
 /*
-// Functions are identifiers possibly followed by more identifiers or values
-Function = { "(" ~ Identifier ~ (Identifier | Value | Function | Comments)* ~ ")" }
+Important(pbz): Value must preceed Identifier since Identifier is basically a
+catch-all. (e.g. maches `|`, `*`, `asdf`, `123`)
+*/
+Identifier = @{
+	(!(":" | "(" | ")" | "[" | "]" | "\"" | "\\" | NEWLINE | WHITESPACE) ~ ANY)+
+	//(ASCII_ALPHANUMERIC | "-" | "_")+
+}
 
-Identifier = @{ (ASCII_ALPHANUMERIC | "-" | "_")+ }
-
-// Don't keep the parsed `Value` object
 Value = _{ Array | String | Number | Boolean | Null }
 
-Array = { "[" ~ (Identifier | Value | Function)* ~ "]" }
+Array = { "[" ~ (LineComment | Value | Identifier | Function | NEWLINE)* ~ "]" }
 
 Boolean = { "True" | "False" }
 
 Null = { "Null" }
 
 String = ${ "\"" ~ StringContents ~ "\"" }
-
-// Keep the whitespace (literal) characters in the string
-StringContents = @{ Character* }
-
-Character = {
-    !("\"" | "\\") ~ ANY
-    | "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
-    | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
-}
+	StringContents = @{ Character* }
+		Character = {
+			!("\"" | "\\") ~ ANY
+			| "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
+			| "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
+		}
 
 Number = @{
     "-"?
@@ -46,4 +47,3 @@ Number = @{
     ~ ("." ~ ASCII_DIGIT*)?
     ~ (^"e" ~ ("+" | "-")? ~ ASCII_DIGIT+)?
 }
-*/

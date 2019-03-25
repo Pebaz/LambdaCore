@@ -24,7 +24,7 @@ pub struct LambdaCoreParser;
 
 
 fn main() {
-	let unparsed_file = fs::read_to_string("hello.lc").expect("LCORE: Error Reading File");
+	let unparsed_file = fs::read_to_string("hello.lcore").expect("LCORE: Error Reading File");
 
 	let program = LambdaCoreParser::parse(Rule::Program, &unparsed_file)
 		.expect("LCORE: Failed To Parse") // Unwrap the parse result :D
