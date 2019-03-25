@@ -1,15 +1,14 @@
 // Make sure to generally ignore whitespace
-WHITESPACE = { " " | "\t" | "\r\n" | "\r" | "\n" }
+//WHITESPACE = _{ " " | "\t" | "\r\n" | "\r" | "\n" }
+WHITESPACE = _{ " " | "\t" }
 
 // Programs are constructed from one or more functions
 //Program = { SOI ~ (Function | Comment)* ~ EOI }
-Program = _{ SOI ~ (LineComment)* ~ EOI }
-
-//Program = { SOI ~ ANY* ~ EOI }
+Program = { SOI ~ (LineComment | NEWLINE)* ~ EOI }
 
 
 // LINK: https://pest.rs/book/examples/json.html#writing-the-grammar
-Comments = { (LineComment)+ }
+Comments = ${ (LineComment)+ }
     LineComment = @{ "::" ~ LineCommentContents* }
         LineCommentContents = { !(NEWLINE) ~ ANY }
 
