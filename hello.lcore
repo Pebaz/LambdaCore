@@ -1,13 +1,13 @@
-(say 3.14)
+
+::(defn hello [x y z]
+::	(print "Hello World")
+::	(print 5)  :: This is something cooll
+::	(print [1 2 3])
+::	(print Null)
+::	(print True False)
+::	(3.14)
+::	(3.14e+10))
+
+(say 3.14 (format "Hello {}" "World"))
 
 (print "Hello World")
-
-(defn hello [x y z]
-	(print "Hello World")
-	(print 5)  :: This is something cooll
-	(print [1 2 3])
-	(print Null)
-	(print True False)
-	(3.14)
-	(3.14e+10))
-

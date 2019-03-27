@@ -14,8 +14,8 @@ Parsed 78k LOC in ~500ms.
 */
 
 #![allow(unused_imports)]
+#![allow(dead_code)]
 
-extern crate pest;
 #[macro_use]
 extern crate pest_derive;
 
@@ -23,37 +23,81 @@ use std::collections::HashMap;
 use std::fs;
 use pest::Parser;
 use pest::iterators::Pair;
+use colored::*;
 
 
 #[derive(Parser)]
 #[grammar = "LambdaCore.pest"]
 pub struct LambdaCoreParser;
 
+
+// Value = _{ Array | String | Number | Boolean | Null }
+
+enum Value {
+	Null,
+	Boolean(bool),
+	Int(i64),
+	Float(f64),
+	String(String),
+	Array(Vec<Value>)
+}
+
 // def interpret(Pair, SymbolTable)
-fn interpret(node: Pair<'_, Rule>) {
+fn interpret(node: Pair<'_, Rule>, indent: usize) -> Value {
+
+	//println!("{:#?}", node.as_rule());
+	println!(
+		"{}{} -> {}",
+		"    ".repeat(indent),
+		format!("{:#?}", node.as_rule()).cyan(),
+		format!("{}", node.as_str()).green(),
+	);
+
+	match node.as_rule() {
+		Rule::Function => {
+			println!("FOUND A FUNCTION :D");
+		}
+
+		Rule::String {
+			println!("FOUND A STRING: {}", node.as_str());
+		}
+		
+		_ => {}
+	}
+
 	for rule in node.into_inner() {
+		interpret(rule, indent + 1);
+		/*
 		match rule.as_rule() {
+
 			Rule::Function => {
 				let mut inner_rules = rule.into_inner();
-				println!("Function: \"{}\"", inner_rules.next().unwrap().as_str());
+				println!("Function: \"{}\"", inner_rules.next().unwrap().as_str().green());
 
 				for rule in inner_rules {
+					println!("{} -> {}", "here".red(), rule.as_str().red());
 					interpret(rule);
 				}
 			}
 
 			Rule::Number => {
-				println!("Number: \"{}\"", rule.as_str());
+				println!("Number: \"{}\"", rule.as_str().green());
 			}
 
 			Rule::LineComment => (),
+
 			Rule::EOI => (),
+
 			//_ => unreachable!()
+
 			_ => {
-				println!("99999999999999999 {}", rule.as_str());
+				println!("99999999999999999 {}", rule.as_str().red());
 			}
 		}
+		*/
 	}
+
+	Value::Null
 }
 
 
@@ -83,5 +127,6 @@ fn main() {
 	// 	}
 	// }
 
-	interpret(program);
+	//let mut symbol_table: HashMap<&str, HashMap<&str, &str>> = HashMap::new();
+	interpret(program, 0);
 }
