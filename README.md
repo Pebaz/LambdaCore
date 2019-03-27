@@ -5,12 +5,16 @@ A small Lisp written in Rust.
 
 ### Plan
 
-1. Read Lisp file in. File extension: `.lcore`
-2. Parse Lisp syntax.
-3. Agree upon data types.
-4. Call function from Rust in LambdaCore.
-5. Print formatted syntax to HTML with colors.
-6. Infinitely Extend. 😃
+- [ ] Read Lisp file in. File extension: `.lcore`
+- [ ] Parse Lisp syntax.
+- [ ] Agree upon data types.
+- [ ] Call function from Rust in LambdaCore.
+- [ ] Print formatted syntax to HTML with colors.
+- [ ] Infinitely Extend. 😃
+- [ ] 
+- [ ] 
+- [ ] Symbol Table (A hidden variable within the scope)
+- [ ] Built-in functions
 
 ##### Quoting
 

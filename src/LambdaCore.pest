@@ -34,8 +34,8 @@ Boolean = { "True" | "False" }
 Null = { "Null" }
 
 String = ${ "\"" ~ StringContents ~ "\"" }
-	StringContents = @{ Character* }
-		Character = {
+	StringContents = _{ Character* }
+		Character = _{
 			!("\"" | "\\") ~ ANY
 			| "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
 			| "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
