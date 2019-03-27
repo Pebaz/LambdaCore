@@ -32,7 +32,7 @@ pub struct LambdaCoreParser;
 
 
 // Value = _{ Array | String | Number | Boolean | Null }
-
+#[derive(Debug)]
 enum Value {
 	Null,
 	Boolean(bool),
@@ -45,6 +45,8 @@ enum Value {
 // def interpret(Pair, SymbolTable)
 fn interpret(node: Pair<'_, Rule>, indent: usize) -> Value {
 
+	let return_value = Value::Null;
+
 	//println!("{:#?}", node.as_rule());
 	println!(
 		"{}{} -> {}",
@@ -55,11 +57,15 @@ fn interpret(node: Pair<'_, Rule>, indent: usize) -> Value {
 
 	match node.as_rule() {
 		Rule::Function => {
-			println!("FOUND A FUNCTION :D");
+			//println!("FOUND A FUNCTION :D");
 		}
 
-		Rule::String {
-			println!("FOUND A STRING: {}", node.as_str());
+		Rule::String => {
+			let return_value = Value::String(String::from(node.as_str()));
+			println!("FOUND STRING: {:?}", match return_value {
+				Value::String(s) => { s.as_str().to_owned() }
+				_ => { "".to_owned() }
+			});
 		}
 		
 		_ => {}
@@ -97,7 +103,7 @@ fn interpret(node: Pair<'_, Rule>, indent: usize) -> Value {
 		*/
 	}
 
-	Value::Null
+	return_value
 }
 
 
