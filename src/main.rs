@@ -47,22 +47,38 @@ fn interpret(node: Pair<'_, Rule>, indent: usize) -> Value {
 
 	let return_value = Value::Null;
 
-	//println!("{:#?}", node.as_rule());
-	println!(
-		"{}{} -> {}",
-		"    ".repeat(indent),
-		format!("{:#?}", node.as_rule()).cyan(),
-		format!("{}", node.as_str()).green(),
-	);
+	if format!("{:#?}", node.as_rule()) != "Program" {
+		println!(
+			"{}{} -> {}",
+			if indent > 0 { "    ".repeat(indent) } else { String::from("") },
+			format!("{:#?}", node.as_rule()).cyan(),
+			format!("{}", node.as_str()).green(),
+		);
+	}
 
 	match node.as_rule() {
+		Rule::Program => {
+			for rule in node.into_inner() {
+				// Keep the indent at 0 for the first time
+				interpret(rule, indent);
+			}
+		}
+		
 		Rule::Function => {
-			//println!("FOUND A FUNCTION :D");
+			for rule in node.into_inner() {
+				interpret(rule, indent + 1);
+			}
+		}
+
+		Rule::Array => {
+			for rule in node.into_inner() {
+				interpret(rule, indent + 1);
+			}
 		}
 
 		Rule::String => {
 			let return_value = Value::String(String::from(node.as_str()));
-			println!("FOUND STRING: {:?}", match return_value {
+			println!("FOUND STRING: {}", match return_value {
 				Value::String(s) => { s.as_str().to_owned() }
 				_ => { "".to_owned() }
 			});
@@ -71,9 +87,9 @@ fn interpret(node: Pair<'_, Rule>, indent: usize) -> Value {
 		_ => {}
 	}
 
+	/*
 	for rule in node.into_inner() {
 		interpret(rule, indent + 1);
-		/*
 		match rule.as_rule() {
 
 			Rule::Function => {
@@ -100,8 +116,8 @@ fn interpret(node: Pair<'_, Rule>, indent: usize) -> Value {
 				println!("99999999999999999 {}", rule.as_str().red());
 			}
 		}
-		*/
 	}
+	*/
 
 	return_value
 }
