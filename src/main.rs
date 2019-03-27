@@ -22,11 +22,39 @@ extern crate pest_derive;
 use std::collections::HashMap;
 use std::fs;
 use pest::Parser;
+use pest::iterators::Pair;
 
 
 #[derive(Parser)]
 #[grammar = "LambdaCore.pest"]
 pub struct LambdaCoreParser;
+
+// def interpret(Pair, SymbolTable)
+fn interpret(node: Pair<'_, Rule>) {
+	for rule in node.into_inner() {
+		match rule.as_rule() {
+			Rule::Function => {
+				let mut inner_rules = rule.into_inner();
+				println!("Function: \"{}\"", inner_rules.next().unwrap().as_str());
+
+				for rule in inner_rules {
+					interpret(rule);
+				}
+			}
+
+			Rule::Number => {
+				println!("Number: \"{}\"", rule.as_str());
+			}
+
+			Rule::LineComment => (),
+			Rule::EOI => (),
+			//_ => unreachable!()
+			_ => {
+				println!("99999999999999999 {}", rule.as_str());
+			}
+		}
+	}
+}
 
 
 fn main() {
@@ -36,22 +64,24 @@ fn main() {
 		.expect("LCORE: Failed To Parse") // Unwrap the parse result :D
 		.next().unwrap(); // Get and unwrap the `Program` rule; never failes
 
-	//println!("{:#?}", program);
+	println!("{:#?}", program);
 
-	for rule in program.into_inner() {
-		//println!("+++++++++++++++++++++++++++++++++++++++++++++");
-		//println!("{:#?}", rule.as_rule());
-		//println!("---------------------------------------------");
+	// for rule in program.into_inner() {
+	// 	//println!("+++++++++++++++++++++++++++++++++++++++++++++");
+	// 	//println!("{:#?}", rule.as_rule());
+	// 	//println!("---------------------------------------------");
 
-		match rule.as_rule() {
-			Rule::Function => {
-				let mut inner_rules = rule.into_inner();
-				println!("Function: \"{}\"", inner_rules.next().unwrap().as_str());
-			}
+	// 	match rule.as_rule() {
+	// 		Rule::Function => {
+	// 			let mut inner_rules = rule.into_inner();
+	// 			println!("Function: \"{}\"", inner_rules.next().unwrap().as_str());
+	// 		}
 
-			Rule::LineComment => (),
-			Rule::EOI => (),
-			_ => unreachable!()
-		}
-	}
+	// 		Rule::LineComment => (),
+	// 		Rule::EOI => (),
+	// 		_ => unreachable!()
+	// 	}
+	// }
+
+	interpret(program);
 }
