@@ -59,7 +59,7 @@ fn interpret(node: Pair<'_, Rule>, indent: usize) -> Value {
 	match node.as_rule() {
 		Rule::Program => {
 			for rule in node.into_inner() {
-				// Keep the indent at 0 for the first time
+				// NOTE(pebaz): Keep the indent at 0 for the first time
 				interpret(rule, indent);
 			}
 		}
