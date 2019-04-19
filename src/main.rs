@@ -27,6 +27,8 @@ extern crate pest_derive;
 use std::collections::HashMap;
 use std::fs;
 use std::fmt;
+use std::process::exit;
+use std::str::FromStr;
 use pest::Parser;
 use pest::iterators::Pair;
 use colored::*;
@@ -86,48 +88,59 @@ fn interpret(
 
 	match node.as_rule() {
 		Rule::Program => {
+			// Interpret the program
+
 			for rule in node.into_inner() {
 				// NOTE(pebaz): Keep the indent at 0 for the first time
 				interpret(rule, indent, symtab);
 			}
-
-			// Interpret the program
 		}
 
 		Rule::Identifier => {
 			// Lookup the value of identifier and return that
 			// e.g. Function, String, Array, etc.
+
+			
+			let key = node.as_str();
+
+			if !symtab.contains_key(&key) {
+				panic!("Undefined Variable: No variable named \"{}\"", key);
+			}
+
+			//exit(0);
+
+			let return_value = symtab.get(key);
 		}
 		
 		Rule::Function => {
+			// Execute function (built-in or otherwise)
 
 			//let mut args = Vec<Value>;
 
 			for rule in node.into_inner() {
 				interpret(rule, indent + 1, symtab);
 			}
-
-			// Execute function (built-in or otherwise)
 		}
 
 		Rule::Array => {
+			// Return Value::Array
+
 			for rule in node.into_inner() {
 				interpret(rule, indent + 1, symtab);
 			}
-
-			// Return Value::Array
 		}
 
 		Rule::String => {
+			// Return Value::String
+
 			let return_value = Value::String(String::from(node.as_str()));
+
 			/*
 			println!("FOUND STRING: {}", match return_value {
 				Value::String(s) => { s.as_str().to_owned() }
 				_ => { "".to_owned() }
 			});
 			*/
-
-			// Return Value::String
 		}
 		
 		Rule::Number => {
@@ -136,42 +149,12 @@ fn interpret(
 
 		Rule::Boolean => {
 			// Return Value::Boolean
+
+			let return_value = Value::Boolean(FromStr::from_str(node.as_str()).unwrap());
 		}
 
 		_ => {}
 	}
-
-	/*
-	for rule in node.into_inner() {
-		interpret(rule, indent + 1);
-		match rule.as_rule() {
-
-			Rule::Function => {
-				let mut inner_rules = rule.into_inner();
-				println!("Function: \"{}\"", inner_rules.next().unwrap().as_str().green());
-
-				for rule in inner_rules {
-					println!("{} -> {}", "here".red(), rule.as_str().red());
-					interpret(rule);
-				}
-			}
-
-			Rule::Number => {
-				println!("Number: \"{}\"", rule.as_str().green());
-			}
-
-			Rule::LineComment => (),
-
-			Rule::EOI => (),
-
-			//_ => unreachable!()
-
-			_ => {
-				println!("99999999999999999 {}", rule.as_str().red());
-			}
-		}
-	}
-	*/
 
 	return_value
 }
