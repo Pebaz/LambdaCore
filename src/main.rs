@@ -33,7 +33,6 @@ use pest::Parser;
 use pest::iterators::Pair;
 use colored::*;
 
-
 #[derive(Parser)]
 #[grammar = "LambdaCore.pest"]
 pub struct LambdaCoreParser;
@@ -50,6 +49,8 @@ enum Value {
 	Func { f: fn(&mut Value) }
 }
 
+trait GetBoolean { fn bool(&self) -> &bool; }
+
 impl fmt::Debug for Value {
 	fn fmt(&self, fm: &mut fmt::Formatter) -> fmt::Result {
 		match self {
@@ -63,10 +64,6 @@ impl fmt::Debug for Value {
 			Value::Func { f }     => {  write!(fm, "Func")       }
 		}
 	}
-}
-
-trait GetBoolean {
-	fn bool(&self) -> &bool;
 }
 
 impl GetBoolean for Value {
