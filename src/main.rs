@@ -203,9 +203,20 @@ fn interpret(
 		Rule::Array => {
 			// Return Value::Array
 
+			// for rule in node.into_inner() {
+			// 	interpret(rule, indent + 1, symtab);
+			// }
+
+
+			let mut values = Value::Array(Vec::new());
 			for rule in node.into_inner() {
-				interpret(rule, indent + 1, symtab);
+				match values {
+					Value::Array(ref mut arr) => arr.push(interpret(rule, indent + 1, symtab)),
+					_ => {}
+				}
 			}
+
+			return_value = values;
 		}
 
 		Rule::String => {
@@ -240,23 +251,134 @@ fn interpret(
 
 
 fn lcore_print(args: &mut Value) {
+	fn print_string(v: &String, repr: bool) {
+		if repr {
+			print!("{}", v);
+		} else {
+			print!("{}", &v[1 .. v.len() - 1]);
+		}
+	}
+
+	fn print_boolean(v: &bool, repr: bool) {
+ 		print!("{}", if *v { "True" } else { "False" });
+	}
+
+	fn print_int(v: &i64, repr: bool) {
+		print!("{}", v);
+	}
+
+	fn print_float(v: &f64, repr: bool) {
+		print!("{}", v);
+	}
+
+	fn print_null() {
+		print!("Null");
+	}
+
+	fn print_array(v: &Vec<Value>, repr: bool) {
+		let length = v.len();
+		let mut count = 0;
+		print!("[");
+		for value in v {
+
+			print_value(value, true);
+
+			count += 1;
+			if count < length {
+				print!(", ");
+			}
+		}
+		print!("]");
+	}
+
+	fn print_value(value: &Value, repr: bool) {
+		match value {
+			// Print, stripping out first and last double quotes `"`
+			Value::String(v) => print_string(v, repr),
+			Value::Boolean(v) => print_boolean(v, repr),
+			Value::Int(v) => print_int(v, repr),
+			Value::Float(v) => print_float(v, repr),
+			Value::Array(v) => print_array(v, repr),
+			Value::Null => print_null(),
+			_ => { }
+		}
+	}
+
+
 	let args = args.as_array();
 
 	if args.len() > 1 { crash(format!("Can only print 1 value at a time right now.")); }
 
 	let mut value = args.iter().next().unwrap();
 
-	match value {
-		// Print, stripping out first and last double quotes `"`
-		Value::String(v) => println!("{}", &v[1 .. v.len() - 1]),
-		Value::Boolean(v) => println!("{}", if *v { "True" } else { "False" }),
-		Value::Int(v) => println!("{}", *v),
-		Value::Float(v) => println!("{}", *v),
-		Value::Null => println!("Null"),
-		_ => { }
-	}
+	print_value(value, false);
+	println!("");
 }
 
+
+fn lcore_prin(args: &mut Value) {
+	fn print_string(v: &String, repr: bool) {
+		if repr {
+			print!("{}", v);
+		} else {
+			print!("{}", &v[1 .. v.len() - 1]);
+		}
+	}
+
+	fn print_boolean(v: &bool, repr: bool) {
+ 		print!("{}", if *v { "True" } else { "False" });
+	}
+
+	fn print_int(v: &i64, repr: bool) {
+		print!("{}", v);
+	}
+
+	fn print_float(v: &f64, repr: bool) {
+		print!("{}", v);
+	}
+
+	fn print_null() {
+		print!("Null");
+	}
+
+	fn print_array(v: &Vec<Value>, repr: bool) {
+		let length = v.len();
+		let mut count = 0;
+		print!("[");
+		for value in v {
+
+			print_value(value, true);
+
+			count += 1;
+			if count < length {
+				print!(", ");
+			}
+		}
+		print!("]");
+	}
+
+	fn print_value(value: &Value, repr: bool) {
+		match value {
+			// Print, stripping out first and last double quotes `"`
+			Value::String(v) => print_string(v, repr),
+			Value::Boolean(v) => print_boolean(v, repr),
+			Value::Int(v) => print_int(v, repr),
+			Value::Float(v) => print_float(v, repr),
+			Value::Array(v) => print_array(v, repr),
+			Value::Null => print_null(),
+			_ => { }
+		}
+	}
+
+
+	let args = args.as_array();
+
+	if args.len() > 1 { crash(format!("Can only print 1 value at a time right now.")); }
+
+	let mut value = args.iter().next().unwrap();
+
+	print_value(value, false);
+}
 
 fn main() {
 	let unparsed_file = fs::read_to_string("print.lcore").expect("LCORE: Error Reading File");
@@ -271,6 +393,7 @@ fn main() {
 
 	// Fill the symbol table with built-in functions
 	symbol_table.insert("print", Value::Func { f: lcore_print });
+	symbol_table.insert("prin", Value::Func { f: lcore_prin });
 
 	// Interpret the Program
 	interpret(program, 0, &mut symbol_table);
