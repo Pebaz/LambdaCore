@@ -19,6 +19,7 @@ Goals:
 
 #![allow(unused_imports)]
 #![allow(dead_code)]
+#![allow(unused_variables)]
 
 #[macro_use]
 extern crate pest_derive;
@@ -36,19 +37,19 @@ use colored::*;
 pub struct LambdaCoreParser;
 
 
-struct Func {
-	f: fn(&mut Value)
-}
+// struct Func {
+// 	f: fn(&mut Value)
+// }
 
-impl fmt::Debug for Func {
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		write!(f, "Function")
-	}
-}
+// impl fmt::Debug for Func {
+// 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+// 		write!(f, "Function")
+// 	}
+// }
 
 
 // Value = _{ Array | String | Number | Boolean | Null }
-#[derive(Debug)]
+//#[derive(Debug)]
 enum Value {
 	Null,
 	Boolean(bool),
@@ -56,7 +57,22 @@ enum Value {
 	Float(f64),
 	String(String),
 	Array(Vec<Value>),
-	Function(Func)
+	//Function(Func)
+	Func { f: fn(&mut Value) }
+}
+
+impl fmt::Debug for Value {
+	fn fmt(&self, fm: &mut fmt::Formatter) -> fmt::Result {
+		match self {
+			Value::Null        => { write!(fm, "Null") }
+			Value::Boolean(b)  => { write!(fm, "Boolean") }
+			Value::Int(i)      => { write!(fm, "Int") }
+			Value::Float(fl)   => { write!(fm, "Float") }
+			Value::String(s)   => { write!(fm, "String") }
+			Value::Array(a)    => { write!(fm, "Array") }
+			Value::Func { f }  => { write!(fm, "Func") }
+		}
+	}
 }
 
 fn interpret(
