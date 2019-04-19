@@ -168,19 +168,33 @@ fn interpret(
 
 			//println!("---------> {}", args.as_array()[0].as_bool());
 
-			for rule in node.into_inner() {
+			let mut rules = node.into_inner();
+
+			let func = match rules.next() { 
+				Some(rule) => { interpret(rule, indent + 1, symtab) },
+				_ => unreachable!()
+			};
+
+			//for rule in node.into_inner() {
+			for rule in rules {
 				match args {
 					Value::Array(ref mut arr) => arr.push(interpret(rule, indent + 1, symtab)),
 					_ => {}
 				}
 			}
 
-			println!("{:?}", args.as_array());
+			// println!("{:?}", args.as_array());
+			// let arguments = args.as_array();
+			// println!("COUNT: {}", arguments.len());
 
-			// match args {
-			// 	Value::Array(ref mut arr) => println!("---------> {}", arr[0].as_identifier()),
-			// 	_ => {}
-			// }
+			func.as_func()(&mut args);
+
+			/*
+			match args {
+				Value::Array(ref mut arr) => println!("---------> {}", arr[0].as_identifier()),
+				_ => {}
+			}
+			*/
 		}
 
 		Rule::Array => {
