@@ -14,7 +14,7 @@ Parsed 78k LOC in ~500ms.
 
 
 Goals:
-[ ]
+[ ] Call function
 */
 
 #![allow(unused_imports)]
@@ -37,7 +37,7 @@ use colored::*;
 #[grammar = "LambdaCore.pest"]
 pub struct LambdaCoreParser;
 
-
+#[derive(Clone)]
 enum Value {
 	Null,
 	Identifier(String),
@@ -117,7 +117,7 @@ fn interpret(
 	symtab: &mut HashMap<&str, Value>
 ) -> Value {
 
-	let return_value = Value::Null;
+	let mut return_value = Value::Null;
 
 	if format!("{:#?}", node.as_rule()) != "Program" {
 		println!(
@@ -139,6 +139,7 @@ fn interpret(
 		}
 
 		Rule::Identifier => {
+			println!("2");
 			// Lookup the value of identifier and return that
 			// e.g. Function, String, Array, etc.
 			
@@ -148,24 +149,38 @@ fn interpret(
 				crash(format!("Undefined Variable: No variable named \"{}\"", key));
 			}
 
-			let return_value = symtab.get(key);
+			return_value = symtab.get(key).unwrap().clone();
 		}
 		
 		Rule::Function => {
 			// Execute function (built-in or otherwise)
 
+			println!("1");
+
 			let mut args = Value::Array(Vec::new());
 
+			/*
 			match args {
 				Value::Array(ref mut arr) => arr.push(Value::Boolean(true)),
 				_ => {}
 			}
+			*/
 
-			println!("---------> {}", args.as_array()[0].as_bool());
+			//println!("---------> {}", args.as_array()[0].as_bool());
 
 			for rule in node.into_inner() {
-				interpret(rule, indent + 1, symtab);
+				match args {
+					Value::Array(ref mut arr) => arr.push(interpret(rule, indent + 1, symtab)),
+					_ => {}
+				}
 			}
+
+			println!("{:?}", args.as_array());
+
+			// match args {
+			// 	Value::Array(ref mut arr) => println!("---------> {}", arr[0].as_identifier()),
+			// 	_ => {}
+			// }
 		}
 
 		Rule::Array => {
@@ -177,9 +192,10 @@ fn interpret(
 		}
 
 		Rule::String => {
+			println!("3");
 			// Return Value::String
 
-			let return_value = Value::String(String::from(node.as_str()));
+			return_value = Value::String(String::from(node.as_str()));
 
 			/*
 			println!("FOUND STRING: {}", match return_value {
@@ -196,12 +212,13 @@ fn interpret(
 		Rule::Boolean => {
 			// Return Value::Boolean
 
-			let return_value = Value::Boolean(FromStr::from_str(node.as_str()).unwrap());
+			return_value = Value::Boolean(FromStr::from_str(node.as_str().to_lowercase().as_str()).unwrap());
 		}
 
 		_ => {}
 	}
 
+	println!("{:?}", return_value);
 	return_value
 }
 
