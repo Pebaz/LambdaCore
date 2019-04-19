@@ -1,2 +1,4 @@
 (print "Lambda Core version 0.1.0")
 (print "Hello World!")
+(print True)
+(print False)
