@@ -246,7 +246,8 @@ fn lcore_print(args: &mut Value) {
 	let mut value = args.iter().next().unwrap();
 
 	match value {
-		Value::String(v) => println!("{}", v),
+		// Print, stripping out first and last double quotes `"`
+		Value::String(v) => println!("{}", &v[1..v.len()-1]),
 		_ => { }
 	}
 }
