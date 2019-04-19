@@ -65,8 +65,27 @@ impl fmt::Debug for Value {
 	}
 }
 
+trait GetBoolean {
+	fn bool(&self) -> &bool;
+}
 
-//fn get_args
+impl GetBoolean for Value {
+	fn bool(&self) -> &bool {
+		match self {
+			Value::Boolean(b) => return b,
+			_ => {
+				crash(format!("Cannot cast to boolean"));
+				return &false;
+			}
+		}
+	}
+}
+
+
+fn crash(msg: String) {
+	println!("{}", msg);
+	exit(1);
+}
 
 
 fn interpret(
@@ -103,8 +122,7 @@ fn interpret(
 			let key = node.as_str();
 
 			if !symtab.contains_key(&key) {
-				println!("Undefined Variable: No variable named \"{}\"", key);
-				exit(0);
+				crash(format!("Undefined Variable: No variable named \"{}\"", key));
 			}
 
 			let return_value = symtab.get(key);
@@ -113,7 +131,16 @@ fn interpret(
 		Rule::Function => {
 			// Execute function (built-in or otherwise)
 
-			//let mut args = Vec<Value>;
+			let mut args = Value::Array(Vec::new());
+
+			match args {
+				Value::Array(mut arr) => arr.push(Value::Boolean(true)),
+				_ => {}
+			}
+
+			let blub = Value::Boolean(true);
+
+			println!("---------> {}", blub.bool());
 
 			for rule in node.into_inner() {
 				interpret(rule, indent + 1, symtab);
