@@ -99,15 +99,13 @@ fn interpret(
 		Rule::Identifier => {
 			// Lookup the value of identifier and return that
 			// e.g. Function, String, Array, etc.
-
 			
 			let key = node.as_str();
 
 			if !symtab.contains_key(&key) {
-				panic!("Undefined Variable: No variable named \"{}\"", key);
+				println!("Undefined Variable: No variable named \"{}\"", key);
+				exit(0);
 			}
-
-			//exit(0);
 
 			let return_value = symtab.get(key);
 		}
