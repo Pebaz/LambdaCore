@@ -37,43 +37,35 @@ use colored::*;
 pub struct LambdaCoreParser;
 
 
-// struct Func {
-// 	f: fn(&mut Value)
-// }
-
-// impl fmt::Debug for Func {
-// 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-// 		write!(f, "Function")
-// 	}
-// }
-
-
-// Value = _{ Array | String | Number | Boolean | Null }
-//#[derive(Debug)]
 enum Value {
 	Null,
+	Identifier(String),
 	Boolean(bool),
 	Int(i64),
 	Float(f64),
 	String(String),
 	Array(Vec<Value>),
-	//Function(Func)
 	Func { f: fn(&mut Value) }
 }
 
 impl fmt::Debug for Value {
 	fn fmt(&self, fm: &mut fmt::Formatter) -> fmt::Result {
 		match self {
-			Value::Null        => { write!(fm, "Null") }
-			Value::Boolean(b)  => { write!(fm, "Boolean") }
-			Value::Int(i)      => { write!(fm, "Int") }
-			Value::Float(fl)   => { write!(fm, "Float") }
-			Value::String(s)   => { write!(fm, "String") }
-			Value::Array(a)    => { write!(fm, "Array") }
-			Value::Func { f }  => { write!(fm, "Func") }
+			Value::Null           => {  write!(fm, "Null")       }
+			Value::Identifier(i)  => {  write!(fm, "Identifier") }
+			Value::Boolean(b)     => {  write!(fm, "Boolean")    }
+			Value::Int(i)         => {  write!(fm, "Int")        }
+			Value::Float(fl)      => {  write!(fm, "Float")      }
+			Value::String(s)      => {  write!(fm, "String")     }
+			Value::Array(a)       => {  write!(fm, "Array")      }
+			Value::Func { f }     => {  write!(fm, "Func")       }
 		}
 	}
 }
+
+
+//fn get_args
+
 
 fn interpret(
 	node: Pair<'_, Rule>,
@@ -98,6 +90,13 @@ fn interpret(
 				// NOTE(pebaz): Keep the indent at 0 for the first time
 				interpret(rule, indent, symtab);
 			}
+
+			// Interpret the program
+		}
+
+		Rule::Identifier => {
+			// Lookup the value of identifier and return that
+			// e.g. Function, String, Array, etc.
 		}
 		
 		Rule::Function => {
@@ -107,12 +106,16 @@ fn interpret(
 			for rule in node.into_inner() {
 				interpret(rule, indent + 1, symtab);
 			}
+
+			// Execute function (built-in or otherwise)
 		}
 
 		Rule::Array => {
 			for rule in node.into_inner() {
 				interpret(rule, indent + 1, symtab);
 			}
+
+			// Return Value::Array
 		}
 
 		Rule::String => {
@@ -123,8 +126,18 @@ fn interpret(
 				_ => { "".to_owned() }
 			});
 			*/
+
+			// Return Value::String
 		}
 		
+		Rule::Number => {
+			// Return either Value::Int or Value::Float
+		}
+
+		Rule::Boolean => {
+			// Return Value::Boolean
+		}
+
 		_ => {}
 	}
 
@@ -165,7 +178,7 @@ fn interpret(
 
 
 fn main() {
-	let unparsed_file = fs::read_to_string("hello.lcore").expect("LCORE: Error Reading File");
+	let unparsed_file = fs::read_to_string("print.lcore").expect("LCORE: Error Reading File");
 
 	let program = LambdaCoreParser::parse(Rule::Program, &unparsed_file)
 		.expect("LCORE: Failed To Parse") // Unwrap the parse result :D
@@ -173,25 +186,15 @@ fn main() {
 
 	println!("{:#?}", program);
 
-	// for rule in program.into_inner() {
-	// 	//println!("+++++++++++++++++++++++++++++++++++++++++++++");
-	// 	//println!("{:#?}", rule.as_rule());
-	// 	//println!("---------------------------------------------");
+	fn lcore_print(args: &mut Value) {
+		println!("lcore_print()");
+	}
 
-	// 	match rule.as_rule() {
-	// 		Rule::Function => {
-	// 			let mut inner_rules = rule.into_inner();
-	// 			println!("Function: \"{}\"", inner_rules.next().unwrap().as_str());
-	// 		}
-
-	// 		Rule::LineComment => (),
-	// 		Rule::EOI => (),
-	// 		_ => unreachable!()
-	// 	}
-	// }
-
-	//let mut symbol_table: HashMap<&str, HashMap<&str, &str>> = HashMap::new();
 	let mut symbol_table: HashMap<&str, Value> = HashMap::new();
-	//symbol_table.insert("print");
+
+	// Fill the symbol table with built-in functions
+	symbol_table.insert("print", Value::Func { f: lcore_print });
+
+	// Interpret the Program
 	interpret(program, 0, &mut symbol_table);
 }
