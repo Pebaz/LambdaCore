@@ -2,3 +2,7 @@
 (print "Hello World!")
 (print True)
 (print False)
+(print 11)
+(print 3.14)
+(print "Hamburger")
+(print Null)

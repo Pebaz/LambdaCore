@@ -210,25 +210,26 @@ fn interpret(
 
 		Rule::String => {
 			// Return Value::String
-
 			return_value = Value::String(String::from(node.as_str()));
-
-			/*
-			println!("FOUND STRING: {}", match return_value {
-				Value::String(s) => { s.as_str().to_owned() }
-				_ => { "".to_owned() }
-			});
-			*/
 		}
 		
 		Rule::Number => {
 			// Return either Value::Int or Value::Float
+			if node.as_str().contains(".") {
+				return_value = Value::Float(FromStr::from_str(node.as_str()).unwrap())
+			} else {
+				return_value = Value::Int(FromStr::from_str(node.as_str()).unwrap())
+			}
 		}
 
 		Rule::Boolean => {
 			// Return Value::Boolean
 
 			return_value = Value::Boolean(FromStr::from_str(node.as_str().to_lowercase().as_str()).unwrap());
+		}
+
+		Rule::Null => {
+			return_value = Value::Null;
 		}
 
 		_ => {}
@@ -249,6 +250,9 @@ fn lcore_print(args: &mut Value) {
 		// Print, stripping out first and last double quotes `"`
 		Value::String(v) => println!("{}", &v[1 .. v.len() - 1]),
 		Value::Boolean(v) => println!("{}", if *v { "True" } else { "False" }),
+		Value::Int(v) => println!("{}", *v),
+		Value::Float(v) => println!("{}", *v),
+		Value::Null => println!("Null"),
 		_ => { }
 	}
 }
