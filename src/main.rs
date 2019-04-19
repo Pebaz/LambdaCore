@@ -17,6 +17,7 @@ Goals:
 [ ] Call function
 */
 
+
 #![allow(unused_imports)]
 #![allow(dead_code)]
 #![allow(unused_variables)]
@@ -32,6 +33,8 @@ use std::str::FromStr;
 use pest::Parser;
 use pest::iterators::Pair;
 use colored::*;
+
+static LCORE_DEBUG: bool = false;
 
 #[derive(Parser)]
 #[grammar = "LambdaCore.pest"]
@@ -119,13 +122,15 @@ fn interpret(
 
 	let mut return_value = Value::Null;
 
-	if format!("{:#?}", node.as_rule()) != "Program" {
-		println!(
-			"{}{} -> {}",
-			if indent > 0 { "    ".repeat(indent) } else { String::from("") },
-			format!("{:#?}", node.as_rule()).cyan(),
-			format!("{}", node.as_str()).green(),
-		);
+	if LCORE_DEBUG {
+		if format!("{:#?}", node.as_rule()) != "Program" {
+			println!(
+				"{}{} -> {}",
+				if indent > 0 { "    ".repeat(indent) } else { String::from("") },
+				format!("{:#?}", node.as_rule()).cyan(),
+				format!("{}", node.as_str()).green(),
+			);
+		}
 	}
 
 	match node.as_rule() {
@@ -139,7 +144,6 @@ fn interpret(
 		}
 
 		Rule::Identifier => {
-			println!("2");
 			// Lookup the value of identifier and return that
 			// e.g. Function, String, Array, etc.
 			
@@ -155,7 +159,6 @@ fn interpret(
 		Rule::Function => {
 			// Execute function (built-in or otherwise)
 
-			println!("1");
 
 			let mut args = Value::Array(Vec::new());
 
@@ -206,7 +209,6 @@ fn interpret(
 		}
 
 		Rule::String => {
-			println!("3");
 			// Return Value::String
 
 			return_value = Value::String(String::from(node.as_str()));
@@ -232,8 +234,21 @@ fn interpret(
 		_ => {}
 	}
 
-	println!("{:?}", return_value);
 	return_value
+}
+
+
+fn lcore_print(args: &mut Value) {
+	let args = args.as_array();
+
+	if args.len() > 1 { crash(format!("Can only print 1 value at a time right now.")); }
+
+	let mut value = args.iter().next().unwrap();
+
+	match value {
+		Value::String(v) => println!("{}", v),
+		_ => { }
+	}
 }
 
 
@@ -244,11 +259,7 @@ fn main() {
 		.expect("LCORE: Failed To Parse") // Unwrap the parse result :D
 		.next().unwrap(); // Get and unwrap the `Program` rule; never failes
 
-	println!("{:#?}", program);
-
-	fn lcore_print(args: &mut Value) {
-		println!("lcore_print()");
-	}
+	if LCORE_DEBUG { println!("{:#?}", program); }
 
 	let mut symbol_table: HashMap<&str, Value> = HashMap::new();
 
