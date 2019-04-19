@@ -49,8 +49,6 @@ enum Value {
 	Func { f: fn(&mut Value) }
 }
 
-trait GetBoolean { fn bool(&self) -> &bool; }
-
 impl fmt::Debug for Value {
 	fn fmt(&self, fm: &mut fmt::Formatter) -> fmt::Result {
 		match self {
@@ -66,15 +64,43 @@ impl fmt::Debug for Value {
 	}
 }
 
-impl GetBoolean for Value {
-	fn bool(&self) -> &bool {
-		match self {
-			Value::Boolean(b) => return b,
-			_ => {
-				crash(format!("Cannot cast to boolean"));
-				return &false;
-			}
-		}
+trait GetActualValues {
+	fn as_identifier(&self) -> &String;
+	fn as_bool(&self)       -> &bool;
+	fn as_int(&self)        -> &i64;
+	fn as_float(&self)      -> &f64;
+	fn as_string(&self)     -> &String;
+	fn as_array(&self)      -> &Vec<Value>;
+	fn as_func(&self)       -> &fn(&mut Value);
+}
+
+impl GetActualValues for Value {
+	fn as_identifier(&self) -> &String {
+		match self { Value::Identifier(ref i) => return i, _ => unreachable!() }
+	}
+
+	fn as_bool(&self) -> &bool {
+		match self { Value::Boolean(ref b) => return b, _ => unreachable!() }
+	}
+
+	fn as_int(&self)        -> &i64 {
+		match self { Value::Int(ref i) => return i, _ => unreachable!() }
+	}
+
+	fn as_float(&self)      -> &f64 {
+		match self { Value::Float(ref f) => return f, _ => unreachable!() }
+	}
+
+	fn as_string(&self)     -> &String {
+		match self { Value::String(ref s) => return s, _ => unreachable!() }
+	}
+
+	fn as_array(&self)      -> &Vec<Value> {
+		match self { Value::Array(ref a) => return a, _ => unreachable!() }
+	}
+
+	fn as_func(&self)       -> &fn(&mut Value) {
+		match self { Value::Func { f } => return f, _ => unreachable!() }
 	}
 }
 
@@ -131,13 +157,11 @@ fn interpret(
 			let mut args = Value::Array(Vec::new());
 
 			match args {
-				Value::Array(mut arr) => arr.push(Value::Boolean(true)),
+				Value::Array(ref mut arr) => arr.push(Value::Boolean(true)),
 				_ => {}
 			}
 
-			let blub = Value::Boolean(true);
-
-			println!("---------> {}", blub.bool());
+			println!("---------> {}", args.as_array()[0].as_bool());
 
 			for rule in node.into_inner() {
 				interpret(rule, indent + 1, symtab);
