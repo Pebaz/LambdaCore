@@ -11,6 +11,10 @@ https://pest.rs/book/examples/ini.html
 [ ] Eval Function
 
 Parsed 78k LOC in ~500ms.
+
+
+Goals:
+[ ]
 */
 
 #![allow(unused_imports)]
@@ -21,6 +25,7 @@ extern crate pest_derive;
 
 use std::collections::HashMap;
 use std::fs;
+use std::fmt;
 use pest::Parser;
 use pest::iterators::Pair;
 use colored::*;
@@ -31,6 +36,17 @@ use colored::*;
 pub struct LambdaCoreParser;
 
 
+struct Func {
+	f: fn(&mut Value)
+}
+
+impl fmt::Debug for Func {
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+		write!(f, "Function")
+	}
+}
+
+
 // Value = _{ Array | String | Number | Boolean | Null }
 #[derive(Debug)]
 enum Value {
@@ -39,11 +55,15 @@ enum Value {
 	Int(i64),
 	Float(f64),
 	String(String),
-	Array(Vec<Value>)
+	Array(Vec<Value>),
+	Function(Func)
 }
 
-// def interpret(Pair, SymbolTable)
-fn interpret(node: Pair<'_, Rule>, indent: usize) -> Value {
+fn interpret(
+	node: Pair<'_, Rule>,
+	indent: usize,
+	symtab: &mut HashMap<&str, Value>
+) -> Value {
 
 	let return_value = Value::Null;
 
@@ -60,28 +80,33 @@ fn interpret(node: Pair<'_, Rule>, indent: usize) -> Value {
 		Rule::Program => {
 			for rule in node.into_inner() {
 				// NOTE(pebaz): Keep the indent at 0 for the first time
-				interpret(rule, indent);
+				interpret(rule, indent, symtab);
 			}
 		}
 		
 		Rule::Function => {
+
+			//let mut args = Vec<Value>;
+
 			for rule in node.into_inner() {
-				interpret(rule, indent + 1);
+				interpret(rule, indent + 1, symtab);
 			}
 		}
 
 		Rule::Array => {
 			for rule in node.into_inner() {
-				interpret(rule, indent + 1);
+				interpret(rule, indent + 1, symtab);
 			}
 		}
 
 		Rule::String => {
 			let return_value = Value::String(String::from(node.as_str()));
+			/*
 			println!("FOUND STRING: {}", match return_value {
 				Value::String(s) => { s.as_str().to_owned() }
 				_ => { "".to_owned() }
 			});
+			*/
 		}
 		
 		_ => {}
@@ -150,5 +175,7 @@ fn main() {
 	// }
 
 	//let mut symbol_table: HashMap<&str, HashMap<&str, &str>> = HashMap::new();
-	interpret(program, 0);
+	let mut symbol_table: HashMap<&str, Value> = HashMap::new();
+	//symbol_table.insert("print");
+	interpret(program, 0, &mut symbol_table);
 }
