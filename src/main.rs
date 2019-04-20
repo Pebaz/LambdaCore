@@ -49,7 +49,7 @@ enum Value {
 	Float(f64),
 	String(String),
 	Array(Vec<Value>),
-	Func { f: fn(&mut Value) }
+	Func { f: fn(&mut Value) -> Value }
 }
 
 impl Value {
@@ -77,7 +77,7 @@ impl Value {
 		match self { Value::Array(ref a) => return a, _ => unreachable!() }
 	}
 
-	fn as_func(&self)       -> &fn(&mut Value) {
+	fn as_func(&self)       -> &fn(&mut Value) -> Value {
 		match self { Value::Func { f } => return f, _ => unreachable!() }
 	}
 }
@@ -149,17 +149,7 @@ fn interpret(
 		Rule::Function => {
 			// Execute function (built-in or otherwise)
 
-
 			let mut args = Value::Array(Vec::new());
-
-			/*
-			match args {
-				Value::Array(ref mut arr) => arr.push(Value::Boolean(true)),
-				_ => {}
-			}
-			*/
-
-			//println!("---------> {}", args.as_array()[0].as_bool());
 
 			let mut rules = node.into_inner();
 
@@ -180,14 +170,7 @@ fn interpret(
 			// let arguments = args.as_array();
 			// println!("COUNT: {}", arguments.len());
 
-			func.as_func()(&mut args);
-
-			/*
-			match args {
-				Value::Array(ref mut arr) => println!("---------> {}", arr[0].as_identifier()),
-				_ => {}
-			}
-			*/
+			return_value = func.as_func()(&mut args);
 		}
 
 		Rule::Array => {
@@ -217,9 +200,9 @@ fn interpret(
 		Rule::Number => {
 			// Return either Value::Int or Value::Float
 			if node.as_str().contains(".") {
-				return_value = Value::Float(FromStr::from_str(node.as_str()).unwrap())
+				return_value = Value::Float(FromStr::from_str(node.as_str()).unwrap());
 			} else {
-				return_value = Value::Int(FromStr::from_str(node.as_str()).unwrap())
+				return_value = Value::Int(FromStr::from_str(node.as_str()).unwrap());
 			}
 		}
 
@@ -281,7 +264,7 @@ fn lcore_print_value(args: &mut Value) {
 		print!("]");
 	}
 
-	fn print_func(v: &fn(&mut Value), repr: bool) {
+	fn print_func(v: &fn(&mut Value) -> Value, repr: bool) {
 		print!("<Func at {:p}>", v);
 	}
 
@@ -309,18 +292,39 @@ fn lcore_print_value(args: &mut Value) {
 }
 
 
-fn lcore_prin(args: &mut Value) {
+fn lcore_prin(args: &mut Value) -> Value {
 	lcore_print_value(args);
+	Value::Null
 }
 
 
-fn lcore_print(args: &mut Value) {
+fn lcore_print(args: &mut Value) -> Value {
 	lcore_print_value(args);
 	println!("");
+	Value::Null
 }
 
+
+fn lcore_add(args: &mut Value) -> Value {
+	let mut args = args.as_array().iter();
+	let a = args.next().unwrap();
+	let b = args.next().unwrap();
+	match (a, b) {
+		(Value::Int(v1), Value::Int(v2)) => {
+			return Value::Int(a.as_int() + b.as_int());
+		}
+
+		(Value::Float(v1), Value::Float(v2)) => {
+			return Value::Float(a.as_float() + b.as_float());
+		}
+
+		_ => unreachable!()  // Handle error
+	}
+}
+
+
 fn main() {
-	let unparsed_file = fs::read_to_string("print.lcore").expect("LCORE: Error Reading File");
+	let unparsed_file = fs::read_to_string("add.lcore").expect("LCORE: Error Reading File");
 
 	let program = LambdaCoreParser::parse(Rule::Program, &unparsed_file)
 		.expect("LCORE: Failed To Parse") // Unwrap the parse result :D
@@ -333,6 +337,7 @@ fn main() {
 	// Fill the symbol table with built-in functions
 	symbol_table.insert("print", Value::Func { f: lcore_print });
 	symbol_table.insert("prin", Value::Func { f: lcore_prin });
+	symbol_table.insert("+", Value::Func { f: lcore_add });
 
 	// Interpret the Program
 	interpret(program, 0, &mut symbol_table);

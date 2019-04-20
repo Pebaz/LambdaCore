@@ -14,7 +14,9 @@
 	(print ["This Should Be Quoted"])
 (prin "Function: ")
 	(print print)
+(prin "Return Value: ")
+	(print (print "Hi")) 
+	
 
 :: Bugs
 (print "hello\nworld!")
-
