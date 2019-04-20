@@ -52,32 +52,7 @@ enum Value {
 	Func { f: fn(&mut Value) }
 }
 
-impl fmt::Debug for Value {
-	fn fmt(&self, fm: &mut fmt::Formatter) -> fmt::Result {
-		match self {
-			Value::Null           => {  write!(fm, "Null")       }
-			Value::Identifier(i)  => {  write!(fm, "Identifier") }
-			Value::Boolean(b)     => {  write!(fm, "Boolean")    }
-			Value::Int(i)         => {  write!(fm, "Int")        }
-			Value::Float(fl)      => {  write!(fm, "Float")      }
-			Value::String(s)      => {  write!(fm, "String")     }
-			Value::Array(a)       => {  write!(fm, "Array")      }
-			Value::Func { f }     => {  write!(fm, "Func")       }
-		}
-	}
-}
-
-trait GetActualValues {
-	fn as_identifier(&self) -> &String;
-	fn as_bool(&self)       -> &bool;
-	fn as_int(&self)        -> &i64;
-	fn as_float(&self)      -> &f64;
-	fn as_string(&self)     -> &String;
-	fn as_array(&self)      -> &Vec<Value>;
-	fn as_func(&self)       -> &fn(&mut Value);
-}
-
-impl GetActualValues for Value {
+impl Value {
 	fn as_identifier(&self) -> &String {
 		match self { Value::Identifier(ref i) => return i, _ => unreachable!() }
 	}
@@ -104,6 +79,21 @@ impl GetActualValues for Value {
 
 	fn as_func(&self)       -> &fn(&mut Value) {
 		match self { Value::Func { f } => return f, _ => unreachable!() }
+	}
+}
+
+impl fmt::Debug for Value {
+	fn fmt(&self, fm: &mut fmt::Formatter) -> fmt::Result {
+		match self {
+			Value::Null           => {  write!(fm, "Null")       }
+			Value::Identifier(i)  => {  write!(fm, "Identifier") }
+			Value::Boolean(b)     => {  write!(fm, "Boolean")    }
+			Value::Int(i)         => {  write!(fm, "Int")        }
+			Value::Float(fl)      => {  write!(fm, "Float")      }
+			Value::String(s)      => {  write!(fm, "String")     }
+			Value::Array(a)       => {  write!(fm, "Array")      }
+			Value::Func { f }     => {  write!(fm, "Func")       }
+		}
 	}
 }
 
@@ -250,7 +240,7 @@ fn interpret(
 }
 
 
-fn lcore_print(args: &mut Value) {
+fn lcore_print_value(args: &mut Value) {
 	fn print_string(v: &String, repr: bool) {
 		if repr {
 			print!("{}", v);
@@ -291,6 +281,10 @@ fn lcore_print(args: &mut Value) {
 		print!("]");
 	}
 
+	fn print_func(v: &fn(&mut Value), repr: bool) {
+		print!("<Func at {:p}>", v);
+	}
+
 	fn print_value(value: &Value, repr: bool) {
 		match value {
 			// Print, stripping out first and last double quotes `"`
@@ -299,85 +293,30 @@ fn lcore_print(args: &mut Value) {
 			Value::Int(v) => print_int(v, repr),
 			Value::Float(v) => print_float(v, repr),
 			Value::Array(v) => print_array(v, repr),
+			Value::Func { f: v } => print_func(v, repr),
 			Value::Null => print_null(),
 			_ => { }
 		}
 	}
 
-
 	let args = args.as_array();
 
 	if args.len() > 1 { crash(format!("Can only print 1 value at a time right now.")); }
 
-	let mut value = args.iter().next().unwrap();
+	let value = args.iter().next().unwrap();
 
 	print_value(value, false);
-	println!("");
 }
 
 
 fn lcore_prin(args: &mut Value) {
-	fn print_string(v: &String, repr: bool) {
-		if repr {
-			print!("{}", v);
-		} else {
-			print!("{}", &v[1 .. v.len() - 1]);
-		}
-	}
-
-	fn print_boolean(v: &bool, repr: bool) {
- 		print!("{}", if *v { "True" } else { "False" });
-	}
-
-	fn print_int(v: &i64, repr: bool) {
-		print!("{}", v);
-	}
-
-	fn print_float(v: &f64, repr: bool) {
-		print!("{}", v);
-	}
-
-	fn print_null() {
-		print!("Null");
-	}
-
-	fn print_array(v: &Vec<Value>, repr: bool) {
-		let length = v.len();
-		let mut count = 0;
-		print!("[");
-		for value in v {
-
-			print_value(value, true);
-
-			count += 1;
-			if count < length {
-				print!(", ");
-			}
-		}
-		print!("]");
-	}
-
-	fn print_value(value: &Value, repr: bool) {
-		match value {
-			// Print, stripping out first and last double quotes `"`
-			Value::String(v) => print_string(v, repr),
-			Value::Boolean(v) => print_boolean(v, repr),
-			Value::Int(v) => print_int(v, repr),
-			Value::Float(v) => print_float(v, repr),
-			Value::Array(v) => print_array(v, repr),
-			Value::Null => print_null(),
-			_ => { }
-		}
-	}
+	lcore_print_value(args);
+}
 
 
-	let args = args.as_array();
-
-	if args.len() > 1 { crash(format!("Can only print 1 value at a time right now.")); }
-
-	let mut value = args.iter().next().unwrap();
-
-	print_value(value, false);
+fn lcore_print(args: &mut Value) {
+	lcore_print_value(args);
+	println!("");
 }
 
 fn main() {

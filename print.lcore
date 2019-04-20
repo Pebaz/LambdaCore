@@ -12,6 +12,8 @@
 	(print [1 2 [3 4]])
 (prin "__repr__ String: ")
 	(print ["This Should Be Quoted"])
+(prin "Function: ")
+	(print print)
 
 :: Bugs
 (print "hello\nworld!")
