@@ -1,20 +1,13 @@
 /*
-https://pest.rs/
-https://docs.rs/pest/2.1.0/pest/
-https://docs.rs/pest_derive/2.1.0/pest_derive/
-https://pest.rs/book/examples/ini.html
-
-{ Program : [{ print : ["Hello World"] }] }
-
-[ ] Experiment with walking the tree
-[ ] Eval Value
-[ ] Eval Function
-
 Parsed 78k LOC in ~500ms.
 
 
 Goals:
-[ ] Call function
+[✔] Expose function
+[✔] Call function
+[✔] Return value
+[ ] Transform recursive `interpret` into iteration
+[ ] Allow for multiple stack frames via struct
 */
 
 
@@ -98,6 +91,14 @@ impl fmt::Debug for Value {
 }
 
 
+
+// scopes.push()
+// scopes.pop()
+struct Environment<'a> {
+	scopes: Vec<HashMap<&'a str, Value>>
+}
+
+
 fn crash(msg: String) {
 	println!("{}", msg);
 	exit(1);
@@ -148,6 +149,7 @@ fn interpret(
 		
 		Rule::Function => {
 			// Execute function (built-in or otherwise)
+			// TODO(pebaz): Support user-defined functions
 
 			let mut args = Value::Array(Vec::new());
 
@@ -158,17 +160,11 @@ fn interpret(
 				_ => unreachable!()
 			};
 
-			//for rule in node.into_inner() {
 			for rule in rules {
-				match args {
-					Value::Array(ref mut arr) => arr.push(interpret(rule, indent + 1, symtab)),
-					_ => {}
+				if let Value::Array(ref mut arr) = args {
+					arr.push(interpret(rule, indent + 1, symtab));
 				}
 			}
-
-			// println!("{:?}", args.as_array());
-			// let arguments = args.as_array();
-			// println!("COUNT: {}", arguments.len());
 
 			return_value = func.as_func()(&mut args);
 		}
@@ -176,16 +172,10 @@ fn interpret(
 		Rule::Array => {
 			// Return Value::Array
 
-			// for rule in node.into_inner() {
-			// 	interpret(rule, indent + 1, symtab);
-			// }
-
-
 			let mut values = Value::Array(Vec::new());
 			for rule in node.into_inner() {
-				match values {
-					Value::Array(ref mut arr) => arr.push(interpret(rule, indent + 1, symtab)),
-					_ => {}
+				if let Value::Array(ref mut arr) = values {
+					arr.push(interpret(rule, indent + 1, symtab));
 				}
 			}
 
