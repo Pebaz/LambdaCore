@@ -342,8 +342,8 @@ fn lcore_print(args: &mut Value) -> Value {
 
 fn lcore_add(args: &mut Value) -> Value {
 	let mut args = args.as_array().iter();
-	let a = args.next().unwrap();
-	let b = args.next().unwrap();
+	let a = args.next().expect("Not enough arguments on call to \"add\": 0/2");
+	let b = args.next().expect("Not enough arguments on call to \"add\": 1/2");
 	match (a, b) {
 		(Value::Int(v1), Value::Int(v2)) => {
 			return Value::Int(a.as_int() + b.as_int());
@@ -390,15 +390,15 @@ fn lcore_parse(node: Pair<'_, Rule>, stack: &mut Vec<Value>) {
 
 		Rule::Number => {
 			if node.as_str().contains(".") {
-				stack.push(Value::Float(FromStr::from_str(node.as_str()).unwrap()));
+				stack.push(Value::Float(FromStr::from_str(node.as_str()).unwrap()))
 			} else {
-				stack.push(Value::Int(FromStr::from_str(node.as_str()).unwrap()));
+				stack.push(Value::Int(FromStr::from_str(node.as_str()).unwrap()))
 			}
 		}
 
-		Rule::Identifier => { stack.push(Value::Identifier(String::from(node.as_str()))); }
-		Rule::String => { stack.push(Value::String(String::from(node.as_str()))); }
-		Rule::Boolean => { stack.push(Value::Boolean(FromStr::from_str(node.as_str().to_lowercase().as_str()).unwrap())); }
+		Rule::Identifier => { stack.push(Value::Identifier(String::from(node.as_str()))) }
+		Rule::String => { stack.push(Value::String(String::from(node.as_str()))) }
+		Rule::Boolean => { stack.push(Value::Boolean(FromStr::from_str(node.as_str().to_lowercase().as_str()).unwrap())) }
 		Rule::Null => { stack.push(Value::Null) }
 		Rule::EOI => { }  // May want to use this for module imports :D
 		_ => ()
@@ -406,8 +406,119 @@ fn lcore_parse(node: Pair<'_, Rule>, stack: &mut Vec<Value>) {
 }
 
 
+///
+/// Interpret a LambdaCore Program.
+///
+fn lcore_interpret(
+	stack: &mut Vec<Value>,
+	symbol_table: &mut HashMap<&str, Value>
+) {
+	let mut arrays: Vec<Value> = Vec::with_capacity(64);
+
+	// NOTE(pebaz): Since a function can be called in the global scope, we need
+	// a top-level array to catch any global function call return values.
+	arrays.push(Value::Array(Vec::new()));
+
+	while let Some(node) = stack.pop() {
+		match node {
+			Value::Int(ref v)        => {
+				//println!("Int: {}", node.as_int());
+				let length = arrays.len();
+				if let Value::Array(ref mut v) = arrays[length - 1] {
+					v.push(node)
+				}
+			}
+
+			Value::Float(ref v)      => {
+				//println!("Float: {}", node.as_float());
+				let length = arrays.len();
+				if let Value::Array(ref mut v) = arrays[length - 1] {
+					v.push(node)
+				}
+			}
+
+			Value::String(ref v)     => {
+				//println!("String: {}", node.as_string());
+				let length = arrays.len();
+				if let Value::Array(ref mut v) = arrays[length - 1] {
+					v.push(node)
+				}
+			}
+
+			Value::Identifier(ref v) => {
+				//println!("Identifier: {}", node.as_identifier());
+				let key = node.as_identifier();
+				if !symbol_table.contains_key(key.as_str()) {
+					crash(format!("Undefined Variable: No variable named \"{}\"", key));
+				}
+				let length = arrays.len();
+				if let Value::Array(ref mut v) = arrays[length - 1] {
+					v.push(symbol_table.get(key.as_str()).unwrap().clone())
+				}
+			}
+
+			Value::Boolean(ref v)    => {
+				//println!("Boolean: {}", node.as_string());
+				let length = arrays.len();
+				if let Value::Array(ref mut v) = arrays[length - 1] {
+					v.push(node)
+				}
+			}
+
+			Value::Null              => {
+				//println!("Null");
+				let length = arrays.len();
+				if let Value::Array(ref mut v) = arrays[length - 1] {
+					v.push(node)
+				}
+			}
+
+			Value::OpenFunc          => {
+				// Call the function & store result in `arrays`
+				//println!("(");
+
+				// arrays: Vec<Value::Array>
+				// func: Value::Array.pop()
+				// arrays[-1].push(func(arrays.pop()))
+
+				let length = arrays.len();
+				if let Value::Array(ref mut v) = arrays[length - 1] {
+					let func = v.pop().unwrap();
+					let mut args = arrays.pop().unwrap();
+					let ret = func.as_func()(&mut args);
+					
+					let length = arrays.len();
+					if let Value::Array(ref mut v) = arrays[length - 1] {
+						v.push(ret)
+					}
+				}
+			}
+
+			Value::CloseFunc         => {
+				//println!(")");
+				arrays.push(Value::Array(Vec::new()));
+			}
+
+			Value::OpenBrace         => {
+				//println!("[");
+			}
+
+			Value::CloseBrace        => {
+				//println!("]");
+			}
+
+
+			// Ignored Values:
+			// Value::Func
+			// Value::Array
+			_ => ()
+		}
+	}
+}
+
+
 fn main() {
-	let unparsed_file = fs::read_to_string("add.lcore").expect("LCORE: Error Reading File");
+	let unparsed_file = fs::read_to_string("stress.lcore").expect("LCORE: Error Reading File");
 
 	let program = LambdaCoreParser::parse(Rule::Program, &unparsed_file)
 		.expect("LCORE: Failed To Parse") // Unwrap the parse result :D
@@ -425,28 +536,13 @@ fn main() {
 	// Interpret the Program
 	//interpret(program, 0, &mut symbol_table);
 
-	let mut stack = Vec::new();
+	// TODO(pebaz): Find out a good starting capacity
+	let mut stack = Vec::with_capacity(512);
+
 	lcore_parse(program, &mut stack);
 
 	println!("-----------------");
+	println!("Stack Count: {}", stack.len());
 
-	while let Some(node) = stack.pop() {
-		match node {
-			Value::Int(ref v) => println!("Int: {}", node.as_int()),
-			Value::Float(ref v) => println!("Float: {}", node.as_float()),
-			Value::String(ref v) => println!("String: {}", node.as_string()),
-			Value::Identifier(ref v) => println!("Identifier: {}", node.as_identifier()),
-			Value::Boolean(ref v) => println!(""),
-			Value::Null => println!("Null"),
-			Value::OpenFunc => println!("("),
-			Value::CloseFunc => println!(")"),
-			Value::OpenBrace => println!("["),
-			Value::CloseBrace => println!("]"),
-
-			// Ignored Values:
-			// Value::Func
-			// Value::Array
-			_ => ()
-		}
-	}
+	lcore_interpret(&mut stack, &mut symbol_table);	
 }
