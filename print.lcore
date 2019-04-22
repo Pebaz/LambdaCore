@@ -15,7 +15,7 @@
 (prin "Function: ")
 	(print print)
 (prin "Return Value: ")
-	(print (print "Hi")) 
+	(print (+ 10 (+ 2 -1))) 
 	
 
 :: Bugs
