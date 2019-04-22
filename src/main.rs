@@ -522,7 +522,7 @@ fn lcore_interpret(
 
 
 fn main() {
-	let unparsed_file = fs::read_to_string("order.lcore").expect("LCORE: Error Reading File");
+	let unparsed_file = fs::read_to_string("stress.lcore").expect("LCORE: Error Reading File");
 
 	let program = LambdaCoreParser::parse(Rule::Program, &unparsed_file)
 		.expect("LCORE: Failed To Parse") // Unwrap the parse result :D
