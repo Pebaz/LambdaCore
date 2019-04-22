@@ -77,7 +77,11 @@ enum Value {
 	String(String),
 	Array(Vec<Value>),
 	Func { f: fn(&mut Value) -> Value },
-	Struct { name: String, fields: Vec<Value> }
+	Struct { name: String, fields: Vec<Value> },
+
+	// Lexical Values
+	OpenFunc, CloseFunc,
+	OpenBrace, CloseBrace
 }
 
 impl Value {
@@ -121,10 +125,12 @@ impl fmt::Debug for Value {
 			Value::String(s)      => {  write!(fm, "String")     }
 			Value::Array(a)       => {  write!(fm, "Array")      }
 			Value::Func { f }     => {  write!(fm, "Func")       }
+			Value::OpenFunc       => {  write!(fm, "(")          }
+			Value::CloseFunc      => {  write!(fm, ")")          }
+			Value::OpenBrace      => {  write!(fm, "[")          }
+			Value::CloseBrace     => {  write!(fm, "]")          }
 
-			Value::Struct { name, fields } => {
-				write!(fm, "Struct")
-			}
+			Value::Struct { name, fields } => { write!(fm, "Struct") }
 		}
 	}
 }
@@ -352,8 +358,56 @@ fn lcore_add(args: &mut Value) -> Value {
 }
 
 
+///
+/// Turn tokens into intermediate code.
+///
+fn lcore_parse(node: Pair<'_, Rule>, stack: &mut Vec<Value>) {
+	match node.as_rule() {
+		Rule::Program => {
+			for rule in node.into_inner() {
+				lcore_parse(rule, stack);
+			}
+		}
+
+		Rule::Function => {
+			stack.push(Value::OpenFunc);
+			let mut rules = node.into_inner();
+
+			let func = match rules.next() { 
+				Some(rule) => { stack.push(Value::Identifier(String::from(rule.as_str()))); },
+				_ => unreachable!()
+			};
+
+			for rule in rules { lcore_parse(rule, stack); }
+			stack.push(Value::CloseFunc);
+		}
+
+		Rule::Array => {
+			stack.push(Value::OpenBrace);
+			for rule in node.into_inner() { lcore_parse(rule, stack); }
+			stack.push(Value::CloseBrace);
+		}
+
+		Rule::Number => {
+			if node.as_str().contains(".") {
+				stack.push(Value::Float(FromStr::from_str(node.as_str()).unwrap()));
+			} else {
+				stack.push(Value::Int(FromStr::from_str(node.as_str()).unwrap()));
+			}
+		}
+
+		Rule::Identifier => { stack.push(Value::Identifier(String::from(node.as_str()))); }
+		Rule::String => { stack.push(Value::String(String::from(node.as_str()))); }
+		Rule::Boolean => { stack.push(Value::Boolean(FromStr::from_str(node.as_str().to_lowercase().as_str()).unwrap())); }
+		Rule::Null => { stack.push(Value::Null) }
+		Rule::EOI => { }  // May want to use this for module imports :D
+		_ => ()
+	}
+}
+
+
 fn main() {
-	let unparsed_file = fs::read_to_string("stress.lcore").expect("LCORE: Error Reading File");
+	let unparsed_file = fs::read_to_string("add.lcore").expect("LCORE: Error Reading File");
 
 	let program = LambdaCoreParser::parse(Rule::Program, &unparsed_file)
 		.expect("LCORE: Failed To Parse") // Unwrap the parse result :D
@@ -369,5 +423,30 @@ fn main() {
 	symbol_table.insert("+", Value::Func { f: lcore_add });
 
 	// Interpret the Program
-	interpret(program, 0, &mut symbol_table);
+	//interpret(program, 0, &mut symbol_table);
+
+	let mut stack = Vec::new();
+	lcore_parse(program, &mut stack);
+
+	println!("-----------------");
+
+	while let Some(node) = stack.pop() {
+		match node {
+			Value::Int(ref v) => println!("Int: {}", node.as_int()),
+			Value::Float(ref v) => println!("Float: {}", node.as_float()),
+			Value::String(ref v) => println!("String: {}", node.as_string()),
+			Value::Identifier(ref v) => println!("Identifier: {}", node.as_identifier()),
+			Value::Boolean(ref v) => println!(""),
+			Value::Null => println!("Null"),
+			Value::OpenFunc => println!("("),
+			Value::CloseFunc => println!(")"),
+			Value::OpenBrace => println!("["),
+			Value::CloseBrace => println!("]"),
+
+			// Ignored Values:
+			// Value::Func
+			// Value::Array
+			_ => ()
+		}
+	}
 }
