@@ -1,13 +1,10 @@
-'(go)
-(set 'name "Pebaz")
-
-(quit)
-
-`(print ,"Hello World")
+(print "Hello World!")
+(print (+ 1 2))
 
 
-(print name)
-
-(loop 10 '[
-
-])
+:: (set 'name "Pebaz")
+:: (quit)
+:: `(print ,"Hello World")
+:: (print name)
+:: (loop 10 '[
+:: ])

@@ -368,17 +368,17 @@ fn lcore_interpret(
 
 			Value::String(ref v)     => {
 				println!("String: {}", node.as_string());
-				/*
+				
 				let length = arrays.len();
 				if let Value::Array(ref mut v) = arrays[length - 1] {
 					v.push(node)
 				}
-				*/
+				
 			}
 
 			Value::Identifier(ref v) => {
 				println!("Identifier: {}", node.as_identifier());
-				/*
+				
 				let key = node.as_identifier();
 				if !symbol_table.contains_key(key.as_str()) {
 					crash(format!("Undefined Variable: No variable named \"{}\"", key));
@@ -387,7 +387,7 @@ fn lcore_interpret(
 				if let Value::Array(ref mut v) = arrays[length - 1] {
 					v.push(symbol_table.get(key.as_str()).unwrap().clone())
 				}
-				*/
+				
 			}
 
 			Value::Boolean(ref v)    => {
@@ -413,25 +413,25 @@ fn lcore_interpret(
 			Value::OpenFunc          => {
 				// Call the function & store result in `arrays`
 				println!("(");
+				arrays.push(Value::Array(Vec::new()));
+			}
 
-				/*
+			Value::CloseFunc         => {
+				println!(")");
+				
 				let length = arrays.len();
 				if let Value::Array(ref mut v) = arrays[length - 1] {
-					let func = v.pop().unwrap();
+					let func = v.remove(0);
+
+					//let func = v.pop().unwrap();
 					let mut args = arrays.pop().unwrap();
 					let ret = func.as_func()(&mut args);
-					
+				
 					let length = arrays.len();
 					if let Value::Array(ref mut v) = arrays[length - 1] {
 						v.push(ret)
 					}
 				}
-				*/
-			}
-
-			Value::CloseFunc         => {
-				println!(")");
-				//arrays.push(Value::Array(Vec::new()));
 			}
 
 			Value::OpenBrace         => {
@@ -467,16 +467,16 @@ fn lcore_interpret(
 
 fn main() {
 	let matches = App::new("LambdaCore")
-			.version(crate_version!())
-			.author(crate_authors!())
-			.about("Lisp dialect written in Rust")
-			.arg(Arg::with_name("file")
-				.short("f")
-				.long("file")
-				.value_name("FILE")
-				.help("The script to run")
-				.required(false))
-			.get_matches();
+		.version(crate_version!())
+		.author(crate_authors!())
+		.about("Lisp dialect written in Rust")
+		.arg(Arg::with_name("file")
+			.short("f")
+			.long("file")
+			.value_name("FILE")
+			.help("The script to run")
+			.required(false))
+		.get_matches();
 
 	// Get other CLI switches (not FILE yet)
 
