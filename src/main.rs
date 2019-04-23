@@ -270,6 +270,7 @@ fn lcore_set(args: &mut Value, symbol_table: &mut HashMap<&str, Value>) -> Value
 	let value = args.next().expect("Not enough arguments on call to \"set\": 1/2");
 
 	if let Value::Identifier(v) = var {
+		// Works...?
 		symbol_table.insert("wish-this-worked", value.clone());
 	}
 
