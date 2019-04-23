@@ -367,11 +367,15 @@ fn lcore_add(args: &mut Value) -> Value {
 ///
 /// Turn tokens into intermediate code.
 ///
-fn lcore_parse(node: Pair<'_, Rule>, stack: &mut Vec<Value>) {
+/// Returns: The count of the lines of code in the file.
+///
+fn lcore_parse(node: Pair<'_, Rule>, stack: &mut Vec<Value>) -> i32 {
+	let mut loc = 0;
+
 	match node.as_rule() {
 		Rule::Program => {
 			for rule in node.into_inner().rev() {
-				lcore_parse(rule, stack);
+				loc += lcore_parse(rule, stack);
 			}
 		}
 
@@ -384,13 +388,17 @@ fn lcore_parse(node: Pair<'_, Rule>, stack: &mut Vec<Value>) {
 				_ => unreachable!()
 			};
 
-			for rule in rules { lcore_parse(rule, stack); }
+			for rule in rules {
+				loc += lcore_parse(rule, stack);
+			}
 			stack.push(Value::CloseFunc);
 		}
 
 		Rule::Array => {
 			stack.push(Value::OpenBrace);
-			for rule in node.into_inner() { lcore_parse(rule, stack); }
+			for rule in node.into_inner() {
+				loc += lcore_parse(rule, stack);
+			}
 			stack.push(Value::CloseBrace);
 		}
 
@@ -407,8 +415,13 @@ fn lcore_parse(node: Pair<'_, Rule>, stack: &mut Vec<Value>) {
 		Rule::Boolean => { stack.push(Value::Boolean(FromStr::from_str(node.as_str().to_lowercase().as_str()).unwrap())) }
 		Rule::Null => { stack.push(Value::Null) }
 		Rule::EOI => { }  // May want to use this for module imports :D
+		Rule::NewLine => {
+			loc += 1
+		}
 		_ => ()
 	}
+
+	return loc;
 }
 
 
@@ -545,10 +558,11 @@ fn main() {
 
 	// Get other CLI switches (not FILE yet)
 
-	let code_file = matches.value_of("file");
+	let mut code_file = matches.value_of("file");
 
 	if let Option::None = code_file {
 		println!("REPL\n(> ");
+		code_file = Some("quote.lcore");
 	}
 
 	let unparsed_file = fs::read_to_string(code_file.unwrap()).expect("LCORE: Error Reading File");
@@ -572,10 +586,12 @@ fn main() {
 	// TODO(pebaz): Find out a good starting capacity
 	let mut stack = Vec::with_capacity(512);
 
-	lcore_parse(program, &mut stack);
+	let loc = 1 + lcore_parse(program, &mut stack);
 
-	println!("-----------------");
-	println!("Stack Count: {}", stack.len());
+	println!("----------------------------");
+	println!("| Code Lines | Stack Count |");
+	println!("| {: <10} | {: <11} |", loc, stack.len());
+	println!("----------------------------");
 
 	lcore_interpret(&mut stack, &mut symbol_table);	
 }

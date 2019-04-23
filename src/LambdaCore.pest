@@ -3,7 +3,23 @@
 WHITESPACE = _{ " " | "\t" }
 
 // Programs are constructed from one or more functions
-Program = { SOI ~ (LineComment | Function | NEWLINE)* ~ EOI }
+Program = { SOI ~ (Quote | BackTick | LineComment | Function | NewLine)* ~ EOI }
+
+NewLine = {
+	NEWLINE
+}
+
+Quote = {
+	"'"
+}
+
+BackTick = {
+	"`"
+}
+
+Comma = {
+	","
+}
 
 LineComment = @{ "::" ~ LineCommentContents* }
 	LineCommentContents = { !(NEWLINE) ~ ANY }
@@ -11,8 +27,9 @@ LineComment = @{ "::" ~ LineCommentContents* }
 // It is assumed that you cannot call a value (e.g.: `(True)` or `(3.14)`)
 Function = {
 	"(" ~
+	(Quote | BackTick | Comma)? ~
 	Identifier ~
-	(Value | Identifier | Function | LineComment | NEWLINE)* ~
+	(Quote | BackTick | Comma | Value | Identifier | Function | LineComment | NEWLINE)* ~
 	")"
 }
 
@@ -21,7 +38,7 @@ Important(pbz): Value must preceed Identifier since Identifier is basically a
 catch-all. (e.g. maches `|`, `*`, `asdf`, `123`)
 */
 Identifier = @{
-	(!(":" | "(" | ")" | "[" | "]" | "\"" | "\\" | NEWLINE | WHITESPACE) ~ ANY)+
+	(!("," | "'" | "`" | ":" | "(" | ")" | "[" | "]" | "\"" | "\\" | NEWLINE | WHITESPACE) ~ ANY)+
 	//(ASCII_ALPHANUMERIC | "-" | "_")+
 }
 
