@@ -52,6 +52,7 @@ Questions:
 #[macro_use]
 extern crate pest_derive;
 
+use std::env;
 use std::collections::HashMap;
 use std::fs;
 use std::fmt;
@@ -525,7 +526,15 @@ fn lcore_interpret(
 
 
 fn main() {
-	let unparsed_file = fs::read_to_string("order.lcore").expect("LCORE: Error Reading File");
+	let args: Vec<String> = env::args().collect();
+	let code_file = if args.len() == 1 {
+		// TODO(pebaz): Implement REPL and launch it here.
+		"print.lcore"
+	} else {
+		args[1].as_str()
+	};
+
+	let unparsed_file = fs::read_to_string(code_file).expect("LCORE: Error Reading File");
 
 	let program = LambdaCoreParser::parse(Rule::Program, &unparsed_file)
 		.expect("LCORE: Failed To Parse") // Unwrap the parse result :D
