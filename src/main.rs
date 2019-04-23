@@ -348,37 +348,30 @@ fn lcore_interpret(
 		match node {
 			Value::Int(ref v)        => {
 				println!("Int: {}", node.as_int());
-				/*
 				let length = arrays.len();
 				if let Value::Array(ref mut v) = arrays[length - 1] {
 					v.push(node)
 				}
-				*/
 			}
 
 			Value::Float(ref v)      => {
 				println!("Float: {}", node.as_float());
-				/*
 				let length = arrays.len();
 				if let Value::Array(ref mut v) = arrays[length - 1] {
 					v.push(node)
 				}
-				*/
 			}
 
 			Value::String(ref v)     => {
 				println!("String: {}", node.as_string());
-				
 				let length = arrays.len();
 				if let Value::Array(ref mut v) = arrays[length - 1] {
 					v.push(node)
 				}
-				
 			}
 
 			Value::Identifier(ref v) => {
 				println!("Identifier: {}", node.as_identifier());
-				
 				let key = node.as_identifier();
 				if !symbol_table.contains_key(key.as_str()) {
 					crash(format!("Undefined Variable: No variable named \"{}\"", key));
@@ -387,27 +380,22 @@ fn lcore_interpret(
 				if let Value::Array(ref mut v) = arrays[length - 1] {
 					v.push(symbol_table.get(key.as_str()).unwrap().clone())
 				}
-				
 			}
 
 			Value::Boolean(ref v)    => {
 				println!("Boolean: {}", node.as_string());
-				/*
 				let length = arrays.len();
 				if let Value::Array(ref mut v) = arrays[length - 1] {
 					v.push(node)
 				}
-				*/
 			}
 
 			Value::Null              => {
 				println!("Null");
-				/*
 				let length = arrays.len();
 				if let Value::Array(ref mut v) = arrays[length - 1] {
 					v.push(node)
 				}
-				*/
 			}
 
 			Value::OpenFunc          => {
@@ -436,19 +424,20 @@ fn lcore_interpret(
 
 			Value::OpenBrace         => {
 				println!("[");
-				/*
-				let array = arrays.pop().unwrap();
 				arrays.push(Value::Array(Vec::new()));
-				let length = arrays.len();
-				if let Value::Array(ref mut v) = arrays[length - 1] {
-					v.push(array)
-				}
-				*/
 			}
 
 			Value::CloseBrace        => {
 				println!("]");
+
+				let array = arrays.pop().unwrap();
+
 				//arrays.push(Value::Array(Vec::new()));
+
+				let length = arrays.len();
+				if let Value::Array(ref mut v) = arrays[length - 1] {
+					v.push(array)
+				}
 			}
 
 			Value::Quote | Value::BackTick | Value::Comma => {
