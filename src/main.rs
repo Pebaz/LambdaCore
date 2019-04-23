@@ -5,8 +5,9 @@ Goals:
 [✔] Expose function
 [✔] Call function
 [✔] Return value
-[ ] Transform recursive `interpret` into iteration
+[✔] Transform recursive `interpret` into iteration
 [ ] Allow for multiple stack frames via struct
+[ ] Quoting https://www.gnu.org/software/emacs/manual/html_node/elisp/Quoting.html
 
 Problem: `stress.lcore` takes 13 seconds on performant hardware.
 
