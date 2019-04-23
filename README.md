@@ -5,16 +5,14 @@ A small Lisp written in Rust.
 
 ### Plan
 
-- [ ] Read Lisp file in. File extension: `.lcore`
-- [ ] Parse Lisp syntax.
-- [ ] Agree upon data types.
-- [ ] Call function from Rust in LambdaCore.
+- [x] Read Lisp file in. File extension: `.lcore`
+- [x] Parse Lisp syntax.
+- [x] Agree upon data types.
+- [x] Call function from Rust in LambdaCore.
 - [ ] Print formatted syntax to HTML with colors.
 - [ ] Infinitely Extend. 😃
-- [ ] 
-- [ ] 
 - [ ] Symbol Table (A hidden variable within the scope)
-- [ ] Built-in functions
+- [x] Built-in functions
 
 ##### Quoting
 
@@ -29,9 +27,15 @@ This is going to be an interesting undertaking. Look at quoting, quasi-quoting, 
 
 ### Data Types
 
- * x
- * y
- * z
+ * Null
+ * Identifier
+ * Boolean
+ * Int (x64)
+ * Float (x64)
+ * String
+ * Array
+ * Func
+ * Struct
 
 ### Syntax
 
@@ -48,41 +52,3 @@ This is going to be an interesting undertaking. Look at quoting, quasi-quoting, 
 (defn get-age [person]
 	(ret person/age))
 ```
-
-### Grammar
-
-```javascript
-// Programs are constructed from one or more functions
-Program = { SOI ~ Function+ ~ EOI }
-
-// Functions are identifiers possibly followed by more identifiers or values
-Function = { "(" ~ Identifier ~ (Identifier | Value)* ~ ")" }
-
-Identifier = { (ASCII_ALPHANUMERIC | "-" | "_")+ }
-
-// Don't keep the parsed `Value` object
-Value = _{ String | Number | Boolean | Null }
-
-Boolean = { "True" | "False" }
-
-Null = { "Null" }
-
-String = ${ "\"" ~ StringContents ~ "\"" }
-
-// Keep the whitespace (literal) characters in the string
-StringContents = @{ Character* }
-
-Character = {
-    !("\"" | "\\") ~ ANY
-    | "\\" ~ ("\"" | "\\" | "/" | "b" | "f" | "n" | "r" | "t")
-    | "\\" ~ ("u" ~ ASCII_HEX_DIGIT{4})
-}
-
-Number = @{
-    "-"?
-    ~ ("0" | ASCII_NONZERO_DIGIT ~ ASCII_DIGIT*)
-    ~ ("." ~ ASCII_DIGIT*)?
-    ~ (^"e" ~ ("+" | "-")? ~ ASCII_DIGIT+)?
-}
-```
-
