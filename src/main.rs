@@ -87,7 +87,8 @@ enum Value {
 
 	// Lexical Values
 	OpenFunc, CloseFunc,
-	OpenBrace, CloseBrace
+	OpenBrace, CloseBrace,
+	Quote, BackTick, Comma
 }
 
 impl Value {
@@ -135,6 +136,9 @@ impl fmt::Debug for Value {
 			Value::CloseFunc      => {  write!(fm, ")")          }
 			Value::OpenBrace      => {  write!(fm, "[")          }
 			Value::CloseBrace     => {  write!(fm, "]")          }
+			Value::Quote          => {  write!(fm, "'")          }
+			Value::BackTick       => {  write!(fm, "`")          }
+			Value::Comma          => {  write!(fm, ",")          }
 
 			Value::Struct { name, fields } => { write!(fm, "Struct") }
 		}
@@ -363,6 +367,10 @@ fn lcore_add(args: &mut Value) -> Value {
 	}
 }
 
+fn lcore_quit(args: &mut Value) -> Value {
+	exit(0);
+}
+
 
 ///
 /// Turn tokens into intermediate code.
@@ -414,10 +422,11 @@ fn lcore_parse(node: Pair<'_, Rule>, stack: &mut Vec<Value>) -> i32 {
 		Rule::String => { stack.push(Value::String(String::from(node.as_str()))) }
 		Rule::Boolean => { stack.push(Value::Boolean(FromStr::from_str(node.as_str().to_lowercase().as_str()).unwrap())) }
 		Rule::Null => { stack.push(Value::Null) }
+		Rule::Quote => { stack.push(Value::Quote) }
+		Rule::BackTick => { stack.push(Value::BackTick) }
+		Rule::Comma => { stack.push(Value::Comma) }
+		Rule::NewLine => { loc += 1 }
 		Rule::EOI => { }  // May want to use this for module imports :D
-		Rule::NewLine => {
-			loc += 1
-		}
 		_ => ()
 	}
 
@@ -579,6 +588,7 @@ fn main() {
 	symbol_table.insert("print", Value::Func { f: lcore_print });
 	symbol_table.insert("prin", Value::Func { f: lcore_prin });
 	symbol_table.insert("+", Value::Func { f: lcore_add });
+	symbol_table.insert("quit", Value::Func { f: lcore_quit });
 
 	// Interpret the Program
 	//interpret(program, 0, &mut symbol_table);

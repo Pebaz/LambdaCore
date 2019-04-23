@@ -1,7 +1,12 @@
-`(,print ,"Hello World")
 (set 'name "Pebaz")
+
+(quit)
+
+`(,print ,"Hello World")
+
+
 (print name)
 
-::(loop 10 '[
+(loop 10 '[
 
-::])
+])
