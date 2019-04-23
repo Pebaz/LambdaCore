@@ -1,8 +1,9 @@
+'(go)
 (set 'name "Pebaz")
 
 (quit)
 
-`(,print ,"Hello World")
+`(print ,"Hello World")
 
 
 (print name)

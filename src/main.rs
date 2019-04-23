@@ -160,114 +160,6 @@ fn crash(msg: String) {
 }
 
 
-fn interpret(
-	node: Pair<'_, Rule>,
-	indent: usize,
-	symtab: &mut HashMap<&str, Value>
-) -> Value {
-
-	let mut return_value = Value::Null;
-
-	if LCORE_DEBUG {
-		if format!("{:#?}", node.as_rule()) != "Program" {
-			println!(
-				"{}{} -> {}",
-				if indent > 0 { "    ".repeat(indent) } else { String::from("") },
-				format!("{:#?}", node.as_rule()).cyan(),
-				format!("{}", node.as_str()).green(),
-			);
-		}
-	}
-
-	match node.as_rule() {
-		Rule::Program => {
-			// Interpret the program
-
-			for rule in node.into_inner() {
-				// NOTE(pebaz): Keep the indent at 0 for the first time
-				interpret(rule, indent, symtab);
-			}
-		}
-
-		Rule::Identifier => {
-			// Lookup the value of identifier and return that
-			// e.g. Function, String, Array, etc.
-			
-			let key = node.as_str();
-
-			if !symtab.contains_key(&key) {
-				crash(format!("Undefined Variable: No variable named \"{}\"", key));
-			}
-
-			return_value = symtab.get(key).unwrap().clone();
-		}
-		
-		Rule::Function => {
-			// Execute function (built-in or otherwise)
-			// TODO(pebaz): Support user-defined functions
-
-			let mut args = Value::Array(Vec::new());
-
-			let mut rules = node.into_inner();
-
-			let func = match rules.next() { 
-				Some(rule) => { interpret(rule, indent + 1, symtab) },
-				_ => unreachable!()
-			};
-
-			for rule in rules {
-				if let Value::Array(ref mut arr) = args {
-					arr.push(interpret(rule, indent + 1, symtab));
-				}
-			}
-
-			return_value = func.as_func()(&mut args);
-		}
-
-		Rule::Array => {
-			// Return Value::Array
-
-			let mut values = Value::Array(Vec::new());
-			for rule in node.into_inner() {
-				if let Value::Array(ref mut arr) = values {
-					arr.push(interpret(rule, indent + 1, symtab));
-				}
-			}
-
-			return_value = values;
-		}
-
-		Rule::String => {
-			// Return Value::String
-			return_value = Value::String(String::from(node.as_str()));
-		}
-		
-		Rule::Number => {
-			// Return either Value::Int or Value::Float
-			if node.as_str().contains(".") {
-				return_value = Value::Float(FromStr::from_str(node.as_str()).unwrap());
-			} else {
-				return_value = Value::Int(FromStr::from_str(node.as_str()).unwrap());
-			}
-		}
-
-		Rule::Boolean => {
-			// Return Value::Boolean
-
-			return_value = Value::Boolean(FromStr::from_str(node.as_str().to_lowercase().as_str()).unwrap());
-		}
-
-		Rule::Null => {
-			return_value = Value::Null;
-		}
-
-		_ => {}
-	}
-
-	return_value
-}
-
-
 fn lcore_print_value(args: &mut Value) {
 	fn print_string(v: &String, repr: bool) {
 		if repr {
@@ -386,7 +278,7 @@ fn lcore_parse(
 
 	match node.as_rule() {
 		Rule::Program => {
-			for rule in node.into_inner().rev() {
+			for rule in node.into_inner() {
 				loc += lcore_parse(rule, stack);
 			}
 		}
@@ -455,31 +347,38 @@ fn lcore_interpret(
 	while let Some(node) = stack.pop_front() {
 		match node {
 			Value::Int(ref v)        => {
-				//println!("Int: {}", node.as_int());
+				println!("Int: {}", node.as_int());
+				/*
 				let length = arrays.len();
 				if let Value::Array(ref mut v) = arrays[length - 1] {
 					v.push(node)
 				}
+				*/
 			}
 
 			Value::Float(ref v)      => {
-				//println!("Float: {}", node.as_float());
+				println!("Float: {}", node.as_float());
+				/*
 				let length = arrays.len();
 				if let Value::Array(ref mut v) = arrays[length - 1] {
 					v.push(node)
 				}
+				*/
 			}
 
 			Value::String(ref v)     => {
-				//println!("String: {}", node.as_string());
+				println!("String: {}", node.as_string());
+				/*
 				let length = arrays.len();
 				if let Value::Array(ref mut v) = arrays[length - 1] {
 					v.push(node)
 				}
+				*/
 			}
 
 			Value::Identifier(ref v) => {
-				//println!("Identifier: {}", node.as_identifier());
+				println!("Identifier: {}", node.as_identifier());
+				/*
 				let key = node.as_identifier();
 				if !symbol_table.contains_key(key.as_str()) {
 					crash(format!("Undefined Variable: No variable named \"{}\"", key));
@@ -488,32 +387,34 @@ fn lcore_interpret(
 				if let Value::Array(ref mut v) = arrays[length - 1] {
 					v.push(symbol_table.get(key.as_str()).unwrap().clone())
 				}
+				*/
 			}
 
 			Value::Boolean(ref v)    => {
-				//println!("Boolean: {}", node.as_string());
+				println!("Boolean: {}", node.as_string());
+				/*
 				let length = arrays.len();
 				if let Value::Array(ref mut v) = arrays[length - 1] {
 					v.push(node)
 				}
+				*/
 			}
 
 			Value::Null              => {
-				//println!("Null");
+				println!("Null");
+				/*
 				let length = arrays.len();
 				if let Value::Array(ref mut v) = arrays[length - 1] {
 					v.push(node)
 				}
+				*/
 			}
 
 			Value::OpenFunc          => {
 				// Call the function & store result in `arrays`
-				//println!("(");
+				println!("(");
 
-				// arrays: Vec<Value::Array>
-				// func: Value::Array.pop()
-				// arrays[-1].push(func(arrays.pop()))
-
+				/*
 				let length = arrays.len();
 				if let Value::Array(ref mut v) = arrays[length - 1] {
 					let func = v.pop().unwrap();
@@ -525,26 +426,33 @@ fn lcore_interpret(
 						v.push(ret)
 					}
 				}
+				*/
 			}
 
 			Value::CloseFunc         => {
-				//println!(")");
-				arrays.push(Value::Array(Vec::new()));
+				println!(")");
+				//arrays.push(Value::Array(Vec::new()));
 			}
 
 			Value::OpenBrace         => {
-				//println!("[");
+				println!("[");
+				/*
 				let array = arrays.pop().unwrap();
 				arrays.push(Value::Array(Vec::new()));
 				let length = arrays.len();
 				if let Value::Array(ref mut v) = arrays[length - 1] {
 					v.push(array)
 				}
+				*/
 			}
 
 			Value::CloseBrace        => {
-				//println!("]");
-				arrays.push(Value::Array(Vec::new()));
+				println!("]");
+				//arrays.push(Value::Array(Vec::new()));
+			}
+
+			Value::Quote | Value::BackTick | Value::Comma => {
+				println!("{:?}", node);
 			}
 
 
