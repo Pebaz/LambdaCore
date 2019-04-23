@@ -52,6 +52,9 @@ Questions:
 #[macro_use]
 extern crate pest_derive;
 
+#[macro_use]
+extern crate clap;
+
 use std::env;
 use std::collections::HashMap;
 use std::fs;
@@ -61,6 +64,7 @@ use std::str::FromStr;
 use pest::Parser;
 use pest::iterators::Pair;
 use colored::*;
+use clap::{App, Arg};
 
 static LCORE_DEBUG: bool = false;
 
@@ -526,15 +530,27 @@ fn lcore_interpret(
 
 
 fn main() {
-	let args: Vec<String> = env::args().collect();
-	let code_file = if args.len() == 1 {
-		// TODO(pebaz): Implement REPL and launch it here.
-		"print.lcore"
-	} else {
-		args[1].as_str()
-	};
+	let matches = App::new("LambdaCore")
+			.version(crate_version!())
+			.author(crate_authors!())
+			.about("Lisp dialect written in Rust")
+			.arg(Arg::with_name("file")
+				.short("f")
+				.long("file")
+				.value_name("FILE")
+				.help("The script to run")
+				.required(false))
+			.get_matches();
 
-	let unparsed_file = fs::read_to_string(code_file).expect("LCORE: Error Reading File");
+	// Get other CLI switches (not FILE yet)
+
+	let code_file = matches.value_of("file");
+
+	if let Option::None = code_file {
+		println!("REPL\n(> ");
+	}
+
+	let unparsed_file = fs::read_to_string(code_file.unwrap()).expect("LCORE: Error Reading File");
 
 	let program = LambdaCoreParser::parse(Rule::Program, &unparsed_file)
 		.expect("LCORE: Failed To Parse") // Unwrap the parse result :D
