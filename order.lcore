@@ -1,5 +1,5 @@
 (print "First")
 (print (print "Second"))
-(print (+ 1 [2]))
-(print [1])
+(print (+ 1 2))
+(print [1 2.0 "Three"])
 
