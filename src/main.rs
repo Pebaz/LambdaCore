@@ -82,7 +82,7 @@ enum Value {
 	Float(f64),
 	String(String),
 	Array(Vec<Value>),
-	Func { f: fn(&mut Value) -> Value },
+	Func { f: fn(&mut Value, &mut HashMap<&str, Value>) -> Value },
 	Struct { name: String, fields: Vec<Value> },
 
 	// Lexical Values
@@ -116,7 +116,7 @@ impl Value {
 		match self { Value::Array(ref a) => return a, _ => unreachable!() }
 	}
 
-	fn as_func(&self)       -> &fn(&mut Value) -> Value {
+	fn as_func(&self)       -> &fn(&mut Value, &mut HashMap<&str, Value>) -> Value {
 		match self { Value::Func { f } => return f, _ => unreachable!() }
 	}
 }
@@ -201,7 +201,7 @@ fn lcore_print_value(args: &mut Value) {
 		print!("]");
 	}
 
-	fn print_func(v: &fn(&mut Value) -> Value, repr: bool) {
+	fn print_func(v: &fn(&mut Value, &mut HashMap<&str, Value>) -> Value, repr: bool) {
 		print!("<Func at {:p}>", v);
 	}
 
@@ -229,20 +229,20 @@ fn lcore_print_value(args: &mut Value) {
 }
 
 
-fn lcore_prin(args: &mut Value) -> Value {
+fn lcore_prin(args: &mut Value, symbol_table: &mut HashMap<&str, Value>) -> Value {
 	lcore_print_value(args);
 	Value::Null
 }
 
 
-fn lcore_print(args: &mut Value) -> Value {
+fn lcore_print(args: &mut Value, symbol_table: &mut HashMap<&str, Value>) -> Value {
 	lcore_print_value(args);
 	println!("");
 	Value::Null
 }
 
 
-fn lcore_add(args: &mut Value) -> Value {
+fn lcore_add(args: &mut Value, symbol_table: &mut HashMap<&str, Value>) -> Value {
 	let mut args = args.as_array().iter();
 	let a = args.next().expect("Not enough arguments on call to \"add\": 0/2");
 	let b = args.next().expect("Not enough arguments on call to \"add\": 1/2");
@@ -259,8 +259,21 @@ fn lcore_add(args: &mut Value) -> Value {
 	}
 }
 
-fn lcore_quit(args: &mut Value) -> Value {
+fn lcore_quit(args: &mut Value, symbol_table: &mut HashMap<&str, Value>) -> Value {
 	exit(0);
+}
+
+fn lcore_set(args: &mut Value, symbol_table: &mut HashMap<&str, Value>) -> Value {
+	let mut args = args.as_array().iter();
+
+	let var = args.next().expect("Not enough arguments on call to \"set\": 0/2");
+	let value = args.next().expect("Not enough arguments on call to \"set\": 1/2");
+
+	if let Value::Identifier(v) = var {
+		symbol_table.insert("wish-this-worked", value.clone());
+	}
+
+	Value::Null
 }
 
 
@@ -345,6 +358,9 @@ fn lcore_interpret(
 	arrays.push(Value::Array(Vec::new()));
 
 	while let Some(node) = stack.pop_front() {
+
+
+
 		match node {
 			Value::Int(ref v)        => {
 				println!("Int: {}", node.as_int());
@@ -372,6 +388,47 @@ fn lcore_interpret(
 
 			Value::Identifier(ref v) => {
 				println!("Identifier: {}", node.as_identifier());
+
+				let length = arrays.len();
+
+				if let Value::Array(ref mut v) = arrays[length - 1] {
+
+					if let Some(last) = v.last_mut() {
+						// Replace the quote with the current node (skipping it)
+						//*last = node;
+						if let Value::Quote = last {
+							println!("Quoted");
+							*last = node;
+						} else {
+							// Lookup the current node and push it
+							println!("Normal");
+
+							let key = node.as_identifier();
+							if !symbol_table.contains_key(key.as_str()) {
+								crash(format!("Undefined Variable: No variable named \"{}\"", key));
+							}
+							let length = arrays.len();
+							if let Value::Array(ref mut array) = arrays[length - 1] {
+								array.push(symbol_table.get(key.as_str()).unwrap().clone())
+							}
+						}
+					} else {
+							// Lookup the current node and push it
+							println!("Normal");
+
+							let key = node.as_identifier();
+							if !symbol_table.contains_key(key.as_str()) {
+								crash(format!("Undefined Variable: No variable named \"{}\"", key));
+							}
+							let length = arrays.len();
+							if let Value::Array(ref mut array) = arrays[length - 1] {
+								array.push(symbol_table.get(key.as_str()).unwrap().clone())
+							}
+						}
+				}
+
+				
+				/*
 				let key = node.as_identifier();
 				if !symbol_table.contains_key(key.as_str()) {
 					crash(format!("Undefined Variable: No variable named \"{}\"", key));
@@ -380,6 +437,7 @@ fn lcore_interpret(
 				if let Value::Array(ref mut v) = arrays[length - 1] {
 					v.push(symbol_table.get(key.as_str()).unwrap().clone())
 				}
+				*/
 			}
 
 			Value::Boolean(ref v)    => {
@@ -413,7 +471,7 @@ fn lcore_interpret(
 
 					//let func = v.pop().unwrap();
 					let mut args = arrays.pop().unwrap();
-					let ret = func.as_func()(&mut args);
+					let ret = func.as_func()(&mut args, symbol_table);
 				
 					let length = arrays.len();
 					if let Value::Array(ref mut v) = arrays[length - 1] {
@@ -442,6 +500,10 @@ fn lcore_interpret(
 
 			Value::Quote | Value::BackTick | Value::Comma => {
 				println!("{:?}", node);
+				let length = arrays.len();
+				if let Value::Array(ref mut v) = arrays[length - 1] {
+					v.push(node)
+				}
 			}
 
 
@@ -491,6 +553,7 @@ fn main() {
 	symbol_table.insert("prin", Value::Func { f: lcore_prin });
 	symbol_table.insert("+", Value::Func { f: lcore_add });
 	symbol_table.insert("quit", Value::Func { f: lcore_quit });
+	symbol_table.insert("set", Value::Func { f: lcore_set });
 
 	// Interpret the Program
 	//interpret(program, 0, &mut symbol_table);

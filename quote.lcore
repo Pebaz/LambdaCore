@@ -1,9 +1,6 @@
-(print "Hello World!")
-(print (+ 1 2))
-(print ["1" "2" "3"])
+(set 'name "Pebaz")
+(print wish-this-worked)
 
-
-:: (set 'name "Pebaz")
 :: (quit)
 :: `(print ,"Hello World")
 :: (print name)
