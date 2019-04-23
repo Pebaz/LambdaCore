@@ -57,7 +57,7 @@ extern crate pest_derive;
 extern crate clap;
 
 use std::env;
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::fs;
 use std::fmt;
 use std::process::exit;
