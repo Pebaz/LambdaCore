@@ -83,7 +83,7 @@ enum Value {
 	Float(f64),
 	String(String),
 	Array(Vec<Value>),
-	Func { f: fn(&mut Value, &mut HashMap<&str, Value>) -> Value },
+	Func { f: fn(&mut Value, &mut HashMap<String, Value>) -> Value },
 	Struct { name: String, fields: Vec<Value> },
 
 	// Lexical Values
@@ -117,7 +117,7 @@ impl Value {
 		match self { Value::Array(ref a) => return a, _ => unreachable!() }
 	}
 
-	fn as_func(&self)       -> &fn(&mut Value, &mut HashMap<&str, Value>) -> Value {
+	fn as_func(&self)       -> &fn(&mut Value, &mut HashMap<String, Value>) -> Value {
 		match self { Value::Func { f } => return f, _ => unreachable!() }
 	}
 }
@@ -202,7 +202,7 @@ fn lcore_print_value(args: &mut Value) {
 		print!("]");
 	}
 
-	fn print_func(v: &fn(&mut Value, &mut HashMap<&str, Value>) -> Value, repr: bool) {
+	fn print_func(v: &fn(&mut Value, &mut HashMap<String, Value>) -> Value, repr: bool) {
 		print!("<Func at {:p}>", v);
 	}
 
@@ -230,20 +230,20 @@ fn lcore_print_value(args: &mut Value) {
 }
 
 
-fn lcore_prin(args: &mut Value, symbol_table: &mut HashMap<&str, Value>) -> Value {
+fn lcore_prin(args: &mut Value, symbol_table: &mut HashMap<String, Value>) -> Value {
 	lcore_print_value(args);
 	Value::Null
 }
 
 
-fn lcore_print(args: &mut Value, symbol_table: &mut HashMap<&str, Value>) -> Value {
+fn lcore_print(args: &mut Value, symbol_table: &mut HashMap<String, Value>) -> Value {
 	lcore_print_value(args);
 	println!("");
 	Value::Null
 }
 
 
-fn lcore_add(args: &mut Value, symbol_table: &mut HashMap<&str, Value>) -> Value {
+fn lcore_add(args: &mut Value, symbol_table: &mut HashMap<String, Value>) -> Value {
 	let mut args = args.as_array().iter();
 	let a = args.next().expect("Not enough arguments on call to \"add\": 0/2");
 	let b = args.next().expect("Not enough arguments on call to \"add\": 1/2");
@@ -260,11 +260,11 @@ fn lcore_add(args: &mut Value, symbol_table: &mut HashMap<&str, Value>) -> Value
 	}
 }
 
-fn lcore_quit(args: &mut Value, symbol_table: &mut HashMap<&str, Value>) -> Value {
+fn lcore_quit(args: &mut Value, symbol_table: &mut HashMap<String, Value>) -> Value {
 	exit(0);
 }
 
-fn lcore_set(args: &mut Value, symbol_table: &mut HashMap<&str, Value>) -> Value {
+fn lcore_set(args: &mut Value, symbol_table: &mut HashMap<String, Value>) -> Value {
 	let mut args = args.as_array().iter();
 
 	let var = args.next().expect("Not enough arguments on call to \"set\": 0/2");
@@ -272,7 +272,9 @@ fn lcore_set(args: &mut Value, symbol_table: &mut HashMap<&str, Value>) -> Value
 
 	if let Value::Identifier(v) = var {
 		// Works...?
-		symbol_table.insert("wish-this-worked", value.clone());
+		//symbol_table.insert(String::from("wish-this-worked"), value.clone());
+
+		symbol_table.insert(v.clone().to_string(), value.clone());
 	}
 
 	Value::Null
@@ -351,7 +353,7 @@ fn lcore_parse(
 fn lcore_interpret(
 	//stack: &mut Vec<Value>,
 	stack: &mut VecDeque<Value>,
-	symbol_table: &mut HashMap<&str, Value>
+	symbol_table: &mut HashMap<String, Value>
 ) {
 	let mut arrays: Vec<Value> = Vec::with_capacity(64);
 
@@ -365,7 +367,7 @@ fn lcore_interpret(
 
 		match node {
 			Value::Int(ref v)        => {
-				println!("Int: {}", node.as_int());
+				if LCORE_DEBUG { println!("Int: {}", node.as_int()); }
 				let length = arrays.len();
 				if let Value::Array(ref mut v) = arrays[length - 1] {
 					v.push(node)
@@ -373,7 +375,7 @@ fn lcore_interpret(
 			}
 
 			Value::Float(ref v)      => {
-				println!("Float: {}", node.as_float());
+				if LCORE_DEBUG { println!("Float: {}", node.as_float()); }
 				let length = arrays.len();
 				if let Value::Array(ref mut v) = arrays[length - 1] {
 					v.push(node)
@@ -381,7 +383,7 @@ fn lcore_interpret(
 			}
 
 			Value::String(ref v)     => {
-				println!("String: {}", node.as_string());
+				if LCORE_DEBUG { println!("String: {}", node.as_string()); }
 				let length = arrays.len();
 				if let Value::Array(ref mut v) = arrays[length - 1] {
 					v.push(node)
@@ -389,7 +391,7 @@ fn lcore_interpret(
 			}
 
 			Value::Identifier(ref v) => {
-				println!("Identifier: {}", node.as_identifier());
+				if LCORE_DEBUG { println!("Identifier: {}", node.as_identifier()); }
 
 				let length = arrays.len();
 
@@ -399,11 +401,11 @@ fn lcore_interpret(
 						// Replace the quote with the current node (skipping it)
 						//*last = node;
 						if let Value::Quote = last {
-							println!("Quoted");
+							if LCORE_DEBUG { println!("Quoted"); }
 							*last = node;
 						} else {
 							// Lookup the current node and push it
-							println!("Normal");
+							if LCORE_DEBUG { println!("Normal"); }
 
 							let key = node.as_identifier();
 							if !symbol_table.contains_key(key.as_str()) {
@@ -416,7 +418,7 @@ fn lcore_interpret(
 						}
 					} else {
 							// Lookup the current node and push it
-							println!("Normal");
+							if LCORE_DEBUG { println!("Normal"); }
 
 							let key = node.as_identifier();
 							if !symbol_table.contains_key(key.as_str()) {
@@ -443,7 +445,7 @@ fn lcore_interpret(
 			}
 
 			Value::Boolean(ref v)    => {
-				println!("Boolean: {}", node.as_string());
+				if LCORE_DEBUG { println!("Boolean: {}", node.as_string()); }
 				let length = arrays.len();
 				if let Value::Array(ref mut v) = arrays[length - 1] {
 					v.push(node)
@@ -451,7 +453,7 @@ fn lcore_interpret(
 			}
 
 			Value::Null              => {
-				println!("Null");
+				if LCORE_DEBUG { println!("Null"); }
 				let length = arrays.len();
 				if let Value::Array(ref mut v) = arrays[length - 1] {
 					v.push(node)
@@ -460,12 +462,12 @@ fn lcore_interpret(
 
 			Value::OpenFunc          => {
 				// Call the function & store result in `arrays`
-				println!("(");
+				if LCORE_DEBUG { println!("("); }
 				arrays.push(Value::Array(Vec::new()));
 			}
 
 			Value::CloseFunc         => {
-				println!(")");
+				if LCORE_DEBUG { println!(")"); }
 				
 				let length = arrays.len();
 				if let Value::Array(ref mut v) = arrays[length - 1] {
@@ -483,12 +485,12 @@ fn lcore_interpret(
 			}
 
 			Value::OpenBrace         => {
-				println!("[");
+				if LCORE_DEBUG { println!("["); }
 				arrays.push(Value::Array(Vec::new()));
 			}
 
 			Value::CloseBrace        => {
-				println!("]");
+				if LCORE_DEBUG { println!("]"); }
 
 				let array = arrays.pop().unwrap();
 
@@ -501,7 +503,7 @@ fn lcore_interpret(
 			}
 
 			Value::Quote | Value::BackTick | Value::Comma => {
-				println!("{:?}", node);
+				if LCORE_DEBUG { println!("{:?}", node); }
 				let length = arrays.len();
 				if let Value::Array(ref mut v) = arrays[length - 1] {
 					v.push(node)
@@ -548,14 +550,14 @@ fn main() {
 
 	if LCORE_DEBUG { println!("{:#?}", program); }
 
-	let mut symbol_table: HashMap<&str, Value> = HashMap::new();
+	let mut symbol_table: HashMap<String, Value> = HashMap::new();
 
 	// Fill the symbol table with built-in functions
-	symbol_table.insert("print", Value::Func { f: lcore_print });
-	symbol_table.insert("prin", Value::Func { f: lcore_prin });
-	symbol_table.insert("+", Value::Func { f: lcore_add });
-	symbol_table.insert("quit", Value::Func { f: lcore_quit });
-	symbol_table.insert("set", Value::Func { f: lcore_set });
+	symbol_table.insert(String::from("print"), Value::Func { f: lcore_print });
+	symbol_table.insert(String::from("prin"), Value::Func { f: lcore_prin });
+	symbol_table.insert(String::from("+"), Value::Func { f: lcore_add });
+	symbol_table.insert(String::from("quit"), Value::Func { f: lcore_quit });
+	symbol_table.insert(String::from("set"), Value::Func { f: lcore_set });
 
 	// Interpret the Program
 	//interpret(program, 0, &mut symbol_table);
@@ -565,12 +567,12 @@ fn main() {
 
 	let mut stack = VecDeque::new();
 	let loc = 1 + lcore_parse(program, &mut stack);
-	stack.reserve(loc * 4);
+	stack.reserve(loc * 2);
 
-	println!("----------------------------");
-	println!("| Code Lines | Stack Count |");
-	println!("| {: <10} | {: <11} |", loc, stack.len());
-	println!("----------------------------");
+	println!("---------------------------------------------");
+	println!("| Code Lines | Planned Stack | Actual Stack |");
+	println!("| {: <10} | {: <13} | {: <12} |", loc, stack.capacity(), stack.len());
+	println!("---------------------------------------------\n");
 
 	lcore_interpret(&mut stack, &mut symbol_table);	
 }
