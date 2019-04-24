@@ -1,12 +1,8 @@
 (set 'name "Pebaz")
+(print wish-this-worked)
 
-(quit)
-
-`(,print ,"Hello World")
-
-
-(print name)
-
-(loop 10 '[
-
-])
+:: (quit)
+:: `(print ,"Hello World")
+:: (print name)
+:: (loop 10 '[
+:: ])

@@ -27,9 +27,8 @@ LineComment = @{ "::" ~ LineCommentContents* }
 // It is assumed that you cannot call a value (e.g.: `(True)` or `(3.14)`)
 Function = {
 	"(" ~
-	(Quote | BackTick | Comma)? ~
 	Identifier ~
-	(Quote | BackTick | Comma | Value | Identifier | Function | LineComment | NEWLINE)* ~
+	(Comma | Quote | BackTick | Value | Identifier | Function | LineComment | NEWLINE)* ~
 	")"
 }
 
@@ -39,12 +38,11 @@ catch-all. (e.g. maches `|`, `*`, `asdf`, `123`)
 */
 Identifier = @{
 	(!("," | "'" | "`" | ":" | "(" | ")" | "[" | "]" | "\"" | "\\" | NEWLINE | WHITESPACE) ~ ANY)+
-	//(ASCII_ALPHANUMERIC | "-" | "_")+
 }
 
 Value = _{ Array | String | Number | Boolean | Null }
 
-Array = { "[" ~ (LineComment | Value | Identifier | Function | NEWLINE)* ~ "]" }
+Array = { "[" ~ (Comma | Quote | BackTick | LineComment | Value | Identifier | Function | NEWLINE)* ~ "]" }
 
 Boolean = { "True" | "False" }
 

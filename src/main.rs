@@ -43,6 +43,7 @@ Questions:
  3. If so, would moving to the much less elegant stack-based approach really be
     better for this particular project?
  4. How will user-defined functions and data types work?
+
 */
 
 
@@ -57,7 +58,7 @@ extern crate pest_derive;
 extern crate clap;
 
 use std::env;
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::fs;
 use std::fmt;
 use std::process::exit;
@@ -82,7 +83,7 @@ enum Value {
 	Float(f64),
 	String(String),
 	Array(Vec<Value>),
-	Func { f: fn(&mut Value) -> Value },
+	Func { f: fn(&mut Value, &mut HashMap<&str, Value>) -> Value },
 	Struct { name: String, fields: Vec<Value> },
 
 	// Lexical Values
@@ -116,7 +117,7 @@ impl Value {
 		match self { Value::Array(ref a) => return a, _ => unreachable!() }
 	}
 
-	fn as_func(&self)       -> &fn(&mut Value) -> Value {
+	fn as_func(&self)       -> &fn(&mut Value, &mut HashMap<&str, Value>) -> Value {
 		match self { Value::Func { f } => return f, _ => unreachable!() }
 	}
 }
@@ -157,114 +158,6 @@ struct Environment<'a> {
 fn crash(msg: String) {
 	println!("{}", msg);
 	exit(1);
-}
-
-
-fn interpret(
-	node: Pair<'_, Rule>,
-	indent: usize,
-	symtab: &mut HashMap<&str, Value>
-) -> Value {
-
-	let mut return_value = Value::Null;
-
-	if LCORE_DEBUG {
-		if format!("{:#?}", node.as_rule()) != "Program" {
-			println!(
-				"{}{} -> {}",
-				if indent > 0 { "    ".repeat(indent) } else { String::from("") },
-				format!("{:#?}", node.as_rule()).cyan(),
-				format!("{}", node.as_str()).green(),
-			);
-		}
-	}
-
-	match node.as_rule() {
-		Rule::Program => {
-			// Interpret the program
-
-			for rule in node.into_inner() {
-				// NOTE(pebaz): Keep the indent at 0 for the first time
-				interpret(rule, indent, symtab);
-			}
-		}
-
-		Rule::Identifier => {
-			// Lookup the value of identifier and return that
-			// e.g. Function, String, Array, etc.
-			
-			let key = node.as_str();
-
-			if !symtab.contains_key(&key) {
-				crash(format!("Undefined Variable: No variable named \"{}\"", key));
-			}
-
-			return_value = symtab.get(key).unwrap().clone();
-		}
-		
-		Rule::Function => {
-			// Execute function (built-in or otherwise)
-			// TODO(pebaz): Support user-defined functions
-
-			let mut args = Value::Array(Vec::new());
-
-			let mut rules = node.into_inner();
-
-			let func = match rules.next() { 
-				Some(rule) => { interpret(rule, indent + 1, symtab) },
-				_ => unreachable!()
-			};
-
-			for rule in rules {
-				if let Value::Array(ref mut arr) = args {
-					arr.push(interpret(rule, indent + 1, symtab));
-				}
-			}
-
-			return_value = func.as_func()(&mut args);
-		}
-
-		Rule::Array => {
-			// Return Value::Array
-
-			let mut values = Value::Array(Vec::new());
-			for rule in node.into_inner() {
-				if let Value::Array(ref mut arr) = values {
-					arr.push(interpret(rule, indent + 1, symtab));
-				}
-			}
-
-			return_value = values;
-		}
-
-		Rule::String => {
-			// Return Value::String
-			return_value = Value::String(String::from(node.as_str()));
-		}
-		
-		Rule::Number => {
-			// Return either Value::Int or Value::Float
-			if node.as_str().contains(".") {
-				return_value = Value::Float(FromStr::from_str(node.as_str()).unwrap());
-			} else {
-				return_value = Value::Int(FromStr::from_str(node.as_str()).unwrap());
-			}
-		}
-
-		Rule::Boolean => {
-			// Return Value::Boolean
-
-			return_value = Value::Boolean(FromStr::from_str(node.as_str().to_lowercase().as_str()).unwrap());
-		}
-
-		Rule::Null => {
-			return_value = Value::Null;
-		}
-
-		_ => {}
-	}
-
-	return_value
 }
 
 
@@ -309,7 +202,7 @@ fn lcore_print_value(args: &mut Value) {
 		print!("]");
 	}
 
-	fn print_func(v: &fn(&mut Value) -> Value, repr: bool) {
+	fn print_func(v: &fn(&mut Value, &mut HashMap<&str, Value>) -> Value, repr: bool) {
 		print!("<Func at {:p}>", v);
 	}
 
@@ -337,20 +230,20 @@ fn lcore_print_value(args: &mut Value) {
 }
 
 
-fn lcore_prin(args: &mut Value) -> Value {
+fn lcore_prin(args: &mut Value, symbol_table: &mut HashMap<&str, Value>) -> Value {
 	lcore_print_value(args);
 	Value::Null
 }
 
 
-fn lcore_print(args: &mut Value) -> Value {
+fn lcore_print(args: &mut Value, symbol_table: &mut HashMap<&str, Value>) -> Value {
 	lcore_print_value(args);
 	println!("");
 	Value::Null
 }
 
 
-fn lcore_add(args: &mut Value) -> Value {
+fn lcore_add(args: &mut Value, symbol_table: &mut HashMap<&str, Value>) -> Value {
 	let mut args = args.as_array().iter();
 	let a = args.next().expect("Not enough arguments on call to \"add\": 0/2");
 	let b = args.next().expect("Not enough arguments on call to \"add\": 1/2");
@@ -367,8 +260,22 @@ fn lcore_add(args: &mut Value) -> Value {
 	}
 }
 
-fn lcore_quit(args: &mut Value) -> Value {
+fn lcore_quit(args: &mut Value, symbol_table: &mut HashMap<&str, Value>) -> Value {
 	exit(0);
+}
+
+fn lcore_set(args: &mut Value, symbol_table: &mut HashMap<&str, Value>) -> Value {
+	let mut args = args.as_array().iter();
+
+	let var = args.next().expect("Not enough arguments on call to \"set\": 0/2");
+	let value = args.next().expect("Not enough arguments on call to \"set\": 1/2");
+
+	if let Value::Identifier(v) = var {
+		// Works...?
+		symbol_table.insert("wish-this-worked", value.clone());
+	}
+
+	Value::Null
 }
 
 
@@ -377,54 +284,58 @@ fn lcore_quit(args: &mut Value) -> Value {
 ///
 /// Returns: The count of the lines of code in the file.
 ///
-fn lcore_parse(node: Pair<'_, Rule>, stack: &mut Vec<Value>) -> i32 {
+fn lcore_parse(
+	node: Pair<'_, Rule>,
+	//stack: &mut Vec<Value>
+	stack: &mut VecDeque<Value>
+) -> usize {
 	let mut loc = 0;
 
 	match node.as_rule() {
 		Rule::Program => {
-			for rule in node.into_inner().rev() {
+			for rule in node.into_inner() {
 				loc += lcore_parse(rule, stack);
 			}
 		}
 
 		Rule::Function => {
-			stack.push(Value::OpenFunc);
+			stack.push_back(Value::OpenFunc);
 			let mut rules = node.into_inner();
 
 			let func = match rules.next() { 
-				Some(rule) => { stack.push(Value::Identifier(String::from(rule.as_str()))); },
+				Some(rule) => { stack.push_back(Value::Identifier(String::from(rule.as_str()))); },
 				_ => unreachable!()
 			};
 
 			for rule in rules {
 				loc += lcore_parse(rule, stack);
 			}
-			stack.push(Value::CloseFunc);
+			stack.push_back(Value::CloseFunc);
 		}
 
 		Rule::Array => {
-			stack.push(Value::OpenBrace);
+			stack.push_back(Value::OpenBrace);
 			for rule in node.into_inner() {
 				loc += lcore_parse(rule, stack);
 			}
-			stack.push(Value::CloseBrace);
+			stack.push_back(Value::CloseBrace);
 		}
 
 		Rule::Number => {
 			if node.as_str().contains(".") {
-				stack.push(Value::Float(FromStr::from_str(node.as_str()).unwrap()))
+				stack.push_back(Value::Float(FromStr::from_str(node.as_str()).unwrap()))
 			} else {
-				stack.push(Value::Int(FromStr::from_str(node.as_str()).unwrap()))
+				stack.push_back(Value::Int(FromStr::from_str(node.as_str()).unwrap()))
 			}
 		}
 
-		Rule::Identifier => { stack.push(Value::Identifier(String::from(node.as_str()))) }
-		Rule::String => { stack.push(Value::String(String::from(node.as_str()))) }
-		Rule::Boolean => { stack.push(Value::Boolean(FromStr::from_str(node.as_str().to_lowercase().as_str()).unwrap())) }
-		Rule::Null => { stack.push(Value::Null) }
-		Rule::Quote => { stack.push(Value::Quote) }
-		Rule::BackTick => { stack.push(Value::BackTick) }
-		Rule::Comma => { stack.push(Value::Comma) }
+		Rule::Identifier => { stack.push_back(Value::Identifier(String::from(node.as_str()))) }
+		Rule::String => { stack.push_back(Value::String(String::from(node.as_str()))) }
+		Rule::Boolean => { stack.push_back(Value::Boolean(FromStr::from_str(node.as_str().to_lowercase().as_str()).unwrap())) }
+		Rule::Null => { stack.push_back(Value::Null) }
+		Rule::Quote => { stack.push_back(Value::Quote) }
+		Rule::BackTick => { stack.push_back(Value::BackTick) }
+		Rule::Comma => { stack.push_back(Value::Comma) }
 		Rule::NewLine => { loc += 1 }
 		Rule::EOI => { }  // May want to use this for module imports :D
 		_ => ()
@@ -438,7 +349,8 @@ fn lcore_parse(node: Pair<'_, Rule>, stack: &mut Vec<Value>) -> i32 {
 /// Interpret a LambdaCore Program.
 ///
 fn lcore_interpret(
-	stack: &mut Vec<Value>,
+	//stack: &mut Vec<Value>,
+	stack: &mut VecDeque<Value>,
 	symbol_table: &mut HashMap<&str, Value>
 ) {
 	let mut arrays: Vec<Value> = Vec::with_capacity(64);
@@ -447,10 +359,13 @@ fn lcore_interpret(
 	// a top-level array to catch any global function call return values.
 	arrays.push(Value::Array(Vec::new()));
 
-	while let Some(node) = stack.pop() {
+	while let Some(node) = stack.pop_front() {
+
+
+
 		match node {
 			Value::Int(ref v)        => {
-				//println!("Int: {}", node.as_int());
+				println!("Int: {}", node.as_int());
 				let length = arrays.len();
 				if let Value::Array(ref mut v) = arrays[length - 1] {
 					v.push(node)
@@ -458,7 +373,7 @@ fn lcore_interpret(
 			}
 
 			Value::Float(ref v)      => {
-				//println!("Float: {}", node.as_float());
+				println!("Float: {}", node.as_float());
 				let length = arrays.len();
 				if let Value::Array(ref mut v) = arrays[length - 1] {
 					v.push(node)
@@ -466,7 +381,7 @@ fn lcore_interpret(
 			}
 
 			Value::String(ref v)     => {
-				//println!("String: {}", node.as_string());
+				println!("String: {}", node.as_string());
 				let length = arrays.len();
 				if let Value::Array(ref mut v) = arrays[length - 1] {
 					v.push(node)
@@ -474,7 +389,48 @@ fn lcore_interpret(
 			}
 
 			Value::Identifier(ref v) => {
-				//println!("Identifier: {}", node.as_identifier());
+				println!("Identifier: {}", node.as_identifier());
+
+				let length = arrays.len();
+
+				if let Value::Array(ref mut v) = arrays[length - 1] {
+
+					if let Some(last) = v.last_mut() {
+						// Replace the quote with the current node (skipping it)
+						//*last = node;
+						if let Value::Quote = last {
+							println!("Quoted");
+							*last = node;
+						} else {
+							// Lookup the current node and push it
+							println!("Normal");
+
+							let key = node.as_identifier();
+							if !symbol_table.contains_key(key.as_str()) {
+								crash(format!("Undefined Variable: No variable named \"{}\"", key));
+							}
+							let length = arrays.len();
+							if let Value::Array(ref mut array) = arrays[length - 1] {
+								array.push(symbol_table.get(key.as_str()).unwrap().clone())
+							}
+						}
+					} else {
+							// Lookup the current node and push it
+							println!("Normal");
+
+							let key = node.as_identifier();
+							if !symbol_table.contains_key(key.as_str()) {
+								crash(format!("Undefined Variable: No variable named \"{}\"", key));
+							}
+							let length = arrays.len();
+							if let Value::Array(ref mut array) = arrays[length - 1] {
+								array.push(symbol_table.get(key.as_str()).unwrap().clone())
+							}
+						}
+				}
+
+				
+				/*
 				let key = node.as_identifier();
 				if !symbol_table.contains_key(key.as_str()) {
 					crash(format!("Undefined Variable: No variable named \"{}\"", key));
@@ -483,10 +439,11 @@ fn lcore_interpret(
 				if let Value::Array(ref mut v) = arrays[length - 1] {
 					v.push(symbol_table.get(key.as_str()).unwrap().clone())
 				}
+				*/
 			}
 
 			Value::Boolean(ref v)    => {
-				//println!("Boolean: {}", node.as_string());
+				println!("Boolean: {}", node.as_string());
 				let length = arrays.len();
 				if let Value::Array(ref mut v) = arrays[length - 1] {
 					v.push(node)
@@ -494,7 +451,7 @@ fn lcore_interpret(
 			}
 
 			Value::Null              => {
-				//println!("Null");
+				println!("Null");
 				let length = arrays.len();
 				if let Value::Array(ref mut v) = arrays[length - 1] {
 					v.push(node)
@@ -503,18 +460,21 @@ fn lcore_interpret(
 
 			Value::OpenFunc          => {
 				// Call the function & store result in `arrays`
-				//println!("(");
+				println!("(");
+				arrays.push(Value::Array(Vec::new()));
+			}
 
-				// arrays: Vec<Value::Array>
-				// func: Value::Array.pop()
-				// arrays[-1].push(func(arrays.pop()))
-
+			Value::CloseFunc         => {
+				println!(")");
+				
 				let length = arrays.len();
 				if let Value::Array(ref mut v) = arrays[length - 1] {
-					let func = v.pop().unwrap();
+					let func = v.remove(0);
+
+					//let func = v.pop().unwrap();
 					let mut args = arrays.pop().unwrap();
-					let ret = func.as_func()(&mut args);
-					
+					let ret = func.as_func()(&mut args, symbol_table);
+				
 					let length = arrays.len();
 					if let Value::Array(ref mut v) = arrays[length - 1] {
 						v.push(ret)
@@ -522,24 +482,30 @@ fn lcore_interpret(
 				}
 			}
 
-			Value::CloseFunc         => {
-				//println!(")");
+			Value::OpenBrace         => {
+				println!("[");
 				arrays.push(Value::Array(Vec::new()));
 			}
 
-			Value::OpenBrace         => {
-				//println!("[");
+			Value::CloseBrace        => {
+				println!("]");
+
 				let array = arrays.pop().unwrap();
-				arrays.push(Value::Array(Vec::new()));
+
+				//arrays.push(Value::Array(Vec::new()));
+
 				let length = arrays.len();
 				if let Value::Array(ref mut v) = arrays[length - 1] {
 					v.push(array)
 				}
 			}
 
-			Value::CloseBrace        => {
-				//println!("]");
-				arrays.push(Value::Array(Vec::new()));
+			Value::Quote | Value::BackTick | Value::Comma => {
+				println!("{:?}", node);
+				let length = arrays.len();
+				if let Value::Array(ref mut v) = arrays[length - 1] {
+					v.push(node)
+				}
 			}
 
 
@@ -554,16 +520,16 @@ fn lcore_interpret(
 
 fn main() {
 	let matches = App::new("LambdaCore")
-			.version(crate_version!())
-			.author(crate_authors!())
-			.about("Lisp dialect written in Rust")
-			.arg(Arg::with_name("file")
-				.short("f")
-				.long("file")
-				.value_name("FILE")
-				.help("The script to run")
-				.required(false))
-			.get_matches();
+		.version(crate_version!())
+		.author(crate_authors!())
+		.about("Lisp dialect written in Rust")
+		.arg(Arg::with_name("file")
+			.short("f")
+			.long("file")
+			.value_name("FILE")
+			.help("The script to run")
+			.required(false))
+		.get_matches();
 
 	// Get other CLI switches (not FILE yet)
 
@@ -589,14 +555,17 @@ fn main() {
 	symbol_table.insert("prin", Value::Func { f: lcore_prin });
 	symbol_table.insert("+", Value::Func { f: lcore_add });
 	symbol_table.insert("quit", Value::Func { f: lcore_quit });
+	symbol_table.insert("set", Value::Func { f: lcore_set });
 
 	// Interpret the Program
 	//interpret(program, 0, &mut symbol_table);
 
 	// TODO(pebaz): Find out a good starting capacity
-	let mut stack = Vec::with_capacity(512);
+	//let mut stack = Vec::with_capacity(512);
 
+	let mut stack = VecDeque::new();
 	let loc = 1 + lcore_parse(program, &mut stack);
+	stack.reserve(loc * 4);
 
 	println!("----------------------------");
 	println!("| Code Lines | Stack Count |");
