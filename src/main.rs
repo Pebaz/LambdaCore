@@ -74,6 +74,8 @@ static LCORE_DEBUG: bool = false;
 #[grammar = "LambdaCore.pest"]
 pub struct LambdaCoreParser;
 
+type SymTab = HashMap<String, Value>;
+
 #[derive(Clone)]
 enum Value {
 	Null,
@@ -83,7 +85,7 @@ enum Value {
 	Float(f64),
 	String(String),
 	Array(Vec<Value>),
-	Func { f: fn(&mut Value, &mut HashMap<String, Value>) -> Value },
+	Func { f: fn(&mut Value, &mut SymTab) -> Value },
 	Struct { name: String, fields: Vec<Value> },
 
 	// Lexical Values
@@ -117,7 +119,7 @@ impl Value {
 		match self { Value::Array(ref a) => return a, _ => unreachable!() }
 	}
 
-	fn as_func(&self)       -> &fn(&mut Value, &mut HashMap<String, Value>) -> Value {
+	fn as_func(&self)       -> &fn(&mut Value, &mut SymTab) -> Value {
 		match self { Value::Func { f } => return f, _ => unreachable!() }
 	}
 }
@@ -202,7 +204,7 @@ fn lcore_print_value(args: &mut Value) {
 		print!("]");
 	}
 
-	fn print_func(v: &fn(&mut Value, &mut HashMap<String, Value>) -> Value, repr: bool) {
+	fn print_func(v: &fn(&mut Value, &mut SymTab) -> Value, repr: bool) {
 		print!("<Func at {:p}>", v);
 	}
 
@@ -216,6 +218,10 @@ fn lcore_print_value(args: &mut Value) {
 			Value::Array(v) => print_array(v, repr),
 			Value::Func { f: v } => print_func(v, repr),
 			Value::Null => print_null(),
+			Value::Identifier(v) => {
+				// Will only get here if value was quoted
+				print!("'{}", v);
+			}
 			_ => { }
 		}
 	}
@@ -230,20 +236,20 @@ fn lcore_print_value(args: &mut Value) {
 }
 
 
-fn lcore_prin(args: &mut Value, symbol_table: &mut HashMap<String, Value>) -> Value {
+fn lcore_prin(args: &mut Value, symbol_table: &mut SymTab) -> Value {
 	lcore_print_value(args);
 	Value::Null
 }
 
 
-fn lcore_print(args: &mut Value, symbol_table: &mut HashMap<String, Value>) -> Value {
+fn lcore_print(args: &mut Value, symbol_table: &mut SymTab) -> Value {
 	lcore_print_value(args);
 	println!("");
 	Value::Null
 }
 
 
-fn lcore_add(args: &mut Value, symbol_table: &mut HashMap<String, Value>) -> Value {
+fn lcore_add(args: &mut Value, symbol_table: &mut SymTab) -> Value {
 	let mut args = args.as_array().iter();
 	let a = args.next().expect("Not enough arguments on call to \"add\": 0/2");
 	let b = args.next().expect("Not enough arguments on call to \"add\": 1/2");
@@ -260,11 +266,11 @@ fn lcore_add(args: &mut Value, symbol_table: &mut HashMap<String, Value>) -> Val
 	}
 }
 
-fn lcore_quit(args: &mut Value, symbol_table: &mut HashMap<String, Value>) -> Value {
+fn lcore_quit(args: &mut Value, symbol_table: &mut SymTab) -> Value {
 	exit(0);
 }
 
-fn lcore_set(args: &mut Value, symbol_table: &mut HashMap<String, Value>) -> Value {
+fn lcore_set(args: &mut Value, symbol_table: &mut SymTab) -> Value {
 	let mut args = args.as_array().iter();
 
 	let var = args.next().expect("Not enough arguments on call to \"set\": 0/2");
@@ -277,6 +283,10 @@ fn lcore_set(args: &mut Value, symbol_table: &mut HashMap<String, Value>) -> Val
 		symbol_table.insert(v.clone().to_string(), value.clone());
 	}
 
+	Value::Null
+}
+
+fn lcore_loop(args: &mut Value, symbol_table: &mut SymTab) -> Value {
 	Value::Null
 }
 
@@ -353,7 +363,7 @@ fn lcore_parse(
 fn lcore_interpret(
 	//stack: &mut Vec<Value>,
 	stack: &mut VecDeque<Value>,
-	symbol_table: &mut HashMap<String, Value>
+	symbol_table: &mut SymTab
 ) {
 	let mut arrays: Vec<Value> = Vec::with_capacity(64);
 
@@ -550,7 +560,7 @@ fn main() {
 
 	if LCORE_DEBUG { println!("{:#?}", program); }
 
-	let mut symbol_table: HashMap<String, Value> = HashMap::new();
+	let mut symbol_table: SymTab = HashMap::new();
 
 	// Fill the symbol table with built-in functions
 	symbol_table.insert(String::from("print"), Value::Func { f: lcore_print });
@@ -558,6 +568,7 @@ fn main() {
 	symbol_table.insert(String::from("+"), Value::Func { f: lcore_add });
 	symbol_table.insert(String::from("quit"), Value::Func { f: lcore_quit });
 	symbol_table.insert(String::from("set"), Value::Func { f: lcore_set });
+	symbol_table.insert(String::from("loop"), Value::Func { f: lcore_loop });
 
 	// Interpret the Program
 	//interpret(program, 0, &mut symbol_table);

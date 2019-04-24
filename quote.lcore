@@ -1,11 +1,7 @@
-(set 'name "Pebaz")
-(print name)
+(set 'times 3)
+(set 'times '3)
+(print times)
 
-(set 'age 24)
-(print (+ age 1))
-
-:: (quit)
-:: `(print ,"Hello World")
-:: (print name)
-:: (loop 10 '[
-:: ])
+(loop times '[
+	(print 'print)
+])
