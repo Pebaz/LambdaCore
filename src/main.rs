@@ -333,6 +333,25 @@ fn lcore_set(args: &mut Value, symbol_table: &mut SymTab) -> Value {
 }
 
 fn lcore_loop(args: &mut Value, symbol_table: &mut SymTab) -> Value {
+	let mut args = args.as_array().iter();
+
+	let quote = args.next().expect("Not enough arguments on call to \"loop\": 0/3");
+	let iters = args.next().expect("Not enough arguments on call to \"loop\": 1/3");
+	let body = args.next().expect("Not enough arguments on call to \"loop\": 2/3");
+
+	for i in 0..*iters.as_int() {
+		let mut loop_body = match body.as_value().clone() {
+			Value::Array(v) => VecDeque::from_iter(v),
+			_ => unreachable!()
+		};
+
+		if let Value::Identifier(s) = quote.as_value() {
+			symbol_table.insert(s.clone().to_string(), Value::Int(i));
+		}
+
+		lcore_interpret(&mut loop_body, symbol_table);
+	}
+
 	Value::Null
 }
 
@@ -353,8 +372,6 @@ fn lcore_defn(args: &mut Value, symbol_table: &mut SymTab) -> Value {
 	let body = args.next().expect("Not enough arguments on call to \"defn\": 2/3");
 
 	let def = Value::Array(vec![
-		//Value::Array(vec![arguments.clone()]), Value::Array(vec![body.clone()])
-		//arguments.clone(), Value::Array(vec![body.clone()])
 		arguments.clone(), body.as_value().clone()
 	]);
 
