@@ -59,8 +59,10 @@ extern crate clap;
 
 use std::env;
 use std::collections::{HashMap, VecDeque};
+use std::iter::FromIterator;
 use std::fs;
 use std::fmt;
+use std::cmp::min;
 use std::process::exit;
 use std::str::FromStr;
 use pest::Parser;
@@ -141,7 +143,6 @@ impl fmt::Debug for Value {
 			Value::Float(fl)      => {  write!(fm, "Float")      }
 			Value::String(s)      => {  write!(fm, "String")     }
 			Value::Array(a)       => {  write!(fm, "Array")      }
-			Value::Func { f }     => {  write!(fm, "Func")       }
 			Value::OpenFunc       => {  write!(fm, "(")          }
 			Value::CloseFunc      => {  write!(fm, ")")          }
 			Value::OpenBrace      => {  write!(fm, "[")          }
@@ -149,6 +150,7 @@ impl fmt::Debug for Value {
 			Value::Quote          => {  write!(fm, "'")          }
 			Value::BackTick       => {  write!(fm, "`")          }
 			Value::Comma          => {  write!(fm, ",")          }
+			Value::Func { f }     => {  write!(fm, "Func")       }
 
 			Value::QUOTE(i) => { write!(fm, "Actual Quote.") }
 
@@ -321,6 +323,18 @@ fn lcore_set(args: &mut Value, symbol_table: &mut SymTab) -> Value {
 }
 
 fn lcore_loop(args: &mut Value, symbol_table: &mut SymTab) -> Value {
+	Value::Null
+}
+
+
+///
+/// Stuff the code to run in a list value in the symbol table. Make sure to
+/// store the variables to bind at call time.
+///
+fn lcore_defn(args: &mut Value, symbol_table: &mut SymTab) -> Value {
+	// Identifier
+	// Array<Quoted(Identifier)>
+	// Quoted(Array<Value>) (The code to run later)
 	Value::Null
 }
 
@@ -547,10 +561,29 @@ fn lcore_interpret(
 				let length = arrays.len();
 				if let Value::Array(ref mut v) = arrays[length - 1] {
 					let func = v.remove(0);
-
-					//let func = v.pop().unwrap();
 					let mut args = arrays.pop().unwrap();
-					let ret = func.as_func()(&mut args, symbol_table);
+
+					// IMPORTANT(pebaz): Either the func is a native function
+					// or a LambdaCore function.
+					//let ret = func.as_func()(&mut args, symbol_table);
+
+					let ret = match func {
+						Value::Func { f } => f(&mut args, symbol_table),
+
+						Value::Array(a) => {
+							/*
+							args = ["Pebaz"]
+							func = [['person] '[...]]
+							names = func[0]
+
+							for i in range(len(names)):
+								symbol_table.insert(names[i], args[i])
+							*/
+							Value::Null
+						}
+
+						_ => Value::Null
+					};
 				
 					let length = arrays.len();
 					if let Value::Array(ref mut v) = arrays[length - 1] {
@@ -626,7 +659,7 @@ fn main() {
 
 	if let Option::None = code_file {
 		println!("REPL\n(> ");
-		code_file = Some("quote.lcore");
+		code_file = Some("func.lcore");
 	}
 
 	let unparsed_file = fs::read_to_string(code_file.unwrap()).expect("LCORE: Error Reading File");
@@ -655,7 +688,6 @@ fn main() {
 
 	let mut stack = VecDeque::new();
 	let loc = 1 + lcore_parse(program, &mut stack);
-	stack.reserve(loc * 2);
 
 	println!("---------------------------------------------");
 	println!("| Code Lines | Planned Stack | Actual Stack |");

@@ -39,16 +39,26 @@ This is going to be an interesting undertaking. Look at quoting, quasi-quoting, 
 
 ### Syntax
 
-```Lisp
+```lisp
 (print "Hello World")
 
-(loop 10 i [
-	(print (format "Iteration: {i}"))
-	(set name "Pebaz")
-	(print f"Hello {name}")])
+(loop 3 'i '[
+	(print (fmt "Iteration ${i}"))
+])
 
 (print (* 10 2))
 
-(defn get-age [person]
-	(ret person/age))
+(type 'person ['name 'age])
+
+(defn 'person-get-age '[some-person] '[
+	:: For now:
+	(ret (get some-person 'age))
+
+	:: Future:
+	(ret some-person/age)
+])
+
+:: `new` gets passed the struct definition
+(set 'Pebaz (new person "Pebaz" 24))
+
 ```
