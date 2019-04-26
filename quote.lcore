@@ -1,5 +1,15 @@
-(prin "This is a quote: ")
-(print '[1 2 3])
+(set 'times 3)
+(print times)
+
+(set 'quoted-thing '[1 2 3])
+(prin "quoted-thing: ")
+(print quoted-thing)
+
+(set 'loop '[
+	(print "Hello World!")
+])
+(print loop)
+
 
 ::(set 'times 3)
 ::(set 'times '3)

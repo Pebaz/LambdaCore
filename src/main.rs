@@ -219,9 +219,17 @@ fn lcore_print_value(args: &mut Value) {
 	}
 
 	fn print_quote(v: &Box<Value>, repr: bool) {
+
+		// TODO(pebaz): Choose which one is better:
+
+		// 1.
 		print!("(quote ");
 		print_value(v, repr);
 		print!(")");
+
+		// 2.
+		// print!("'");
+		// print_value(v, repr);
 	}
 
 	fn print_value(value: &Value, repr: bool) {
@@ -293,11 +301,20 @@ fn lcore_set(args: &mut Value, symbol_table: &mut SymTab) -> Value {
 	let var = args.next().expect("Not enough arguments on call to \"set\": 0/2");
 	let value = args.next().expect("Not enough arguments on call to \"set\": 1/2");
 
-	if let Value::Identifier(v) = var {
-		// Works...?
-		//symbol_table.insert(String::from("wish-this-worked"), value.clone());
-
+	/*if let Value::Identifier(v) = var {
 		symbol_table.insert(v.clone().to_string(), value.clone());
+	}*/
+
+	match var {
+		// Identifier
+		Value::Identifier(v) => { symbol_table.insert(v.clone().to_string(), value.clone()); }
+
+		// Quoted Identifier
+		Value::QUOTE(v) => {
+			let mystr = v.as_identifier();
+			symbol_table.insert(mystr.clone().to_string(), value.clone());
+		}
+		_ => ()
 	}
 
 	Value::Null
@@ -645,8 +662,10 @@ fn main() {
 	println!("| {: <10} | {: <13} | {: <12} |", loc, stack.capacity(), stack.len());
 	println!("---------------------------------------------\n");
 
-	for item in &stack {
-		println!("{:?}", item);
+	if LCORE_DEBUG {
+		for item in &stack {
+			println!("{:?}", item);
+		}
 	}
 
 	lcore_interpret(&mut stack, &mut symbol_table);	
