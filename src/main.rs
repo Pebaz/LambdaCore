@@ -131,6 +131,10 @@ impl Value {
 	fn as_func(&self)       -> &fn(&mut Value, &mut SymTab) -> Value {
 		match self { Value::Func { f } => return f, _ => unreachable!() }
 	}
+
+	fn as_value(&self)        -> &Value {
+		match self { Value::QUOTE(ref q) => return &(**q), _ => unreachable!() }
+	}
 }
 
 impl fmt::Debug for Value {
@@ -210,7 +214,8 @@ fn lcore_print_value(args: &mut Value) {
 
 			count += 1;
 			if count < length {
-				print!(", ");
+				//print!(", ");
+				print!(" ");
 			}
 		}
 		print!("]");
@@ -246,9 +251,14 @@ fn lcore_print_value(args: &mut Value) {
 			Value::Null => print_null(),
 			Value::Identifier(v) => {
 				// Will only get here if value was quoted
-				print!("'{}", v);
+				// CHECK ON THIS LATER, not sure any more
+				//print!("'{}", v);
+				print!("{}", v);
 			}
 			Value::QUOTE(v) => { print_quote(v, true) }
+
+			Value::OpenFunc => print!("("),
+			Value::CloseFunc => print!(")"),
 			_ => { }
 		}
 	}
@@ -335,6 +345,32 @@ fn lcore_defn(args: &mut Value, symbol_table: &mut SymTab) -> Value {
 	// Identifier
 	// Array<Quoted(Identifier)>
 	// Quoted(Array<Value>) (The code to run later)
+
+	let mut args = args.as_array().iter();
+
+	let name = args.next().expect("Not enough arguments on call to \"defn\": 0/3");
+	let arguments = args.next().expect("Not enough arguments on call to \"defn\": 1/3");
+	let body = args.next().expect("Not enough arguments on call to \"defn\": 2/3");
+
+	let def = Value::Array(vec![
+		//Value::Array(vec![arguments.clone()]), Value::Array(vec![body.clone()])
+		//arguments.clone(), Value::Array(vec![body.clone()])
+		arguments.clone(), body.as_value().clone()
+	]);
+
+	match name {
+		// Identifier
+		Value::Identifier(v) => { symbol_table.insert(v.clone().to_string(), def); }
+
+		// Quoted Identifier
+		Value::QUOTE(v) => {
+			let mystr = v.as_identifier();
+			symbol_table.insert(mystr.clone().to_string(), def);
+		}
+
+		_ => ()
+	}
+
 	Value::Null
 }
 
@@ -581,7 +617,16 @@ fn lcore_interpret(
 							if let Value::Array(ref mut v) = args {
 								let mut count = 0;
 								while let Some(value) = v.pop() {
-									symbol_table.insert(arg_names[count].as_identifier().to_string(), value);
+
+									match &arg_names[count] {
+										Value::QUOTE(v) => {
+											symbol_table.insert(v.as_identifier().to_string(), value);
+										}
+
+										_ => unreachable!()
+									}
+
+									//symbol_table.insert(arg_names[count].as_identifier().to_string(), value);
 									count += 1;
 								}
 							}
@@ -717,6 +762,7 @@ fn main() {
 	symbol_table.insert(String::from("quit"), Value::Func { f: lcore_quit });
 	symbol_table.insert(String::from("set"), Value::Func { f: lcore_set });
 	symbol_table.insert(String::from("loop"), Value::Func { f: lcore_loop });
+	symbol_table.insert(String::from("defn"), Value::Func { f: lcore_defn });
 
 	// Interpret the Program
 	//interpret(program, 0, &mut symbol_table);
@@ -739,4 +785,14 @@ fn main() {
 	}
 
 	lcore_interpret(&mut stack, &mut symbol_table);	
+
+	if LCORE_DEBUG {
+		for item in &symbol_table {
+			println!("{:?}", item);
+		}
+	}
+
+	// Print Single symbol
+	// let a = symbol_table.remove(&mut String::from("hello-world")).unwrap();
+	// lcore_print_value(&mut Value::Array(vec![a]));
 }

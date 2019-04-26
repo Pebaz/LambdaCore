@@ -3,9 +3,9 @@
 (print "Hi")
 
 (defn 'hello-world ['person] '[
-	(prin "Hello ")
-	(prin person)
-	(print "!")
+		(prin "Hello ")
+		(prin person)
+		(print "!")
 ])
 
 (hello-world "Pebaz")
