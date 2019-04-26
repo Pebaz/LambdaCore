@@ -1,7 +1,9 @@
-(set 'times 3)
-(set 'times '3)
-(print times)
+(print [1 2 3])
 
-(loop times '[
-	(print 'print)
-])
+::(set 'times 3)
+::(set 'times '3)
+::(print times)
+::
+::(loop times '[
+::	(print 'print)
+::])

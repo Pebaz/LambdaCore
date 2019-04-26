@@ -148,6 +148,7 @@ impl fmt::Debug for Value {
 			Value::Comma          => {  write!(fm, ",")          }
 
 			Value::Struct { name, fields } => { write!(fm, "Struct") }
+			Value::Hash(h)        => { write!(fm, "Hash")        }
 		}
 	}
 }
@@ -330,11 +331,21 @@ fn lcore_parse(
 		}
 
 		Rule::Array => {
-			stack.push_back(Value::OpenBrace);
+			//stack.push_back(Value::OpenBrace);
+
+			let mut array_stack = VecDeque::new();
+
 			for rule in node.into_inner() {
-				loc += lcore_parse(rule, stack);
+				//loc += lcore_parse(rule, stack);
+				loc += lcore_parse(rule, &mut array_stack);
 			}
-			stack.push_back(Value::CloseBrace);
+
+			let mut new_array = Vec::new();
+			new_array.extend(array_stack);
+			stack.push_back(Value::Array(new_array));
+
+			//stack.extend(array_stack);
+			//stack.push_back(Value::CloseBrace);
 		}
 
 		Rule::Number => {
@@ -527,7 +538,12 @@ fn lcore_interpret(
 
 			// Ignored Values:
 			// Value::Func
-			// Value::Array
+			Value::Array(ref v) => {
+				let length = arrays.len();
+				if let Value::Array(ref mut v) = arrays[length - 1] {
+					v.push(node)
+				}
+			}
 			_ => ()
 		}
 	}
@@ -562,7 +578,7 @@ fn main() {
 		.expect("LCORE: Failed To Parse") // Unwrap the parse result :D
 		.next().unwrap(); // Get and unwrap the `Program` rule; never failes
 
-	if LCORE_DEBUG { println!("{:#?}", program); }
+	//if LCORE_DEBUG { println!("{:#?}", program); }
 
 	let mut symbol_table: SymTab = HashMap::new();
 
@@ -588,6 +604,10 @@ fn main() {
 	println!("| Code Lines | Planned Stack | Actual Stack |");
 	println!("| {: <10} | {: <13} | {: <12} |", loc, stack.capacity(), stack.len());
 	println!("---------------------------------------------\n");
+
+	for item in &stack {
+		println!("{:?}", item);
+	}
 
 	lcore_interpret(&mut stack, &mut symbol_table);	
 }
