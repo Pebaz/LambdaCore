@@ -87,6 +87,7 @@ enum Value {
 	Array(Vec<Value>),
 	Func { f: fn(&mut Value, &mut SymTab) -> Value },
 
+	// TODO(pebaz): Delete the old `Quote` variant
 	QUOTE(Box<Value>),
 
 	// TODO(pebaz):
