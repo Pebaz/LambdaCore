@@ -571,8 +571,14 @@ fn lcore_interpret(
 						Value::Func { f } => f(&mut args, symbol_table),
 
 						Value::Array(a) => {
+
+							let arg_names = match  a[0] {
+								Value::Array(argument_names) => {
+									argument_names
+								}
+							}
+
 							/*
-							args = ["Pebaz"]
 							func = [['person] '[...]]
 							names = func[0]
 
