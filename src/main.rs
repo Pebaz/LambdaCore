@@ -86,7 +86,11 @@ enum Value {
 	String(String),
 	Array(Vec<Value>),
 	Func { f: fn(&mut Value, &mut SymTab) -> Value },
+
+	// TODO(pebaz):
 	Struct { name: String, fields: Vec<Value> },
+	Hash(HashMap<Value, Value>),
+
 
 	// Lexical Values
 	OpenFunc, CloseFunc,
