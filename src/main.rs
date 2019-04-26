@@ -445,7 +445,7 @@ fn lcore_interpret(
 	//stack: &mut Vec<Value>,
 	stack: &mut VecDeque<Value>,
 	symbol_table: &mut SymTab
-) {
+) -> Value {
 	let mut arrays: Vec<Value> = Vec::with_capacity(64);
 
 	// NOTE(pebaz): Since a function can be called in the global scope, we need
@@ -571,21 +571,46 @@ fn lcore_interpret(
 						Value::Func { f } => f(&mut args, symbol_table),
 
 						Value::Array(a) => {
+							// The argument names
+							let arg_names = match &a[0] {
+								Value::Array(argument_names) => { argument_names }
+								_ => unreachable!()
+							};
 
-							let arg_names = match  a[0] {
-								Value::Array(argument_names) => {
-									argument_names
+							// Bind all arguments to the given values
+							if let Value::Array(ref mut v) = args {
+								let mut count = 0;
+								while let Some(value) = v.pop() {
+									symbol_table.insert(arg_names[count].as_identifier().to_string(), value);
+									count += 1;
 								}
 							}
 
-							/*
-							func = [['person] '[...]]
-							names = func[0]
+							// Execute the function
 
-							for i in range(len(names)):
-								symbol_table.insert(names[i], args[i])
-							*/
-							Value::Null
+							// The function body
+							// let def = match &a[1] {
+							// 	Value::Array(definition) => { definition }
+							// 	_ => unreachable!()
+							// };
+							//let mut body = VecDeque::from_iter(def);
+							//lcore_interpret(&mut body, &mut symbol_table);
+
+							/*if let Value::Array(def) = &a[1] {
+								let mut body = VecDeque::from_iter(def.clone());
+								lcore_interpret(&mut body, symbol_table)
+							}*/
+
+							let ret = match &a[1] {
+								Value::Array(def) => {
+									let mut body = VecDeque::from_iter(def.clone());
+									lcore_interpret(&mut body, symbol_table)
+								}
+								_ => unreachable!()
+							};
+
+							//Value::Null
+							ret
 						}
 
 						_ => Value::Null
@@ -642,6 +667,13 @@ fn lcore_interpret(
 			// Value::Func
 			_ => ()
 		}
+	}
+
+	// Return the value from the last function to be called
+	let mut last_array = arrays.pop().unwrap();
+	match last_array {
+		Value::Array(ref mut v) => return v.pop().unwrap(),
+		_ => unreachable!()
 	}
 }
 
