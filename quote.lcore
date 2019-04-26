@@ -1,4 +1,5 @@
-(print [1 2 3])
+(prin "This is a quote: ")
+(print '[1 2 3])
 
 ::(set 'times 3)
 ::(set 'times '3)

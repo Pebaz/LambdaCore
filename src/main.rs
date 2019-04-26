@@ -87,6 +87,8 @@ enum Value {
 	Array(Vec<Value>),
 	Func { f: fn(&mut Value, &mut SymTab) -> Value },
 
+	QUOTE(Box<Value>),
+
 	// TODO(pebaz):
 	Struct { name: String, fields: Vec<Value> },
 	Hash(HashMap<Value, Value>),
@@ -146,6 +148,8 @@ impl fmt::Debug for Value {
 			Value::Quote          => {  write!(fm, "'")          }
 			Value::BackTick       => {  write!(fm, "`")          }
 			Value::Comma          => {  write!(fm, ",")          }
+
+			Value::QUOTE(i) => { write!(fm, "Actual Quote.") }
 
 			Value::Struct { name, fields } => { write!(fm, "Struct") }
 			Value::Hash(h)        => { write!(fm, "Hash")        }
@@ -213,6 +217,12 @@ fn lcore_print_value(args: &mut Value) {
 		print!("<Func at {:p}>", v);
 	}
 
+	fn print_quote(v: &Box<Value>, repr: bool) {
+		print!("(quote ");
+		print_value(v, repr);
+		print!(")");
+	}
+
 	fn print_value(value: &Value, repr: bool) {
 		match value {
 			// Print, stripping out first and last double quotes `"`
@@ -227,6 +237,7 @@ fn lcore_print_value(args: &mut Value) {
 				// Will only get here if value was quoted
 				print!("'{}", v);
 			}
+			Value::QUOTE(v) => { print_quote(v, true) }
 			_ => { }
 		}
 	}
@@ -356,13 +367,36 @@ fn lcore_parse(
 			}
 		}
 
+
+		Rule::Quote => {
+			//stack.push_back(Value::Quote)
+
+			let mut quote_stack = VecDeque::new();
+
+			// NEED TO NEST ALL OTHER VALUES WITHIN ALL TYPES OF QUOTES :/
+
+			for rule in node.into_inner() {
+				loc += lcore_parse(rule, &mut quote_stack);
+			}
+
+			assert!(quote_stack.len() == 1);
+
+			stack.push_back(Value::QUOTE(Box::new(quote_stack.pop_back().unwrap())));
+
+			//let mut new_array = Vec::new();
+			//new_array.extend(quote_stack);
+			//stack.push_back(Value::Array(new_array));
+		}
+
+
+		Rule::BackTick => { stack.push_back(Value::BackTick) }
+		Rule::Comma => { stack.push_back(Value::Comma) }
+
+
 		Rule::Identifier => { stack.push_back(Value::Identifier(String::from(node.as_str()))) }
 		Rule::String => { stack.push_back(Value::String(String::from(node.as_str()))) }
 		Rule::Boolean => { stack.push_back(Value::Boolean(FromStr::from_str(node.as_str().to_lowercase().as_str()).unwrap())) }
 		Rule::Null => { stack.push_back(Value::Null) }
-		Rule::Quote => { stack.push_back(Value::Quote) }
-		Rule::BackTick => { stack.push_back(Value::BackTick) }
-		Rule::Comma => { stack.push_back(Value::Comma) }
 		Rule::NewLine => { loc += 1 }
 		Rule::EOI => { }  // May want to use this for module imports :D
 		_ => ()
@@ -387,8 +421,6 @@ fn lcore_interpret(
 	arrays.push(Value::Array(Vec::new()));
 
 	while let Some(node) = stack.pop_front() {
-
-
 
 		match node {
 			Value::Int(ref v)        => {
@@ -535,15 +567,22 @@ fn lcore_interpret(
 				}
 			}
 
-
-			// Ignored Values:
-			// Value::Func
 			Value::Array(ref v) => {
 				let length = arrays.len();
 				if let Value::Array(ref mut v) = arrays[length - 1] {
 					v.push(node)
 				}
 			}
+
+			Value::QUOTE(ref v) => {
+				let length = arrays.len();
+				if let Value::Array(ref mut v) = arrays[length - 1] {
+					v.push(node)
+				}
+			}
+
+			// Ignored Values:
+			// Value::Func
 			_ => ()
 		}
 	}

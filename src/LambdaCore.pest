@@ -9,16 +9,16 @@ NewLine = {
 	NEWLINE
 }
 
-Quote = {
-	"'"
-}
-
 BackTick = {
 	"`"
 }
 
 Comma = {
 	","
+}
+
+Quote = {
+	"'" ~ (Value | Identifier | Function | Quote)
 }
 
 LineComment = @{ "::" ~ LineCommentContents* }
