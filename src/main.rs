@@ -740,6 +740,10 @@ fn lcore_interpret(
 }
 
 
+fn count_newlines(s: &str) -> usize {
+    s.as_bytes().iter().filter(|&&c| c == b'\n').count()
+}
+
 fn main() {
 	let matches = App::new("LambdaCore")
 		.version(crate_version!())
@@ -764,6 +768,8 @@ fn main() {
 
 	let unparsed_file = fs::read_to_string(code_file.unwrap()).expect("LCORE: Error Reading File");
 
+	let lines_of_code = count_newlines(unparsed_file.as_str()) + 1;
+
 	let program = LambdaCoreParser::parse(Rule::Program, &unparsed_file)
 		.expect("LCORE: Failed To Parse") // Unwrap the parse result :D
 		.next().unwrap(); // Get and unwrap the `Program` rule; never failes
@@ -784,15 +790,13 @@ fn main() {
 	// Interpret the Program
 	//interpret(program, 0, &mut symbol_table);
 
-	// TODO(pebaz): Find out a good starting capacity
-	//let mut stack = Vec::with_capacity(512);
-
-	let mut stack = VecDeque::new();
-	let loc = 1 + lcore_parse(program, &mut stack);
+	let mut stack = VecDeque::with_capacity(lines_of_code);
+	let planned = stack.capacity();
+	let loc = lcore_parse(program, &mut stack) * 2;
 
 	println!("---------------------------------------------");
 	println!("| Code Lines | Planned Stack | Actual Stack |");
-	println!("| {: <10} | {: <13} | {: <12} |", loc, stack.capacity(), stack.len());
+	println!("| {: <10} | {: <13} | {: <12} |", lines_of_code, planned, stack.len());
 	println!("---------------------------------------------\n");
 
 	if LCORE_DEBUG {
