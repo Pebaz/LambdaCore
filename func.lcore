@@ -11,3 +11,6 @@
 (loop 'i 3 '[
 	(hello-world i)
 ])
+
+(prin "You shouldn't be able to see this: ")
+(print person)
