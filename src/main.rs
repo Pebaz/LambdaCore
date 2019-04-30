@@ -168,8 +168,36 @@ impl fmt::Debug for Value {
 
 // scopes.push()
 // scopes.pop()
-struct Environment<'a> {
-	scopes: Vec<HashMap<&'a str, Value>>
+struct Environment {
+	scopes: Vec<SymTab>
+}
+
+impl Environment {
+	fn new() -> Environment {
+		Environment { scopes: Vec::new() }
+	}
+
+	fn push(&mut self) {
+		self.scopes.push(SymTab::new());
+	}
+
+	fn pop(&mut self) -> SymTab {
+		self.scopes.pop().unwrap()
+	}
+
+	fn set(&mut self, key: String, value: Value) {
+		let scope = self.scopes.last_mut().unwrap();
+		scope.insert(key, value);
+	}
+
+	fn get(&mut self, name: String) -> Option<&mut Value> {
+		for scope in &mut self.scopes {
+			if let Some(value) = scope.get_mut(&name) {
+				return Some(value);
+			}
+		}
+		None
+	}
 }
 
 
@@ -812,6 +840,14 @@ fn main() {
 			println!("{:?}", item);
 		}
 	}
+
+	let mut env = Environment::new();
+	env.push();
+	env.set(String::from("HelloWorld"), Value::String(String::from("Hello World!")));
+	if let Some(value) = env.get(String::from("HelloWorld")) {
+		lcore_print_value(&mut Value::Array(vec![value.clone()]));
+	}
+	env.pop();
 
 	// Print Single symbol
 	// let a = symbol_table.remove(&mut String::from("hello-world")).unwrap();
