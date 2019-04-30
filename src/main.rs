@@ -191,7 +191,8 @@ impl Environment {
 	}
 
 	fn get(&mut self, name: String) -> Option<&mut Value> {
-		for scope in &mut self.scopes {
+		for scope in &mut self.scopes.iter_mut().rev() {
+			println!("Getting {}", name);
 			if let Some(value) = scope.get_mut(&name) {
 				return Some(value);
 			}
@@ -844,6 +845,7 @@ fn main() {
 	let mut env = Environment::new();
 	env.push();
 	env.set(String::from("HelloWorld"), Value::String(String::from("Hello World!")));
+	env.push();
 	if let Some(value) = env.get(String::from("HelloWorld")) {
 		lcore_print_value(&mut Value::Array(vec![value.clone()]));
 	}
