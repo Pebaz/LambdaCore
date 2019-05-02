@@ -843,7 +843,7 @@ fn main() {
 	let mut stack = VecDeque::with_capacity(lines_of_code);
 
 	let planned = stack.capacity();
-	let loc = lcore_parse(program, &mut stack) * 2;
+	let loc = lcore_parse(program, &mut stack);
 
 	println!("---------------------------------------------");
 	println!("| Code Lines | Planned Stack | Actual Stack |");

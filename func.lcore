@@ -13,5 +13,12 @@
 ])
 
 
-(prin "You shouldn't be able to see this: ")
-(print person)
+::(prin "You shouldn't be able to see this: ")
+::(print person)
+
+(defn 'plus ['a 'b] '[
+	(hello-world 88)
+	(print (+ a b))
+])
+
+(plus 2 4)
