@@ -215,3 +215,31 @@ pub fn lcore_defn(args: &mut Value, symbol_table: &mut Environment) -> Value {
 
 	Value::Null
 }
+
+
+pub fn lcore_get(args: &mut Value, symbol_table: &mut Environment) -> Value {
+	let mut args = args.as_array().iter();
+
+	let obj = args.next().expect("Not enough arguments on call to \"get\": 0/2");
+	let key = args.next().expect("Not enough arguments on call to \"get\": 1/2");
+
+	match obj {
+		Value::Array(v) => {
+			if let Value::Int(index) = key {
+				if *index > v.len() as i64 {
+					crash(format!("Index out of bounds: got {} but len is {}", index, v.len()));
+				} else {
+					let idx = *index % v.len() as i64;
+					println!("{}", idx);
+					return v[idx as usize].clone();
+				}
+			} else {
+				crash(format!("Cannot index Array with {:?}", key));
+			}
+		}
+
+		_ => ()
+	}
+
+	Value::Null
+}
