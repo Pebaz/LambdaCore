@@ -215,7 +215,7 @@ impl Environment {
 
 
 fn crash(msg: String) {
-	println!("{}", msg);
+	println!("\n{}", msg);
 	exit(1);
 }
 
@@ -671,6 +671,9 @@ fn lcore_interpret(
 								_ => unreachable!()
 							};
 
+							// Push a new scope
+							symbol_table.push();
+
 							// Bind all arguments to the given values
 							if let Value::Array(ref mut v) = args {
 								let mut count = 0;
@@ -711,6 +714,9 @@ fn lcore_interpret(
 								}
 								_ => unreachable!()
 							};
+
+							// Reclaim all old variables
+							symbol_table.pop();
 
 							//Value::Null
 							ret
@@ -809,6 +815,7 @@ fn main() {
 
 	let unparsed_file = fs::read_to_string(code_file.unwrap()).expect("LCORE: Error Reading File");
 
+	// This can be a concurrent task
 	let lines_of_code = count_newlines(unparsed_file.as_str()) + 1;
 
 	let program = LambdaCoreParser::parse(Rule::Program, &unparsed_file)
