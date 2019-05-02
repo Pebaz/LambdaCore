@@ -87,7 +87,7 @@ enum Value {
 	Float(f64),
 	String(String),
 	Array(Vec<Value>),
-	Func { f: fn(&mut Value, &mut SymTab) -> Value },
+	Func { f: fn(&mut Value, &mut Environment) -> Value },
 
 	// TODO(pebaz): Delete the old `Quote` variant
 	QUOTE(Box<Value>),
@@ -108,7 +108,7 @@ impl Value {
 		match self { Value::Identifier(ref i) => return i, _ => unreachable!() }
 	}
 
-	fn as_bool(&self) -> &bool {
+	fn as_bool(&self)       -> &bool {
 		match self { Value::Boolean(ref b) => return b, _ => unreachable!() }
 	}
 
@@ -128,11 +128,11 @@ impl Value {
 		match self { Value::Array(ref a) => return a, _ => unreachable!() }
 	}
 
-	fn as_func(&self)       -> &fn(&mut Value, &mut SymTab) -> Value {
+	fn as_func(&self)       -> &fn(&mut Value, &mut Environment) -> Value {
 		match self { Value::Func { f } => return f, _ => unreachable!() }
 	}
 
-	fn as_value(&self)        -> &Value {
+	fn as_value(&self)      -> &Value {
 		match self { Value::QUOTE(ref q) => return &(**q), _ => unreachable!() }
 	}
 }
@@ -177,6 +177,10 @@ impl Environment {
 		Environment { scopes: Vec::new() }
 	}
 
+	/*fn get_iter(&mut self) -> i32 {
+
+	}*/
+
 	fn push(&mut self) {
 		self.scopes.push(SymTab::new());
 	}
@@ -185,14 +189,22 @@ impl Environment {
 		self.scopes.pop().unwrap()
 	}
 
-	fn set(&mut self, key: String, value: Value) {
+	fn insert(&mut self, key: String, value: Value) {
 		let scope = self.scopes.last_mut().unwrap();
 		scope.insert(key, value);
 	}
 
+	fn contains_key(&self, name: String) -> bool {
+		for scope in self.scopes.iter().rev() {
+			if let Some(value) = scope.get(&name) {
+				return true;
+			}
+		}
+		false
+	}
+
 	fn get(&mut self, name: String) -> Option<&mut Value> {
 		for scope in &mut self.scopes.iter_mut().rev() {
-			println!("Getting {}", name);
 			if let Some(value) = scope.get_mut(&name) {
 				return Some(value);
 			}
@@ -250,7 +262,7 @@ fn lcore_print_value(args: &mut Value) {
 		print!("]");
 	}
 
-	fn print_func(v: &fn(&mut Value, &mut SymTab) -> Value, repr: bool) {
+	fn print_func(v: &fn(&mut Value, &mut Environment) -> Value, repr: bool) {
 		print!("<Func at {:p}>", v);
 	}
 
@@ -302,20 +314,20 @@ fn lcore_print_value(args: &mut Value) {
 }
 
 
-fn lcore_prin(args: &mut Value, symbol_table: &mut SymTab) -> Value {
+fn lcore_prin(args: &mut Value, symbol_table: &mut Environment) -> Value {
 	lcore_print_value(args);
 	Value::Null
 }
 
 
-fn lcore_print(args: &mut Value, symbol_table: &mut SymTab) -> Value {
+fn lcore_print(args: &mut Value, symbol_table: &mut Environment) -> Value {
 	lcore_print_value(args);
 	println!("");
 	Value::Null
 }
 
 
-fn lcore_add(args: &mut Value, symbol_table: &mut SymTab) -> Value {
+fn lcore_add(args: &mut Value, symbol_table: &mut Environment) -> Value {
 	let mut args = args.as_array().iter();
 	let a = args.next().expect("Not enough arguments on call to \"add\": 0/2");
 	let b = args.next().expect("Not enough arguments on call to \"add\": 1/2");
@@ -332,11 +344,11 @@ fn lcore_add(args: &mut Value, symbol_table: &mut SymTab) -> Value {
 	}
 }
 
-fn lcore_quit(args: &mut Value, symbol_table: &mut SymTab) -> Value {
+fn lcore_quit(args: &mut Value, symbol_table: &mut Environment) -> Value {
 	exit(0);
 }
 
-fn lcore_set(args: &mut Value, symbol_table: &mut SymTab) -> Value {
+fn lcore_set(args: &mut Value, symbol_table: &mut Environment) -> Value {
 	let mut args = args.as_array().iter();
 
 	let var = args.next().expect("Not enough arguments on call to \"set\": 0/2");
@@ -361,7 +373,7 @@ fn lcore_set(args: &mut Value, symbol_table: &mut SymTab) -> Value {
 	Value::Null
 }
 
-fn lcore_loop(args: &mut Value, symbol_table: &mut SymTab) -> Value {
+fn lcore_loop(args: &mut Value, symbol_table: &mut Environment) -> Value {
 	let mut args = args.as_array().iter();
 
 	let quote = args.next().expect("Not enough arguments on call to \"loop\": 0/3");
@@ -389,7 +401,7 @@ fn lcore_loop(args: &mut Value, symbol_table: &mut SymTab) -> Value {
 /// Stuff the code to run in a list value in the symbol table. Make sure to
 /// store the variables to bind at call time.
 ///
-fn lcore_defn(args: &mut Value, symbol_table: &mut SymTab) -> Value {
+fn lcore_defn(args: &mut Value, symbol_table: &mut Environment) -> Value {
 	// Identifier
 	// Array<Quoted(Identifier)>
 	// Quoted(Array<Value>) (The code to run later)
@@ -526,7 +538,7 @@ fn lcore_parse(
 fn lcore_interpret(
 	//stack: &mut Vec<Value>,
 	stack: &mut VecDeque<Value>,
-	symbol_table: &mut SymTab
+	symbol_table: &mut Environment
 ) -> Value {
 	let mut arrays: Vec<Value> = Vec::with_capacity(64);
 
@@ -579,12 +591,12 @@ fn lcore_interpret(
 							if LCORE_DEBUG { println!("Normal"); }
 
 							let key = node.as_identifier();
-							if !symbol_table.contains_key(key.as_str()) {
+							if !symbol_table.contains_key(key.as_str().to_string()) {
 								crash(format!("Undefined Variable: No variable named \"{}\"", key));
 							}
 							let length = arrays.len();
 							if let Value::Array(ref mut array) = arrays[length - 1] {
-								array.push(symbol_table.get(key.as_str()).unwrap().clone())
+								array.push(symbol_table.get(key.as_str().to_string()).unwrap().clone())
 							}
 						}
 					} else {
@@ -592,12 +604,12 @@ fn lcore_interpret(
 							if LCORE_DEBUG { println!("Normal"); }
 
 							let key = node.as_identifier();
-							if !symbol_table.contains_key(key.as_str()) {
+							if !symbol_table.contains_key(key.as_str().to_string()) {
 								crash(format!("Undefined Variable: No variable named \"{}\"", key));
 							}
 							let length = arrays.len();
 							if let Value::Array(ref mut array) = arrays[length - 1] {
-								array.push(symbol_table.get(key.as_str()).unwrap().clone())
+								array.push(symbol_table.get(key.as_str().to_string()).unwrap().clone())
 							}
 						}
 				}
@@ -805,7 +817,9 @@ fn main() {
 
 	//if LCORE_DEBUG { println!("{:#?}", program); }
 
-	let mut symbol_table: SymTab = HashMap::new();
+	//let mut symbol_table: SymTab = HashMap::new();
+	let mut symbol_table = Environment::new();
+	symbol_table.push();
 
 	// Fill the symbol table with built-in functions
 	symbol_table.insert(String::from("print"), Value::Func { f: lcore_print });
@@ -820,6 +834,7 @@ fn main() {
 	//interpret(program, 0, &mut symbol_table);
 
 	let mut stack = VecDeque::with_capacity(lines_of_code);
+
 	let planned = stack.capacity();
 	let loc = lcore_parse(program, &mut stack) * 2;
 
@@ -828,21 +843,21 @@ fn main() {
 	println!("| {: <10} | {: <13} | {: <12} |", lines_of_code, planned, stack.len());
 	println!("---------------------------------------------\n");
 
-	if LCORE_DEBUG {
+	/*if LCORE_DEBUG {
 		for item in &stack {
 			println!("{:?}", item);
 		}
-	}
+	}*/
 
-	lcore_interpret(&mut stack, &mut symbol_table);	
+	lcore_interpret(&mut stack, &mut symbol_table);
 
-	if LCORE_DEBUG {
+	/*if LCORE_DEBUG {
 		for item in &symbol_table {
 			println!("{:?}", item);
 		}
-	}
+	}*/
 
-	let mut env = Environment::new();
+	/*
 	env.push();
 	env.set(String::from("HelloWorld"), Value::String(String::from("Hello World!")));
 	env.push();
@@ -850,6 +865,7 @@ fn main() {
 		lcore_print_value(&mut Value::Array(vec![value.clone()]));
 	}
 	env.pop();
+	*/
 
 	// Print Single symbol
 	// let a = symbol_table.remove(&mut String::from("hello-world")).unwrap();
