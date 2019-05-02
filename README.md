@@ -11,7 +11,6 @@ A small Lisp written in Rust.
 - [x] Call function from Rust in LambdaCore.
 - [ ] Print formatted syntax to HTML with colors.
 - [ ] Infinitely Extend. 😃
-- [ ] Symbol Table (A hidden variable within the scope)
 - [x] Built-in functions
 
 ##### Quoting
