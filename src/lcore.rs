@@ -519,3 +519,8 @@ pub fn lcore_interpret(
 pub fn count_newlines(s: &str) -> usize {
     s.as_bytes().iter().filter(|&&c| c == b'\n').count()
 }
+
+#[test]
+pub fn test_tests() {
+	assert_eq!(4, 4);
+}
