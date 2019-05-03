@@ -29,9 +29,7 @@ pub enum Value {
 	String(String),
 	Array(Vec<Value>),
 	Func { f: fn(&mut Value, &mut Environment) -> Value },
-
-	// TODO(pebaz): Delete the old `Quote` variant
-	QUOTE(Box<Value>),
+	Quote(Box<Value>),
 
 	// TODO(pebaz):
 	Struct { name: String, fields: Vec<Value> },
@@ -41,7 +39,7 @@ pub enum Value {
 	// Lexical Values
 	OpenFunc, CloseFunc,
 	OpenBrace, CloseBrace,
-	Quote, BackTick, Comma
+	BackTick, Comma
 }
 
 impl Value {
@@ -74,7 +72,7 @@ impl Value {
 	}
 
 	pub fn as_value(&self)      -> &Value {
-		match self { Value::QUOTE(ref q) => return &(**q), _ => unreachable!() }
+		match self { Value::Quote(ref q) => return &(**q), _ => unreachable!() }
 	}
 }
 
@@ -92,12 +90,10 @@ impl fmt::Debug for Value {
 			Value::CloseFunc      => {  write!(fm, ")")          }
 			Value::OpenBrace      => {  write!(fm, "[")          }
 			Value::CloseBrace     => {  write!(fm, "]")          }
-			Value::Quote          => {  write!(fm, "'")          }
+			Value::Quote(b)       => {  write!(fm, "'")          }
 			Value::BackTick       => {  write!(fm, "`")          }
 			Value::Comma          => {  write!(fm, ",")          }
 			Value::Func { f }     => {  write!(fm, "Func")       }
-
-			Value::QUOTE(i) => { write!(fm, "Actual Quote.") }
 
 			Value::Struct { name, fields } => { write!(fm, "Struct") }
 			Value::Hash(h)        => { write!(fm, "Hash")        }
@@ -236,7 +232,7 @@ pub fn lcore_parse(
 
 			assert!(quote_stack.len() == 1);
 
-			stack.push_back(Value::QUOTE(Box::new(quote_stack.pop_back().unwrap())));
+			stack.push_back(Value::Quote(Box::new(quote_stack.pop_back().unwrap())));
 
 			//let mut new_array = Vec::new();
 			//new_array.extend(quote_stack);
@@ -312,9 +308,15 @@ pub fn lcore_interpret(
 					if let Some(last) = v.last_mut() {
 						// Replace the quote with the current node (skipping it)
 						//*last = node;
-						if let Value::Quote = last {
+
+						/*if let Value::Quote = last {
 							if LCORE_DEBUG { println!("Quoted"); }
+							*last = node;*/
+
+						if let Value::Quote(b) = last {
+							println!("Quoted");
 							*last = node;
+
 						} else {
 							// Lookup the current node and push it
 							if LCORE_DEBUG { println!("Normal"); }
@@ -409,7 +411,7 @@ pub fn lcore_interpret(
 								while let Some(value) = v.pop() {
 
 									match &arg_names[count] {
-										Value::QUOTE(v) => {
+										Value::Quote(v) => {
 											symbol_table.insert(v.as_identifier().to_string(), value);
 										}
 
@@ -479,7 +481,7 @@ pub fn lcore_interpret(
 				}
 			}
 
-			Value::Quote | Value::BackTick | Value::Comma => {
+			Value::BackTick | Value::Comma => {
 				if LCORE_DEBUG { println!("{:?}", node); }
 				let length = arrays.len();
 				if let Value::Array(ref mut v) = arrays[length - 1] {
@@ -494,7 +496,7 @@ pub fn lcore_interpret(
 				}
 			}
 
-			Value::QUOTE(ref v) => {
+			Value::Quote(ref v) => {
 				let length = arrays.len();
 				if let Value::Array(ref mut v) = arrays[length - 1] {
 					v.push(node)

@@ -5,7 +5,7 @@
 (prin "quoted-thing: ")
 (print quoted-thing)
 
-(set 'loop '[
+(set 'looper '[
 	(print "Hello World!")
 ])
-(print loop)
+(print looper)

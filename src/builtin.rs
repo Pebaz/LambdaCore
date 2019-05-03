@@ -80,7 +80,7 @@ pub fn lcore_print_value(args: &mut Value) {
 				//print!("'{}", v);
 				print!("{}", v);
 			}
-			Value::QUOTE(v) => { print_quote(v, true) }
+			Value::Quote(v) => { print_quote(v, true) }
 
 			Value::OpenFunc => print!("("),
 			Value::CloseFunc => print!(")"),
@@ -147,7 +147,7 @@ pub fn lcore_set(args: &mut Value, symbol_table: &mut Environment) -> Value {
 		Value::Identifier(v) => { symbol_table.insert(v.clone().to_string(), value.clone()); }
 
 		// Quoted Identifier
-		Value::QUOTE(v) => {
+		Value::Quote(v) => {
 			let mystr = v.as_identifier();
 			symbol_table.insert(mystr.clone().to_string(), value.clone());
 		}
@@ -205,7 +205,7 @@ pub fn lcore_defn(args: &mut Value, symbol_table: &mut Environment) -> Value {
 		Value::Identifier(v) => { symbol_table.insert(v.clone().to_string(), def); }
 
 		// Quoted Identifier
-		Value::QUOTE(v) => {
+		Value::Quote(v) => {
 			let mystr = v.as_identifier();
 			symbol_table.insert(mystr.clone().to_string(), def);
 		}
