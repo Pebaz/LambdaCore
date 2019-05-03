@@ -30,10 +30,10 @@ pub enum Value {
 	Array(Vec<Value>),
 	Func { f: fn(&mut Value, &mut Environment) -> Value },
 	Quote(Box<Value>),
+	Dict(HashMap<Value, Value>),
 
 	// TODO(pebaz):
 	Struct { name: String, fields: Vec<Value> },
-	Hash(HashMap<Value, Value>),
 
 
 	// Lexical Values
@@ -94,9 +94,9 @@ impl fmt::Debug for Value {
 			Value::BackTick       => {  write!(fm, "`")          }
 			Value::Comma          => {  write!(fm, ",")          }
 			Value::Func { f }     => {  write!(fm, "Func")       }
+			Value::Dict(h)        => {  write!(fm, "Dict")        }
 
 			Value::Struct { name, fields } => { write!(fm, "Struct") }
-			Value::Hash(h)        => { write!(fm, "Hash")        }
 		}
 	}
 }
