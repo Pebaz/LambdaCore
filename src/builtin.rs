@@ -284,7 +284,8 @@ pub fn lcore_dict(args: &mut Value, symbol_table: &mut Environment) -> Value {
 	let mut args_iter = args.iter();
 
 	let mut dict = HashMap::new();
-	dict.insert(Value::String(String::from("first-name")), Value::Int(24));
+	dict.insert(Value::String(String::from("\"first-name\"")), Value::Int(24));
+	dict.insert(Value::String(String::from("\"last-name\"")), Value::String(String::from("\"Wallace\"")));
 
 	Value::Dict(dict)
 }

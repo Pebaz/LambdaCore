@@ -94,9 +94,28 @@ impl PartialEq for Value {
 	fn eq(&self, other: &Value) -> bool {
 		return match (self, other) {
 
-			(Value::String(a), Value::String(b)) => {
+			(Value::String(a), Value::String(b)) => a == b,
+			(Value::Int(a), Value::Int(b)) => a == b,
+			(Value::Float(a), Value::Float(b)) => a == b,
+			(Value::Boolean(a), Value::Boolean(b)) => a == b,
+			(Value::Identifier(a), Value::Identifier(b)) => a == b,
+			(Value::Null, Value::Null) => true,
+			(Value::Quote(a), Value::Quote(b)) => a == b,
+			(Value::Func { f: a }, Value::Func { f: b }) => a as *const _ == b as *const _,
+			(Value::Array(a), Value::Array(b)) => a == b,
+
+			(Value::Dict(a), Value::Dict(b)) => a == b,
+			/*{
+				if a.len() != b.len() { return false; }
+
+				for key in a.keys() {
+					if !b.contains_key(key) { return false; }
+
+					if a[key] != b[key] { return false; }
+				}
+
 				true
-			}
+			}*/
 
 			_ => false,
 
