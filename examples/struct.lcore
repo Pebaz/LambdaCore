@@ -1,0 +1,8 @@
+:: Type definition
+(type 'person '[name age])
+
+:: Instantiation
+(set 'pebaz (new person "Pebaz" 24))
+
+:: Usage
+(print (get pebaz name))
