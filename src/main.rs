@@ -90,7 +90,7 @@ fn main() {
 
 	if let Option::None = code_file {
 		println!("REPL\n(> ");
-		code_file = Some("examples/quote.lcore");
+		code_file = Some("examples/dict.lcore");
 	}
 
 	let unparsed_file = fs::read_to_string(code_file.unwrap()).expect("LCORE: Error Reading File");
@@ -118,6 +118,7 @@ fn main() {
 	symbol_table.insert(String::from("loop"), Value::Func  { f: lcore_loop });
 	symbol_table.insert(String::from("defn"), Value::Func  { f: lcore_defn });
 	symbol_table.insert(String::from("get"), Value::Func  { f: lcore_get });
+	symbol_table.insert(String::from("dict"), Value::Func  { f: lcore_dict });
 
 	// Interpret the Program
 	//interpret(program, 0, &mut symbol_table);

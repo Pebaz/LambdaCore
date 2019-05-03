@@ -64,6 +64,27 @@ pub fn lcore_print_value(args: &mut Value) {
 		// print_value(v, repr);
 	}
 
+	fn print_dict(v: &HashMap<Value, Value>, repr: bool) {
+		print!("{{ ");
+		//print!("{:?}", v);
+		let length = v.len();
+		let mut count = 0;
+
+		for (key, value) in v {
+			print_value(key, true);
+			print!(": ");
+			print_value(value, true);
+
+			count += 1;
+			if count < length {
+				print!(", ");
+				//print!(" ");
+			}
+		}
+
+		print!(" }}");
+	}
+
 	fn print_value(value: &Value, repr: bool) {
 		match value {
 			// Print, stripping out first and last double quotes `"`
@@ -75,12 +96,20 @@ pub fn lcore_print_value(args: &mut Value) {
 			Value::Func { f: v } => print_func(v, repr),
 			Value::Null => print_null(),
 			Value::Identifier(v) => {
+				// TODO
 				// Will only get here if value was quoted
 				// CHECK ON THIS LATER, not sure any more
 				//print!("'{}", v);
 				print!("{}", v);
 			}
 			Value::Quote(v) => { print_quote(v, true) }
+
+
+
+			Value::Dict(v) => { print_dict(v, repr) }
+
+
+
 
 			Value::OpenFunc => print!("("),
 			Value::CloseFunc => print!(")"),
@@ -247,4 +276,15 @@ pub fn lcore_get(args: &mut Value, symbol_table: &mut Environment) -> Value {
 	}
 
 	Value::Null
+}
+
+
+pub fn lcore_dict(args: &mut Value, symbol_table: &mut Environment) -> Value {
+	let mut args = args.as_array();
+	let mut args_iter = args.iter();
+
+	let mut dict = HashMap::new();
+	dict.insert(Value::String(String::from("first-name")), Value::Int(24));
+
+	Value::Dict(dict)
 }

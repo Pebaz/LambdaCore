@@ -1,9 +1,9 @@
 (set 'info (dict "first name" "David" "last name" "Wallace"))
-(set 'ms (dict 'first-name "Michael" 'last-name "Scott"))
+(print info)
 
-(print (get info "first name"))
-(print (get ms 'first-name))
-
-(set 'foo1 (dict True "True Value"))    (print (get foo1 True))
-(set 'foo2 (dict 11 "Int Value"))       (print (get foo2 11))
-(set 'foo3 (dict 3.14 "Float Value"))   (print (get foo3 3.14))
+::(set 'ms (dict 'first-name "Michael" 'last-name "Scott"))
+::(print (get info "first name"))
+::(print (get ms 'first-name))
+::(set 'foo1 (dict True "True Value"))    (print (get foo1 True))
+::(set 'foo2 (dict 11 "Int Value"))       (print (get foo2 11))
+::(set 'foo3 (dict 3.14 "Float Value"))   (print (get foo3 3.14))

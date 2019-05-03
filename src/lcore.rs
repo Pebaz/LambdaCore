@@ -4,6 +4,8 @@ pub extern crate pest;
 
 use std::collections::{HashMap, VecDeque};
 use std::fmt;
+use std::hash::{Hash, Hasher};
+use std::cmp::{PartialEq, Eq};
 use std::iter::FromIterator;
 use std::str::FromStr;
 use std::process::exit;
@@ -75,6 +77,34 @@ impl Value {
 		match self { Value::Quote(ref q) => return &(**q), _ => unreachable!() }
 	}
 }
+
+impl Hash for Value {
+	fn hash<H: Hasher>(&self, state: &mut H) {
+		match self {
+			Value::Null => Value::Null.hash(state),
+
+			Value::Int(v) => v.hash(state),
+
+			_ => ()
+		}
+	}
+}
+
+impl PartialEq for Value {
+	fn eq(&self, other: &Value) -> bool {
+		return match (self, other) {
+
+			(Value::String(a), Value::String(b)) => {
+				true
+			}
+
+			_ => false,
+
+		}
+	}
+}
+
+impl Eq for Value {}
 
 impl fmt::Debug for Value {
 	fn fmt(&self, fm: &mut fmt::Formatter) -> fmt::Result {
