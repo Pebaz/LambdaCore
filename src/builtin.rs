@@ -220,17 +220,22 @@ pub fn lcore_defn(args: &mut Value, symbol_table: &mut Environment) -> Value {
 pub fn lcore_get(args: &mut Value, symbol_table: &mut Environment) -> Value {
 	let mut args = args.as_array().iter();
 
-	let obj = args.next().expect("Not enough arguments on call to \"get\": 0/2");
-	let key = args.next().expect("Not enough arguments on call to \"get\": 1/2");
+	let obj = args.next().expect(
+		"Not enough arguments on call to \"get\": 0/2");
+	let key = args.next().expect(
+		"Not enough arguments on call to \"get\": 1/2");
 
 	match obj {
 		Value::Array(v) => {
 			if let Value::Int(index) = key {
 				if *index > v.len() as i64 {
-					crash(format!("Index out of bounds: got {} but len is {}", index, v.len()));
+					crash(format!(
+						"Index out of bounds: got {} but len is {}", index,
+						v.len()));
 				} else {
-					let idx = *index % v.len() as i64;
-					println!("{}", idx);
+					let len = v.len() as i64;
+					let mut idx = *index % len;
+					if idx < 0 { idx += len }
 					return v[idx as usize].clone();
 				}
 			} else {
