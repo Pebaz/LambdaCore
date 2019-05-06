@@ -7,9 +7,11 @@ use std::iter::FromIterator;
 pub fn lcore_print_value(args: &mut Value) {
 	fn print_string(v: &String, repr: bool) {
 		if repr {
-			print!("{}", v);
+			//print!("{}", v);
+			print!("\"{}\"", v);
 		} else {
-			print!("{}", &v[1 .. v.len() - 1]);
+			//print!("{}", &v[1 .. v.len() - 1]);
+			print!("{}", v);
 		}
 	}
 
@@ -64,6 +66,27 @@ pub fn lcore_print_value(args: &mut Value) {
 		// print_value(v, repr);
 	}
 
+	fn print_dict(v: &HashMap<Value, Value>, repr: bool) {
+		print!("{{ ");
+		//print!("{:?}", v);
+		let length = v.len();
+		let mut count = 0;
+
+		for (key, value) in v {
+			print_value(key, true);
+			print!(": ");
+			print_value(value, true);
+
+			count += 1;
+			if count < length {
+				print!(", ");
+				//print!(" ");
+			}
+		}
+
+		print!(" }}");
+	}
+
 	fn print_value(value: &Value, repr: bool) {
 		match value {
 			// Print, stripping out first and last double quotes `"`
@@ -75,13 +98,14 @@ pub fn lcore_print_value(args: &mut Value) {
 			Value::Func { f: v } => print_func(v, repr),
 			Value::Null => print_null(),
 			Value::Identifier(v) => {
+				// TODO
 				// Will only get here if value was quoted
 				// CHECK ON THIS LATER, not sure any more
 				//print!("'{}", v);
 				print!("{}", v);
 			}
 			Value::Quote(v) => { print_quote(v, true) }
-
+			Value::Dict(v) => { print_dict(v, repr) }
 			Value::OpenFunc => print!("("),
 			Value::CloseFunc => print!(")"),
 			_ => { }
@@ -144,13 +168,16 @@ pub fn lcore_set(args: &mut Value, symbol_table: &mut Environment) -> Value {
 
 	match var {
 		// Identifier
-		Value::Identifier(v) => { symbol_table.insert(v.clone().to_string(), value.clone()); }
+		Value::Identifier(v) => {
+			symbol_table.insert(v.clone().to_string(), value.clone());
+		}
 
 		// Quoted Identifier
 		Value::Quote(v) => {
 			let mystr = v.as_identifier();
 			symbol_table.insert(mystr.clone().to_string(), value.clone());
 		}
+
 		_ => ()
 	}
 
@@ -202,7 +229,9 @@ pub fn lcore_defn(args: &mut Value, symbol_table: &mut Environment) -> Value {
 
 	match name {
 		// Identifier
-		Value::Identifier(v) => { symbol_table.insert(v.clone().to_string(), def); }
+		Value::Identifier(v) => {
+			symbol_table.insert(v.clone().to_string(), def);
+		}
 
 		// Quoted Identifier
 		Value::Quote(v) => {
@@ -222,8 +251,12 @@ pub fn lcore_get(args: &mut Value, symbol_table: &mut Environment) -> Value {
 
 	let obj = args.next().expect(
 		"Not enough arguments on call to \"get\": 0/2");
-	let key = args.next().expect(
+	let mut key = args.next().expect(
 		"Not enough arguments on call to \"get\": 1/2");
+
+	if let Value::Quote(q) = key {
+		key = q;
+	}
 
 	match obj {
 		Value::Array(v) => {
@@ -243,8 +276,84 @@ pub fn lcore_get(args: &mut Value, symbol_table: &mut Environment) -> Value {
 			}
 		}
 
+		Value::Dict(v) => {
+			match key {
+				Value::Identifier(a) => {
+					return v.get(&Value::String(a.to_string()))
+						.expect(&format!("No identifier key named: \"{}\"", a))
+						.clone();
+				}
+
+				Value::String(a) => {
+					return v.get(key)
+						.expect(&format!("No string key named: \"{}\"", a))
+						.clone();
+				}
+
+				Value::Int(a) => {
+					return v.get(key)
+						.expect(&format!("No int key named: {}", a))
+						.clone();
+				}
+
+				Value::Float(a) => {
+					return v.get(key)
+						.expect(&format!("No float key named: {}", a))
+						.clone();
+				}
+
+				Value::Boolean(a) => {
+					return v.get(key)
+						.expect(&format!("No boolean key named: {}", a))
+						.clone();
+				}
+
+				_ => unreachable!()
+			}
+		}
+
+		Value::String(v) => {
+			match key {
+				Value::Int(a) => {
+					println!("*******************************************");
+				}
+
+				_ => unreachable!()
+			}
+		}
+
 		_ => ()
 	}
 
 	Value::Null
+}
+
+
+pub fn lcore_dict(args: &mut Value, symbol_table: &mut Environment) -> Value {
+	let mut args = args.as_array();
+	let mut args_iter = args.iter();
+
+	if args.len() % 2 != 0 {
+		crash(format!("Odd number of arguments passed to \"dict\""));
+	}
+
+	let mut dict: HashMap<Value, Value> = HashMap::new();
+
+	for i in 0..args.len() / 2 {
+		let key = args_iter.next().expect(&format!("NO KEY {}", i));
+		let value = args_iter.next().expect(&format!("NO VALUE {}", i));
+
+		 if let Value::Quote(q) = key {
+			 if let Value::Identifier(s) = *q.clone() {
+		 		dict.insert(Value::String(s), value.clone());
+			 }
+		} else {
+			dict.insert(key.clone(), value.clone());
+		}
+	}
+
+	//dict.insert(Value::String(String::from("first name")), Value::Int(24));
+	//dict.insert(Value::String(String::from("last name")), Value::String(String::from("Wallace")));
+
+	Value::Dict(dict)
 }

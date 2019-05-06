@@ -4,6 +4,8 @@ pub extern crate pest;
 
 use std::collections::{HashMap, VecDeque};
 use std::fmt;
+use std::hash::{Hash, Hasher};
+use std::cmp::{PartialEq, Eq};
 use std::iter::FromIterator;
 use std::str::FromStr;
 use std::process::exit;
@@ -30,10 +32,10 @@ pub enum Value {
 	Array(Vec<Value>),
 	Func { f: fn(&mut Value, &mut Environment) -> Value },
 	Quote(Box<Value>),
+	Dict(HashMap<Value, Value>),
 
 	// TODO(pebaz):
 	Struct { name: String, fields: Vec<Value> },
-	Hash(HashMap<Value, Value>),
 
 
 	// Lexical Values
@@ -76,6 +78,53 @@ impl Value {
 	}
 }
 
+impl Hash for Value {
+	fn hash<H: Hasher>(&self, state: &mut H) {
+		match self {
+			Value::Null => Value::Null.hash(state),
+
+			Value::Int(v) => v.hash(state),
+
+			_ => ()
+		}
+	}
+}
+
+impl PartialEq for Value {
+	fn eq(&self, other: &Value) -> bool {
+		return match (self, other) {
+
+			(Value::String(a), Value::String(b)) => a == b,
+			(Value::Int(a), Value::Int(b)) => a == b,
+			(Value::Float(a), Value::Float(b)) => a == b,
+			(Value::Boolean(a), Value::Boolean(b)) => a == b,
+			(Value::Identifier(a), Value::Identifier(b)) => a == b,
+			(Value::Null, Value::Null) => true,
+			(Value::Quote(a), Value::Quote(b)) => a == b,
+			(Value::Func { f: a }, Value::Func { f: b }) => a as *const _ == b as *const _,
+			(Value::Array(a), Value::Array(b)) => a == b,
+
+			(Value::Dict(a), Value::Dict(b)) => a == b,
+			/*{
+				if a.len() != b.len() { return false; }
+
+				for key in a.keys() {
+					if !b.contains_key(key) { return false; }
+
+					if a[key] != b[key] { return false; }
+				}
+
+				true
+			}*/
+
+			_ => false,
+
+		}
+	}
+}
+
+impl Eq for Value {}
+
 impl fmt::Debug for Value {
 	fn fmt(&self, fm: &mut fmt::Formatter) -> fmt::Result {
 		match self {
@@ -94,9 +143,9 @@ impl fmt::Debug for Value {
 			Value::BackTick       => {  write!(fm, "`")          }
 			Value::Comma          => {  write!(fm, ",")          }
 			Value::Func { f }     => {  write!(fm, "Func")       }
+			Value::Dict(h)        => {  write!(fm, "Dict")        }
 
 			Value::Struct { name, fields } => { write!(fm, "Struct") }
-			Value::Hash(h)        => { write!(fm, "Hash")        }
 		}
 	}
 }
@@ -239,13 +288,15 @@ pub fn lcore_parse(
 			//stack.push_back(Value::Array(new_array));
 		}
 
+		Rule::String => {
+			let mut string = String::from(node.as_str());
+			string = string[1 .. string.len() - 1].to_string();
+			stack.push_back(Value::String(string))
+		}
 
 		Rule::BackTick => { stack.push_back(Value::BackTick) }
 		Rule::Comma => { stack.push_back(Value::Comma) }
-
-
 		Rule::Identifier => { stack.push_back(Value::Identifier(String::from(node.as_str()))) }
-		Rule::String => { stack.push_back(Value::String(String::from(node.as_str()))) }
 		Rule::Boolean => { stack.push_back(Value::Boolean(FromStr::from_str(node.as_str().to_lowercase().as_str()).unwrap())) }
 		Rule::Null => { stack.push_back(Value::Null) }
 		Rule::NewLine => { loc += 1 }
