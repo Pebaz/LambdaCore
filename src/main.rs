@@ -65,6 +65,8 @@ use std::collections::{HashMap, VecDeque};
 use std::iter::FromIterator;
 use std::fs;
 use std::fmt;
+use std::io::{self, Write};
+//use std::io;
 use std::cmp::min;
 use std::str::FromStr;
 use colored::*;
@@ -89,6 +91,40 @@ fn main() {
 	let mut code_file = matches.value_of("file");
 
 	if let Option::None = code_file {
+		let mut symbol_table = Environment::new();
+		symbol_table.push();
+
+		symbol_table.insert(String::from("print"), Value::Func { f: lcore_print });
+		symbol_table.insert(String::from("prin"), Value::Func  { f: lcore_prin });
+		symbol_table.insert(String::from("+"), Value::Func     { f: lcore_add });
+		symbol_table.insert(String::from("quit"), Value::Func  { f: lcore_quit });
+		symbol_table.insert(String::from("exit"), Value::Func  { f: lcore_quit });
+		symbol_table.insert(String::from("set"), Value::Func   { f: lcore_set });
+		symbol_table.insert(String::from("loop"), Value::Func  { f: lcore_loop });
+		symbol_table.insert(String::from("defn"), Value::Func  { f: lcore_defn });
+		symbol_table.insert(String::from("get"), Value::Func  { f: lcore_get });
+		symbol_table.insert(String::from("dict"), Value::Func  { f: lcore_dict });
+
+		loop {
+			print!("(> ");
+			std::io::stdout().flush();
+
+			let mut input = String::new();
+			io::stdin().read_line(&mut input).expect("Failed to read line");
+
+			//println!("GOT: {}", input);
+
+			let mut stack = VecDeque::new();
+
+			let program = LambdaCoreParser::parse(Rule::Program, &input)
+				.expect("LCORE: Failed To Parse")
+				.next()
+				.unwrap();
+
+			lcore_parse(program, &mut stack);
+			lcore_interpret(&mut stack, &mut symbol_table);
+		}
+
 		println!("REPL\n(> ");
 		code_file = Some("examples/comment.lcore");
 	}
