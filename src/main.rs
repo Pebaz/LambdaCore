@@ -90,7 +90,7 @@ fn main() {
 
 	if let Option::None = code_file {
 		println!("REPL\n(> ");
-		code_file = Some("examples/dict.lcore");
+		code_file = Some("examples/comment.lcore");
 	}
 
 	let unparsed_file = fs::read_to_string(code_file.unwrap()).expect("LCORE: Error Reading File");

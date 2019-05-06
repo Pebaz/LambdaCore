@@ -3,7 +3,7 @@
 WHITESPACE = _{ " " | "\t" }
 
 // Programs are constructed from one or more functions
-Program = { SOI ~ (Quote | BackTick | LineComment | Function | NewLine)* ~ EOI }
+Program = { SOI ~ (Quote | BackTick | LineComment | BlockComment | Function | NewLine)* ~ EOI }
 
 NewLine = {
 	NEWLINE
@@ -24,11 +24,14 @@ Quote = {
 LineComment = @{ "::" ~ LineCommentContents* }
 	LineCommentContents = { !(NEWLINE) ~ ANY }
 
+BlockComment = @{ ":>" ~ BlockCommentContents* ~ "<:" }
+	BlockCommentContents = { !("<:") ~ ANY }
+
 // It is assumed that you cannot call a value (e.g.: `(True)` or `(3.14)`)
 Function = {
 	"(" ~
 	Identifier ~
-	(Comma | Quote | BackTick | Value | Identifier | Function | LineComment | NEWLINE)* ~
+	(Comma | Quote | BackTick | Value | Identifier | Function | LineComment | BlockComment | NEWLINE)* ~
 	")"
 }
 
@@ -42,7 +45,7 @@ Identifier = @{
 
 Value = _{ Array | String | Number | Boolean | Null }
 
-Array = { "[" ~ (Comma | Quote | BackTick | LineComment | Value | Identifier | Function | NEWLINE)* ~ "]" }
+Array = { "[" ~ (Comma | Quote | BackTick | LineComment | BlockComment | Value | Identifier | Function | NEWLINE)* ~ "]" }
 
 Boolean = { "True" | "False" }
 

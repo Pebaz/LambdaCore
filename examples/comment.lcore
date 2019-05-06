@@ -1,0 +1,12 @@
+:: This is a Line Comment
+(print "Line Comment")
+
+:>
+This
+is
+a
+Block
+Comment
+<:
+(print
+	"Block Comment")
