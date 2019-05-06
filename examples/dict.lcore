@@ -1,5 +1,6 @@
 (set 'info (dict "first name" "David" "last name" "Wallace"))
 (print info)
+(print (get info "first name"))
 
 ::(set 'ms (dict 'first-name "Michael" 'last-name "Scott"))
 ::(print (get info "first name"))

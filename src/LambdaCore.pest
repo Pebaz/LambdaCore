@@ -48,7 +48,8 @@ Boolean = { "True" | "False" }
 
 Null = { "Null" }
 
-String = ${ "\"" ~ StringContents ~ "\"" }
+String = ${ StringQuote ~ StringContents ~ StringQuote }
+	StringQuote = _{"\""}
 	StringContents = _{ Character* }
 		Character = _{
 			!("\"" | "\\") ~ ANY

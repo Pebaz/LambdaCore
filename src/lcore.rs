@@ -288,13 +288,16 @@ pub fn lcore_parse(
 			//stack.push_back(Value::Array(new_array));
 		}
 
+		Rule::String => {
+			let mut string = String::from(node.as_str());
+			string = string[1 .. string.len() - 1].to_string();
+			println!("STRING: {}={}", string, string.len());
+			stack.push_back(Value::String(string))
+		}
 
 		Rule::BackTick => { stack.push_back(Value::BackTick) }
 		Rule::Comma => { stack.push_back(Value::Comma) }
-
-
 		Rule::Identifier => { stack.push_back(Value::Identifier(String::from(node.as_str()))) }
-		Rule::String => { stack.push_back(Value::String(String::from(node.as_str()))) }
 		Rule::Boolean => { stack.push_back(Value::Boolean(FromStr::from_str(node.as_str().to_lowercase().as_str()).unwrap())) }
 		Rule::Null => { stack.push_back(Value::Null) }
 		Rule::NewLine => { loc += 1 }

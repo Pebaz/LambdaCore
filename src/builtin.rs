@@ -7,9 +7,11 @@ use std::iter::FromIterator;
 pub fn lcore_print_value(args: &mut Value) {
 	fn print_string(v: &String, repr: bool) {
 		if repr {
-			print!("{}", v);
+			//print!("{}", v);
+			print!("\"{}\"", v);
 		} else {
-			print!("{}", &v[1 .. v.len() - 1]);
+			//print!("{}", &v[1 .. v.len() - 1]);
+			print!("{}", v);
 		}
 	}
 
@@ -103,14 +105,7 @@ pub fn lcore_print_value(args: &mut Value) {
 				print!("{}", v);
 			}
 			Value::Quote(v) => { print_quote(v, true) }
-
-
-
 			Value::Dict(v) => { print_dict(v, repr) }
-
-
-
-
 			Value::OpenFunc => print!("("),
 			Value::CloseFunc => print!(")"),
 			_ => { }
@@ -272,6 +267,29 @@ pub fn lcore_get(args: &mut Value, symbol_table: &mut Environment) -> Value {
 			}
 		}
 
+		Value::Dict(v) => {
+			match key {
+				Value::Identifier(a)
+				| Value::String(a) => {
+					return v.get(key).expect(&format!("No string key named: \"{}\"", a)).clone();
+				}
+
+				Value::Int(a) => {
+					return v.get(key).expect(&format!("No int key named: {}", a)).clone();
+				}
+
+				Value::Float(a) => {
+					return v.get(key).expect(&format!("No float key named: {}", a)).clone();
+				}
+
+				Value::Boolean(a) => {
+					return v.get(key).expect(&format!("No boolean key named: {}", a)).clone();
+				}
+
+				_ => unreachable!()
+			}
+		}
+
 		_ => ()
 	}
 
@@ -284,8 +302,8 @@ pub fn lcore_dict(args: &mut Value, symbol_table: &mut Environment) -> Value {
 	let mut args_iter = args.iter();
 
 	let mut dict = HashMap::new();
-	dict.insert(Value::String(String::from("\"first-name\"")), Value::Int(24));
-	dict.insert(Value::String(String::from("\"last-name\"")), Value::String(String::from("\"Wallace\"")));
+	dict.insert(Value::String(String::from("first name")), Value::Int(24));
+	dict.insert(Value::String(String::from("last name")), Value::String(String::from("Wallace")));
 
 	Value::Dict(dict)
 }
