@@ -168,13 +168,16 @@ pub fn lcore_set(args: &mut Value, symbol_table: &mut Environment) -> Value {
 
 	match var {
 		// Identifier
-		Value::Identifier(v) => { symbol_table.insert(v.clone().to_string(), value.clone()); }
+		Value::Identifier(v) => {
+			symbol_table.insert(v.clone().to_string(), value.clone());
+		}
 
 		// Quoted Identifier
 		Value::Quote(v) => {
 			let mystr = v.as_identifier();
 			symbol_table.insert(mystr.clone().to_string(), value.clone());
 		}
+
 		_ => ()
 	}
 
@@ -226,7 +229,9 @@ pub fn lcore_defn(args: &mut Value, symbol_table: &mut Environment) -> Value {
 
 	match name {
 		// Identifier
-		Value::Identifier(v) => { symbol_table.insert(v.clone().to_string(), def); }
+		Value::Identifier(v) => {
+			symbol_table.insert(v.clone().to_string(), def);
+		}
 
 		// Quoted Identifier
 		Value::Quote(v) => {
@@ -246,8 +251,12 @@ pub fn lcore_get(args: &mut Value, symbol_table: &mut Environment) -> Value {
 
 	let obj = args.next().expect(
 		"Not enough arguments on call to \"get\": 0/2");
-	let key = args.next().expect(
+	let mut key = args.next().expect(
 		"Not enough arguments on call to \"get\": 1/2");
+
+	if let Value::Quote(q) = key {
+		key = q;
+	}
 
 	match obj {
 		Value::Array(v) => {
@@ -269,21 +278,44 @@ pub fn lcore_get(args: &mut Value, symbol_table: &mut Environment) -> Value {
 
 		Value::Dict(v) => {
 			match key {
-				Value::Identifier(a)
-				| Value::String(a) => {
-					return v.get(key).expect(&format!("No string key named: \"{}\"", a)).clone();
+				Value::Identifier(a) => {
+					return v.get(&Value::String(a.to_string()))
+						.expect(&format!("No identifier key named: \"{}\"", a))
+						.clone();
+				}
+
+				Value::String(a) => {
+					return v.get(key)
+						.expect(&format!("No string key named: \"{}\"", a))
+						.clone();
 				}
 
 				Value::Int(a) => {
-					return v.get(key).expect(&format!("No int key named: {}", a)).clone();
+					return v.get(key)
+						.expect(&format!("No int key named: {}", a))
+						.clone();
 				}
 
 				Value::Float(a) => {
-					return v.get(key).expect(&format!("No float key named: {}", a)).clone();
+					return v.get(key)
+						.expect(&format!("No float key named: {}", a))
+						.clone();
 				}
 
 				Value::Boolean(a) => {
-					return v.get(key).expect(&format!("No boolean key named: {}", a)).clone();
+					return v.get(key)
+						.expect(&format!("No boolean key named: {}", a))
+						.clone();
+				}
+
+				_ => unreachable!()
+			}
+		}
+
+		Value::String(v) => {
+			match key {
+				Value::Int(a) => {
+					println!("*******************************************");
 				}
 
 				_ => unreachable!()
@@ -311,10 +343,10 @@ pub fn lcore_dict(args: &mut Value, symbol_table: &mut Environment) -> Value {
 		let key = args_iter.next().expect(&format!("NO KEY {}", i));
 		let value = args_iter.next().expect(&format!("NO VALUE {}", i));
 
-		// if let Value::Quote(q) = value {
-		// 	dict.insert(key.clone(), *q.clone());
-		if let Value::Identifier(s) = value {
-			dict.insert(key.clone(), Value::String(s.to_string()));
+		 if let Value::Quote(q) = key {
+			 if let Value::Identifier(s) = *q.clone() {
+		 		dict.insert(Value::String(s), value.clone());
+			 }
 		} else {
 			dict.insert(key.clone(), value.clone());
 		}
