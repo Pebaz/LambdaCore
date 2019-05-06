@@ -307,14 +307,17 @@ pub fn lcore_dict(args: &mut Value, symbol_table: &mut Environment) -> Value {
 
 	let mut dict: HashMap<Value, Value> = HashMap::new();
 
-	println!("HERE");
-
 	for i in 0..args.len() / 2 {
-		println!("HERE2");
 		let key = args_iter.next().expect(&format!("NO KEY {}", i));
-		let value = match args_iter.next().expect(&format!("NO VALUE {}", i));
+		let value = args_iter.next().expect(&format!("NO VALUE {}", i));
 
-		dict.insert(key.clone(), value.clone());
+		// if let Value::Quote(q) = value {
+		// 	dict.insert(key.clone(), *q.clone());
+		if let Value::Identifier(s) = value {
+			dict.insert(key.clone(), Value::String(s.to_string()));
+		} else {
+			dict.insert(key.clone(), value.clone());
+		}
 	}
 
 	//dict.insert(Value::String(String::from("first name")), Value::Int(24));
