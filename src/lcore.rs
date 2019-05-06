@@ -291,7 +291,6 @@ pub fn lcore_parse(
 		Rule::String => {
 			let mut string = String::from(node.as_str());
 			string = string[1 .. string.len() - 1].to_string();
-			println!("STRING: {}={}", string, string.len());
 			stack.push_back(Value::String(string))
 		}
 

@@ -1,4 +1,4 @@
-(set 'info (dict "first name" "David" "last name" "Wallace"))
+(set 'info (dict "first name" "David" "last name" "Wallace" 'age 41))
 (print info)
 (print (get info "first name"))
 

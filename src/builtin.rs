@@ -301,9 +301,24 @@ pub fn lcore_dict(args: &mut Value, symbol_table: &mut Environment) -> Value {
 	let mut args = args.as_array();
 	let mut args_iter = args.iter();
 
-	let mut dict = HashMap::new();
-	dict.insert(Value::String(String::from("first name")), Value::Int(24));
-	dict.insert(Value::String(String::from("last name")), Value::String(String::from("Wallace")));
+	if args.len() % 2 != 0 {
+		crash(format!("Odd number of arguments passed to \"dict\""));
+	}
+
+	let mut dict: HashMap<Value, Value> = HashMap::new();
+
+	println!("HERE");
+
+	for i in 0..args.len() / 2 {
+		println!("HERE2");
+		let key = args_iter.next().expect(&format!("NO KEY {}", i));
+		let value = match args_iter.next().expect(&format!("NO VALUE {}", i));
+
+		dict.insert(key.clone(), value.clone());
+	}
+
+	//dict.insert(Value::String(String::from("first name")), Value::Int(24));
+	//dict.insert(Value::String(String::from("last name")), Value::String(String::from("Wallace")));
 
 	Value::Dict(dict)
 }
