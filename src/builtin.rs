@@ -330,7 +330,7 @@ pub fn lcore_get(args: &mut Value, symbol_table: &mut Environment) -> Value {
 
 
 pub fn lcore_dict(args: &mut Value, symbol_table: &mut Environment) -> Value {
-	let mut args = args.as_array();
+	let args = args.as_array();
 	let mut args_iter = args.iter();
 
 	if args.len() % 2 != 0 {
@@ -356,4 +356,18 @@ pub fn lcore_dict(args: &mut Value, symbol_table: &mut Environment) -> Value {
 	//dict.insert(Value::String(String::from("last name")), Value::String(String::from("Wallace")));
 
 	Value::Dict(dict)
+}
+
+
+pub fn import_builtins(symbol_table: &mut Environment) {
+	symbol_table.insert(String::from("print"), Value::Func { f: lcore_print });
+	symbol_table.insert(String::from("prin"), Value::Func  { f: lcore_prin });
+	symbol_table.insert(String::from("+"), Value::Func     { f: lcore_add });
+	symbol_table.insert(String::from("quit"), Value::Func  { f: lcore_quit });
+	symbol_table.insert(String::from("exit"), Value::Func  { f: lcore_quit });
+	symbol_table.insert(String::from("set"), Value::Func   { f: lcore_set });
+	symbol_table.insert(String::from("loop"), Value::Func  { f: lcore_loop });
+	symbol_table.insert(String::from("defn"), Value::Func  { f: lcore_defn });
+	symbol_table.insert(String::from("get"), Value::Func  { f: lcore_get });
+	symbol_table.insert(String::from("dict"), Value::Func  { f: lcore_dict });
 }

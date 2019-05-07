@@ -2,8 +2,10 @@
 extern crate pest_derive;
 pub extern crate pest;
 
+use crate::builtin::*;
 use std::collections::{HashMap, VecDeque};
 use std::fmt;
+use std::io::{self, Write};
 use std::hash::{Hash, Hasher};
 use std::cmp::{PartialEq, Eq};
 use std::iter::FromIterator;
@@ -453,6 +455,11 @@ pub fn lcore_interpret(
 								_ => unreachable!()
 							};
 
+							// TODO(pebaz): In order to do Tail-Call Optimization,
+							// it is necessary to remove the next code line.
+							// This will allow the function to reuse names
+							// (and therefore storage) from previous call.
+
 							// Push a new scope
 							symbol_table.push();
 
@@ -572,6 +579,61 @@ pub fn lcore_interpret(
 pub fn count_newlines(s: &str) -> usize {
     s.as_bytes().iter().filter(|&&c| c == b'\n').count()
 }
+
+
+pub fn lcore_repl() {
+	let mut symbol_table = Environment::new();
+	symbol_table.push();
+
+	import_builtins(&mut symbol_table);
+
+	loop {
+		print!("(> ");
+		std::io::stdout().flush().unwrap();
+
+		let mut program;
+		let mut stack = VecDeque::new();
+		let mut program_text = String::new();
+		let mut input = String::new();
+
+		loop {
+			let mut line = String::new();
+			io::stdin().read_line(&mut line).unwrap();
+			input.push_str(&line);
+
+			match LambdaCoreParser::parse(Rule::Program, &input) {
+				Ok(i) => {
+					program = i;
+					//break;
+				}
+
+				Err(err) => {
+					input.push_str(&line);
+				}
+			}
+		}
+
+		lcore_parse(program.next().unwrap(), &mut stack);
+		lcore_interpret(&mut stack, &mut symbol_table);
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #[test]
 pub fn test_tests() {
