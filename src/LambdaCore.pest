@@ -3,7 +3,7 @@
 WHITESPACE = _{ " " | "\t" }
 
 // Programs are constructed from one or more functions
-Program = { SOI ~ (Quote | BackTick | LineComment | BlockComment | Function | NewLine)* ~ EOI }
+Program = { SOI ~ (Quote | BackTick | LineComment | BlockComment | Function | NewLine) ~ EOI }
 
 NewLine = {
 	NEWLINE

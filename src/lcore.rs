@@ -12,6 +12,8 @@ use std::iter::FromIterator;
 use std::str::FromStr;
 use std::process::exit;
 use pest::Parser;
+use pest::error::Error;
+use pest::error::ErrorVariant::ParsingError;
 use pest::iterators::Pair;
 
 
@@ -570,7 +572,12 @@ pub fn lcore_interpret(
 	// Return the value from the last function to be called
 	let mut last_array = arrays.pop().unwrap();
 	match last_array {
-		Value::Array(ref mut v) => return v.pop().unwrap(),
+		Value::Array(ref mut v) => {
+			match v.pop() {
+				Some(e) => return e,
+				None => return Value::Null
+			}
+		}
 		_ => unreachable!()
 	}
 }
@@ -581,51 +588,94 @@ pub fn count_newlines(s: &str) -> usize {
 }
 
 
-pub fn lcore_repl() {
+/*
+pub fn lcore_repl222() {
 	let mut symbol_table = Environment::new();
 	symbol_table.push();
+	import_builtins(&mut symbol_table);
 
+	let mut again = false;
+	let mut input = String::new();
+
+	while again {
+		print!("(> ");
+		std::io::stdout().flush().unwrap();
+
+		let mut line = String::new();
+
+		io::stdin().read_line(&mut line).unwrap();
+		input.push_str(&line);
+
+		match LambdaCoreParser::parse(Rule::Program, &input) {
+			Ok(i) => {
+				let mut stack = VecDeque::new();
+				lcore_parse(i.next().unwrap(), &mut stack);
+				lcore_interpret(&mut stack, &mut symbol_table);
+				again = false;
+			}
+
+			Err(err) => {
+				again = true;
+			}
+		}
+	}
+}
+*/
+
+pub fn lcore_repl() {
+	print!("LambdaCore Programming Language v");
+	println!(env!("CARGO_PKG_VERSION"));
+	println!("Type CTRL+Z or (quit) to exit.");
+
+	let mut symbol_table = Environment::new();
+	symbol_table.push();
 	import_builtins(&mut symbol_table);
 
 	loop {
 		print!("(> ");
 		std::io::stdout().flush().unwrap();
 
-		let mut program;
-		let mut stack = VecDeque::new();
-		let mut program_text = String::new();
 		let mut input = String::new();
 
 		loop {
 			let mut line = String::new();
 			io::stdin().read_line(&mut line).unwrap();
-			input.push_str(&line);
+			input.push_str(&line.trim());
 
 			match LambdaCoreParser::parse(Rule::Program, &input) {
-				Ok(i) => {
-					program = i;
-					//break;
+				Ok(mut i) => {
+					let mut stack = VecDeque::new();
+					lcore_parse(i.next().unwrap(), &mut stack);
+					lcore_interpret(&mut stack, &mut symbol_table);
+					break;
 				}
 
 				Err(err) => {
-					input.push_str(&line);
+
+					match err.variant {
+						ParsingError {positives, negatives} => {
+
+							// NOTE(pebaz): This is needed to not read
+							// additional lines from stdin if the user just
+							// presses the `enter` key.
+							if positives.contains(&Rule::Program) {
+								break;
+							}
+
+							//if LCORE_DEBUG { println!("{:?}", positives); }
+							println!("{:?}", positives);
+						}
+
+						_ => ()
+					}
+
+					print!(" > ");
+					std::io::stdout().flush().unwrap();
 				}
 			}
 		}
-
-		lcore_parse(program.next().unwrap(), &mut stack);
-		lcore_interpret(&mut stack, &mut symbol_table);
 	}
 }
-
-
-
-
-
-
-
-
-
 
 
 
