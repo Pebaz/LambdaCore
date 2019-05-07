@@ -636,34 +636,55 @@ pub fn lcore_repl() {
 		std::io::stdout().flush().unwrap();
 
 		let mut input = String::new();
+		let mut add_space = false;
 
 		loop {
 			let mut line = String::new();
 			io::stdin().read_line(&mut line).unwrap();
+			if add_space {
+				input.push_str(" ");
+				add_space = false;
+			}
 			input.push_str(&line.trim());
 
 			match LambdaCoreParser::parse(Rule::Program, &input) {
 				Ok(mut i) => {
 					let mut stack = VecDeque::new();
 					lcore_parse(i.next().unwrap(), &mut stack);
+
 					lcore_interpret(&mut stack, &mut symbol_table);
+					
+					/* TODO(pebaz)
+					match lcore_interpret(&mut stack, &mut symbol_table) {
+						// Handle each error
+					}
+					*/
+
 					break;
 				}
 
 				Err(err) => {
-
 					match err.variant {
 						ParsingError {positives, negatives} => {
+
+							// NOTE(pebaz): Something has gone wrong and Pest
+							// cannot parse the input.
+							if positives.contains(&Rule::EOI) {
+								println!("Enter only one form per line");
+								break;
+							}
 
 							// NOTE(pebaz): This is needed to not read
 							// additional lines from stdin if the user just
 							// presses the `enter` key.
-							if positives.contains(&Rule::Program) {
+							else if positives.contains(&Rule::Program) {
 								break;
 							}
 
-							//if LCORE_DEBUG { println!("{:?}", positives); }
-							println!("{:?}", positives);
+							// Add whitespace because lines are concatenated
+							else {
+								add_space = true;
+							}
 						}
 
 						_ => ()
