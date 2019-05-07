@@ -48,7 +48,7 @@ pub fn lcore_print_value(args: &mut Value) {
 		print!("]");
 	}
 
-	fn print_func(v: &fn(&mut Value, &mut Environment) -> Value, repr: bool) {
+	fn print_func(v: &fn(&mut Value, &mut Environment) -> Result<Value, LCoreError>, repr: bool) {
 		print!("<Func at {:p}>", v);
 	}
 
@@ -122,41 +122,41 @@ pub fn lcore_print_value(args: &mut Value) {
 }
 
 
-pub fn lcore_prin(args: &mut Value, symbol_table: &mut Environment) -> Value {
+pub fn lcore_prin(args: &mut Value, symbol_table: &mut Environment) -> Result<Value, LCoreError> {
 	lcore_print_value(args);
-	Value::Null
+	Ok(Value::Null)
 }
 
 
-pub fn lcore_print(args: &mut Value, symbol_table: &mut Environment) -> Value {
+pub fn lcore_print(args: &mut Value, symbol_table: &mut Environment) -> Result<Value, LCoreError> {
 	lcore_print_value(args);
 	println!("");
-	Value::Null
+	Ok(Value::Null)
 }
 
 
-pub fn lcore_add(args: &mut Value, symbol_table: &mut Environment) -> Value {
+pub fn lcore_add(args: &mut Value, symbol_table: &mut Environment) -> Result<Value, LCoreError> {
 	let mut args = args.as_array().iter();
 	let a = args.next().expect("Not enough arguments on call to \"add\": 0/2");
 	let b = args.next().expect("Not enough arguments on call to \"add\": 1/2");
 	match (a, b) {
 		(Value::Int(v1), Value::Int(v2)) => {
-			return Value::Int(a.as_int() + b.as_int());
+			return Ok(Value::Int(a.as_int() + b.as_int()));
 		}
 
 		(Value::Float(v1), Value::Float(v2)) => {
-			return Value::Float(a.as_float() + b.as_float());
+			return Ok(Value::Float(a.as_float() + b.as_float()));
 		}
 
 		_ => unreachable!()  // Handle error
 	}
 }
 
-pub fn lcore_quit(args: &mut Value, symbol_table: &mut Environment) -> Value {
+pub fn lcore_quit(args: &mut Value, symbol_table: &mut Environment) -> Result<Value, LCoreError> {
 	exit(0);
 }
 
-pub fn lcore_set(args: &mut Value, symbol_table: &mut Environment) -> Value {
+pub fn lcore_set(args: &mut Value, symbol_table: &mut Environment) -> Result<Value, LCoreError> {
 	let mut args = args.as_array().iter();
 
 	let var = args.next().expect("Not enough arguments on call to \"set\": 0/2");
@@ -181,10 +181,10 @@ pub fn lcore_set(args: &mut Value, symbol_table: &mut Environment) -> Value {
 		_ => ()
 	}
 
-	Value::Null
+	Ok(Value::Null)
 }
 
-pub fn lcore_loop(args: &mut Value, symbol_table: &mut Environment) -> Value {
+pub fn lcore_loop(args: &mut Value, symbol_table: &mut Environment) -> Result<Value, LCoreError> {
 	let mut args = args.as_array().iter();
 
 	let quote = args.next().expect("Not enough arguments on call to \"loop\": 0/3");
@@ -204,7 +204,7 @@ pub fn lcore_loop(args: &mut Value, symbol_table: &mut Environment) -> Value {
 		lcore_interpret(&mut loop_body, symbol_table);
 	}
 
-	Value::Null
+	Ok(Value::Null)
 }
 
 
@@ -212,7 +212,7 @@ pub fn lcore_loop(args: &mut Value, symbol_table: &mut Environment) -> Value {
 /// Stuff the code to run in a list value in the symbol table. Make sure to
 /// store the variables to bind at call time.
 ///
-pub fn lcore_defn(args: &mut Value, symbol_table: &mut Environment) -> Value {
+pub fn lcore_defn(args: &mut Value, symbol_table: &mut Environment) -> Result<Value, LCoreError> {
 	// Identifier
 	// Array<Quoted(Identifier)>
 	// Quoted(Array<Value>) (The code to run later)
@@ -242,11 +242,11 @@ pub fn lcore_defn(args: &mut Value, symbol_table: &mut Environment) -> Value {
 		_ => ()
 	}
 
-	Value::Null
+	Ok(Value::Null)
 }
 
 
-pub fn lcore_get(args: &mut Value, symbol_table: &mut Environment) -> Value {
+pub fn lcore_get(args: &mut Value, symbol_table: &mut Environment) -> Result<Value, LCoreError> {
 	let mut args = args.as_array().iter();
 
 	let obj = args.next().expect(
@@ -269,7 +269,7 @@ pub fn lcore_get(args: &mut Value, symbol_table: &mut Environment) -> Value {
 					let len = v.len() as i64;
 					let mut idx = *index % len;
 					if idx < 0 { idx += len }
-					return v[idx as usize].clone();
+					return Ok(v[idx as usize].clone());
 				}
 			} else {
 				crash(format!("Cannot index Array with {:?}", key));
@@ -279,33 +279,33 @@ pub fn lcore_get(args: &mut Value, symbol_table: &mut Environment) -> Value {
 		Value::Dict(v) => {
 			match key {
 				Value::Identifier(a) => {
-					return v.get(&Value::String(a.to_string()))
+					return Ok(v.get(&Value::String(a.to_string()))
 						.expect(&format!("No identifier key named: \"{}\"", a))
-						.clone();
+						.clone());
 				}
 
 				Value::String(a) => {
-					return v.get(key)
+					return Ok(v.get(key)
 						.expect(&format!("No string key named: \"{}\"", a))
-						.clone();
+						.clone());
 				}
 
 				Value::Int(a) => {
-					return v.get(key)
+					return Ok(v.get(key)
 						.expect(&format!("No int key named: {}", a))
-						.clone();
+						.clone());
 				}
 
 				Value::Float(a) => {
-					return v.get(key)
+					return Ok(v.get(key)
 						.expect(&format!("No float key named: {}", a))
-						.clone();
+						.clone());
 				}
 
 				Value::Boolean(a) => {
-					return v.get(key)
+					return Ok(v.get(key)
 						.expect(&format!("No boolean key named: {}", a))
-						.clone();
+						.clone());
 				}
 
 				_ => unreachable!()
@@ -325,11 +325,11 @@ pub fn lcore_get(args: &mut Value, symbol_table: &mut Environment) -> Value {
 		_ => ()
 	}
 
-	Value::Null
+	Ok(Value::Null)
 }
 
 
-pub fn lcore_dict(args: &mut Value, symbol_table: &mut Environment) -> Value {
+pub fn lcore_dict(args: &mut Value, symbol_table: &mut Environment) -> Result<Value, LCoreError> {
 	let args = args.as_array();
 	let mut args_iter = args.iter();
 
@@ -355,7 +355,7 @@ pub fn lcore_dict(args: &mut Value, symbol_table: &mut Environment) -> Value {
 	//dict.insert(Value::String(String::from("first name")), Value::Int(24));
 	//dict.insert(Value::String(String::from("last name")), Value::String(String::from("Wallace")));
 
-	Value::Dict(dict)
+	Ok(Value::Dict(dict))
 }
 
 

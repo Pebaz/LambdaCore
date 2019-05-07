@@ -34,7 +34,7 @@ pub enum Value {
 	Float(f64),
 	String(String),
 	Array(Vec<Value>),
-	Func { f: fn(&mut Value, &mut Environment) -> Value },
+	Func { f: fn(&mut Value, &mut Environment) -> Result<Value, LCoreError> },
 	Quote(Box<Value>),
 	Dict(HashMap<Value, Value>),
 
@@ -73,7 +73,7 @@ impl Value {
 		match self { Value::Array(ref a) => return a, _ => unreachable!() }
 	}
 
-	pub fn as_func(&self)       -> &fn(&mut Value, &mut Environment) -> Value {
+	pub fn as_func(&self)       -> &fn(&mut Value, &mut Environment) -> Result<Value, LCoreError> {
 		match self { Value::Func { f } => return f, _ => unreachable!() }
 	}
 
@@ -326,7 +326,7 @@ pub fn lcore_interpret(
 	//stack: &mut Vec<Value>,
 	stack: &mut VecDeque<Value>,
 	symbol_table: &mut Environment
-) -> Value {
+) -> Result<Value, LCoreError> {
 	let mut arrays: Vec<Value> = Vec::with_capacity(64);
 
 	// NOTE(pebaz): Since a function can be called in the global scope, we need
@@ -519,12 +519,12 @@ pub fn lcore_interpret(
 							ret
 						}
 
-						_ => Value::Null
+						_ => Ok(Value::Null)
 					};
 				
 					let length = arrays.len();
 					if let Value::Array(ref mut v) = arrays[length - 1] {
-						v.push(ret)
+						v.push(ret.ok().unwrap())
 					}
 				}
 			}
@@ -580,8 +580,8 @@ pub fn lcore_interpret(
 	match last_array {
 		Value::Array(ref mut v) => {
 			match v.pop() {
-				Some(e) => return e,
-				None => return Value::Null
+				Some(e) => return Ok(e),
+				None => return Ok(Value::Null)
 			}
 		}
 		_ => unreachable!()
