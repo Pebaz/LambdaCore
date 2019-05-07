@@ -130,7 +130,14 @@ fn main() {
 		}
 	}*/
 
-	lcore_interpret(&mut stack, &mut symbol_table);
+	if let Err(err) = lcore_interpret(&mut stack, &mut symbol_table) {
+		match err {
+			LCoreError::LambdaCoreError(s) => println!("{}", s),
+			LCoreError::IndexError(s) => println!("{}", s),
+			LCoreError::ArgumentError(s) => println!("{}", s),
+			LCoreError::NameError(s) => println!("{}", s)
+		}
+	}
 
 	/*if LCORE_DEBUG {
 		for item in &symbol_table {

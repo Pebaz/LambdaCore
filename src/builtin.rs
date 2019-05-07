@@ -4,7 +4,7 @@ use crate::lcore::*;
 use std::process::exit;
 use std::iter::FromIterator;
 
-pub fn lcore_print_value(args: &mut Value) {
+pub fn lcore_print_value(args: &mut Value) -> Result<Value, LCoreError> {
 	fn print_string(v: &String, repr: bool) {
 		if repr {
 			//print!("{}", v);
@@ -114,11 +114,18 @@ pub fn lcore_print_value(args: &mut Value) {
 
 	let args = args.as_array();
 
-	if args.len() > 1 { crash(format!("Can only print 1 value at a time right now.")); }
+	if args.len() > 1 {
+		//crash(format!("Can only print 1 value at a time right now."));
+		return Err(
+			LCoreError::ArgumentError(
+				format!("Can only print 1 value at a time right now.")));
+	}
 
 	let value = args.iter().next().unwrap();
 
 	print_value(value, false);
+
+	Ok(Value::Null)
 }
 
 
@@ -262,9 +269,17 @@ pub fn lcore_get(args: &mut Value, symbol_table: &mut Environment) -> Result<Val
 		Value::Array(v) => {
 			if let Value::Int(index) = key {
 				if *index > v.len() as i64 {
-					crash(format!(
+					/*crash(format!(
 						"Index out of bounds: got {} but len is {}", index,
-						v.len()));
+						v.len()));*/
+
+					return Err(
+						LCoreError::ArgumentError(
+							format!(
+								"Index out of bounds: got {} but len is {}",
+								index,
+								v.len())));
+
 				} else {
 					let len = v.len() as i64;
 					let mut idx = *index % len;
@@ -272,7 +287,10 @@ pub fn lcore_get(args: &mut Value, symbol_table: &mut Environment) -> Result<Val
 					return Ok(v[idx as usize].clone());
 				}
 			} else {
-				crash(format!("Cannot index Array with {:?}", key));
+				//crash(format!("Cannot index Array with {:?}", key));
+				return Err(
+					LCoreError::ArgumentError(
+						format!("Cannot index Array with {:?}", key)));
 			}
 		}
 
@@ -334,7 +352,9 @@ pub fn lcore_dict(args: &mut Value, symbol_table: &mut Environment) -> Result<Va
 	let mut args_iter = args.iter();
 
 	if args.len() % 2 != 0 {
-		crash(format!("Odd number of arguments passed to \"dict\""));
+		//crash(format!("Odd number of arguments passed to \"dict\""));
+		return Err(LCoreError::ArgumentError(
+			format!("Odd number of arguments passed to \"dict\"")));
 	}
 
 	let mut dict: HashMap<Value, Value> = HashMap::new();

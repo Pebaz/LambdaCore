@@ -1,0 +1,3 @@
+::(print no-name)
+::(get [1 2 3] 34)
+(dict 'a 1 'b 2 'c)

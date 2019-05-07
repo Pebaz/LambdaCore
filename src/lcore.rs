@@ -385,7 +385,9 @@ pub fn lcore_interpret(
 
 							let key = node.as_identifier();
 							if !symbol_table.contains_key(key.as_str().to_string()) {
-								crash(format!("NameError: Cannot lookup name: \"{}\"", key));
+								//crash(format!("NameError: Cannot lookup name: \"{}\"", key));
+
+								return Err(LCoreError::NameError(format!("NameError: Cannot lookup name: \"{}\"", key)));
 							}
 							let length = arrays.len();
 							if let Value::Array(ref mut array) = arrays[length - 1] {
@@ -398,13 +400,15 @@ pub fn lcore_interpret(
 
 							let key = node.as_identifier();
 							if !symbol_table.contains_key(key.as_str().to_string()) {
-								crash(format!("NameError: Cannot lookup name: \"{}\"", key));
+								//crash(format!("NameError: Cannot lookup name: \"{}\"", key));
+
+								return Err(LCoreError::NameError(format!("NameError: Cannot lookup name: \"{}\"", key)));
 							}
 							let length = arrays.len();
 							if let Value::Array(ref mut array) = arrays[length - 1] {
 								array.push(symbol_table.get(key.as_str().to_string()).unwrap().clone())
 							}
-						}
+					}
 				}
 
 				
@@ -524,7 +528,20 @@ pub fn lcore_interpret(
 				
 					let length = arrays.len();
 					if let Value::Array(ref mut v) = arrays[length - 1] {
-						v.push(ret.ok().unwrap())
+						//v.push(ret.ok().unwrap())
+
+						v.push(match ret {
+							Ok(i) => i,
+							Err(err) => {
+								match err {
+									LCoreError::LambdaCoreError(s) => println!("{}", s),
+									LCoreError::IndexError(s) => println!("{}", s),
+									LCoreError::ArgumentError(s) => println!("{}", s),
+									LCoreError::NameError(s) => println!("{}", s)
+								}
+								exit(1);
+							}
+						});
 					}
 				}
 			}
@@ -658,13 +675,16 @@ pub fn lcore_repl() {
 					let mut stack = VecDeque::new();
 					lcore_parse(i.next().unwrap(), &mut stack);
 
-					lcore_interpret(&mut stack, &mut symbol_table);
+					// lcore_interpret(&mut stack, &mut symbol_table);
 
-					/* TODO(pebaz)
-					match lcore_interpret(&mut stack, &mut symbol_table) {
-						// Handle each error
+					if let Err(err) = lcore_interpret(&mut stack, &mut symbol_table) {
+						match err {
+							LCoreError::LambdaCoreError(s) => println!("{}", s),
+							LCoreError::IndexError(s) => println!("{}", s),
+							LCoreError::ArgumentError(s) => println!("{}", s),
+							LCoreError::NameError(s) => println!("{}", s)
+						}
 					}
-					*/
 
 					break;
 				}
