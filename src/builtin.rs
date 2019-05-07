@@ -9,10 +9,14 @@ pub fn lcore_print_value(args: &mut Value) -> Result<Value, LCoreError> {
 	fn print_string(v: &String, repr: bool) {
 		if repr {
 			//print!("{}", v);
-			print!("\"{}\"", v);
+			//print!("\"{}\"", v);
+			print!("\"");
+			io::stdout().write(v.as_bytes());
+			print!("\"");
 		} else {
 			//print!("{}", &v[1 .. v.len() - 1]);
-			print!("{}", v);
+			//print!("{}", v);
+			io::stdout().write(v.as_bytes());
 		}
 	}
 
@@ -209,7 +213,14 @@ pub fn lcore_loop(args: &mut Value, symbol_table: &mut Environment) -> Result<Va
 			symbol_table.insert(s.clone().to_string(), Value::Int(i));
 		}
 
-		lcore_interpret(&mut loop_body, symbol_table);
+		if let Err(err) = lcore_interpret(&mut loop_body, symbol_table) {
+			match err {
+				LCoreError::LambdaCoreError(s) => println!("{}", s),
+				LCoreError::IndexError(s) => println!("{}", s),
+				LCoreError::ArgumentError(s) => println!("{}", s),
+				LCoreError::NameError(s) => println!("{}", s)
+			}
+		}
 	}
 
 	Ok(Value::Null)
@@ -380,6 +391,23 @@ pub fn lcore_dict(args: &mut Value, symbol_table: &mut Environment) -> Result<Va
 }
 
 
+pub fn lcore_import(args: &mut Value, symbol_table: &mut Environment) -> Result<Value, LCoreError> {
+	let mut args = args.as_array().iter();
+	let filename = match args.next() {
+		Some(e) => e,
+		None => return Err(LCoreError::ArgumentError(format!("ArgumentError: Not enough arguments on call to \"import\": 0/1")))
+	};
+
+	if let Value::String(file) = filename {
+		symbol_table.extend(lcore_import_file(file.to_string()));
+	}
+
+	io::stdout().write(String::from("Hello\nWorld!").as_bytes());
+
+	Ok(Value::Null)
+}
+
+
 pub fn import_builtins(symbol_table: &mut Environment) {
 	symbol_table.insert(String::from("print"), Value::Func { f: lcore_print });
 	symbol_table.insert(String::from("prin"), Value::Func  { f: lcore_prin });
@@ -391,4 +419,5 @@ pub fn import_builtins(symbol_table: &mut Environment) {
 	symbol_table.insert(String::from("defn"), Value::Func  { f: lcore_defn });
 	symbol_table.insert(String::from("get"), Value::Func  { f: lcore_get });
 	symbol_table.insert(String::from("dict"), Value::Func  { f: lcore_dict });
+	symbol_table.insert(String::from("import"), Value::Func  { f: lcore_import });
 }

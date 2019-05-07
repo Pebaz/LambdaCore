@@ -90,10 +90,11 @@ fn main() {
 
 	if let Option::None = code_file {
 		lcore_repl();
-
-		code_file = Some("examples/comment.lcore");
 	}
 
+	lcore_import_file(code_file.unwrap().to_string());
+
+	/*
 	let unparsed_file = fs::read_to_string(code_file.unwrap()).expect("LCORE: Error Reading File");
 
 	// This can be a concurrent task
@@ -119,16 +120,12 @@ fn main() {
 	let planned = stack.capacity();
 	let loc = lcore_parse(program, &mut stack);
 
-	println!("---------------------------------------------");
-	println!("| Code Lines | Planned Stack | Actual Stack |");
-	println!("| {: <10} | {: <13} | {: <12} |", lines_of_code, planned, stack.len());
-	println!("---------------------------------------------\n");
-
-	/*if LCORE_DEBUG {
-		for item in &stack {
-			println!("{:?}", item);
-		}
-	}*/
+	if LCORE_DEBUG {
+		println!("---------------------------------------------");
+		println!("| Code Lines | Planned Stack | Actual Stack |");
+		println!("| {: <10} | {: <13} | {: <12} |", lines_of_code, planned, stack.len());
+		println!("---------------------------------------------\n");
+	}
 
 	if let Err(err) = lcore_interpret(&mut stack, &mut symbol_table) {
 		match err {
@@ -139,23 +136,8 @@ fn main() {
 		}
 	}
 
-	/*if LCORE_DEBUG {
-		for item in &symbol_table {
-			println!("{:?}", item);
-		}
-	}*/
-
-	/*
-	env.push();
-	env.set(String::from("HelloWorld"), Value::String(String::from("Hello World!")));
-	env.push();
-	if let Some(value) = env.get(String::from("HelloWorld")) {
-		lcore_print_value(&mut Value::Array(vec![value.clone()]));
-	}
-	env.pop();
-	*/
-
 	// Print Single symbol
 	// let a = symbol_table.remove(&mut String::from("hello-world")).unwrap();
 	// lcore_print_value(&mut Value::Array(vec![a]));
+	*/
 }

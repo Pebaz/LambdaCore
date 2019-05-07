@@ -10,6 +10,7 @@ use std::hash::{Hash, Hasher};
 use std::cmp::{PartialEq, Eq};
 use std::iter::FromIterator;
 use std::str::FromStr;
+use std::fs;
 use std::process::exit;
 use pest::Parser;
 use pest::error::Error;
@@ -167,6 +168,15 @@ impl Environment {
 	/*fn get_iter(&mut self) -> i32 {
 
 	}*/
+
+	pub fn extend(&mut self, table: SymTab) {
+		let mut current = self.scopes.last_mut().unwrap();
+		current.extend(table);
+	}
+
+	pub fn len(&self) -> usize {
+		self.scopes.len()
+	}
 
 	pub fn push(&mut self) {
 		self.scopes.push(SymTab::new());
@@ -725,10 +735,41 @@ pub fn lcore_repl() {
 }
 
 
+pub fn lcore_import_file(file: String) -> SymTab {
+	let unparsed_file = fs::read_to_string(file)
+		.expect("LCORE: Error Reading File");
 
+	// This can be a concurrent task
+	let lines_of_code = count_newlines(unparsed_file.as_str()) + 1;
 
+	let program = LambdaCoreParser::parse(Rule::Program, &unparsed_file)
+		.expect("LCORE: Failed To Parse")
+		.next()
+		.unwrap();
 
+	let mut symbol_table = Environment::new();
+	symbol_table.push();
 
+	import_builtins(&mut symbol_table);
+
+	let mut stack = VecDeque::with_capacity(lines_of_code);
+
+	let planned = stack.capacity();
+	let loc = lcore_parse(program, &mut stack);
+
+	if let Err(err) = lcore_interpret(&mut stack, &mut symbol_table) {
+		match err {
+			LCoreError::LambdaCoreError(s) => println!("{}", s),
+			LCoreError::IndexError(s) => println!("{}", s),
+			LCoreError::ArgumentError(s) => println!("{}", s),
+			LCoreError::NameError(s) => println!("{}", s)
+		}
+	}
+
+	// Return the resulting namespace to be merged with importing module
+	// The importer would then symtab.extend(val);
+	symbol_table.pop()
+}
 
 
 

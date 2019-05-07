@@ -1,0 +1,5 @@
+(defn 'add ['x 'y] '[
+	(+ x y)
+])
+
+(print "You are importing the `add` function!")
