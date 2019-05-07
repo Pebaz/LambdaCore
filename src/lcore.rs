@@ -155,9 +155,6 @@ impl fmt::Debug for Value {
 }
 
 
-
-// scopes.push()
-// scopes.pop()
 pub struct Environment {
 	scopes: Vec<SymTab>
 }
@@ -202,6 +199,16 @@ impl Environment {
 		None
 	}
 }
+
+
+
+pub enum LCoreError {
+	LambdaCoreError(String),
+	IndexError(String),
+	ArgumentError(String),
+	NameError(String)
+}
+
 
 
 pub fn crash(msg: String) {
@@ -378,7 +385,7 @@ pub fn lcore_interpret(
 
 							let key = node.as_identifier();
 							if !symbol_table.contains_key(key.as_str().to_string()) {
-								crash(format!("Undefined Variable: No variable named \"{}\"", key));
+								crash(format!("NameError: Cannot lookup name: \"{}\"", key));
 							}
 							let length = arrays.len();
 							if let Value::Array(ref mut array) = arrays[length - 1] {
@@ -391,7 +398,7 @@ pub fn lcore_interpret(
 
 							let key = node.as_identifier();
 							if !symbol_table.contains_key(key.as_str().to_string()) {
-								crash(format!("Undefined Variable: No variable named \"{}\"", key));
+								crash(format!("NameError: Cannot lookup name: \"{}\"", key));
 							}
 							let length = arrays.len();
 							if let Value::Array(ref mut array) = arrays[length - 1] {
@@ -445,7 +452,6 @@ pub fn lcore_interpret(
 
 					// IMPORTANT(pebaz): Either the func is a native function
 					// or a LambdaCore function.
-					//let ret = func.as_func()(&mut args, symbol_table);
 
 					let ret = match func {
 						Value::Func { f } => f(&mut args, symbol_table),
@@ -653,7 +659,7 @@ pub fn lcore_repl() {
 					lcore_parse(i.next().unwrap(), &mut stack);
 
 					lcore_interpret(&mut stack, &mut symbol_table);
-					
+
 					/* TODO(pebaz)
 					match lcore_interpret(&mut stack, &mut symbol_table) {
 						// Handle each error
