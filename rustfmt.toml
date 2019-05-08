@@ -1,0 +1,6 @@
+# https://github.com/mmstick/gtkrs-tutorials/blob/master/demos/chapter_04/rustfmt.toml
+
+max_width = 79
+comment_width = 79
+wrap_comments = true
+normalize_comments = true
