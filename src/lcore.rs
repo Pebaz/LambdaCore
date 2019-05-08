@@ -690,6 +690,7 @@ pub fn lcore_repl() {
 
 					match lcore_interpret(&mut stack, &mut symbol_table) {
 						
+						// NOTE(pebaz): Make sure errors are not lost
 						Err(err) => {
 							match err {
 								LCoreError::LambdaCoreError(s) => println!("{}", s),
@@ -699,9 +700,12 @@ pub fn lcore_repl() {
 							}
 						}
 
+						// NOTE(pebaz): Repr print a non-null value
 						Ok(mut val) => {
-							print!("-> ");
-							lcore_print(&mut Value::Array(vec![val]), &mut symbol_table);
+							if let Value::Null = val { } else {
+								print!("-> ");
+								lcore_print(&mut Value::Array(vec![val]), &mut symbol_table);
+							}
 						}
 					}
 
