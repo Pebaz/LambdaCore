@@ -407,6 +407,19 @@ pub fn lcore_import(args: &mut Value, symbol_table: &mut Environment) -> Result<
 	Ok(Value::Null)
 }
 
+pub fn lcore_swap(args: &mut Value, symbol_table: &mut Environment) -> Result<Value, LCoreError> {
+	let mut args = args.as_array().iter();
+	let obj_id = args.next().unwrap().as_identifier();
+	let index = args.next().unwrap();
+	let value = args.next().unwrap();
+
+	if let Some(ref mut obj) = symbol_table.get(obj_id.to_string()) {
+		println!("{:?}", obj);
+	}
+
+	Ok(Value::Null)
+}
+
 pub fn lcore_to_str(args: &mut Value, symbol_table: &mut Environment) -> Result<Value, LCoreError> {
 	Ok(Value::String(String::from("LambdaCore String!")))
 }
@@ -423,6 +436,9 @@ pub fn import_builtins(symbol_table: &mut Environment) {
 	symbol_table.insert(String::from("get"), Value::Func  { f: lcore_get });
 	symbol_table.insert(String::from("dict"), Value::Func  { f: lcore_dict });
 	symbol_table.insert(String::from("import"), Value::Func  { f: lcore_import });
+	symbol_table.insert(String::from("swap"), Value::Func  { f: lcore_import });
+
+
 	symbol_table.insert(String::from("to-str"), Value::Func  { f: lcore_to_str });
 }
 

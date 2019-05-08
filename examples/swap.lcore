@@ -1,0 +1,2 @@
+(set 'person (dict 'name "Pebaz"))
+(swap 'person 'name "Protodip")
