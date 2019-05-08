@@ -192,9 +192,6 @@ pub fn lcore_set(
         .next()
         .expect("Not enough arguments on call to \"set\": 0/2");
 
-	println!("{:?}", var);
-	lcore_print_value(&mut Value::Array(vec![var.clone()]));
-
     let value = args
         .next()
         .expect("Not enough arguments on call to \"set\": 1/2");
@@ -451,10 +448,6 @@ pub fn lcore_import(
     if let Value::String(file) = filename {
         symbol_table.extend(lcore_import_file(file.to_string()));
     }
-
-    io::stdout()
-        .write(String::from("Hello\nWorld!").as_bytes())
-        .ok();
 
     Ok(Value::Null)
 }

@@ -414,95 +414,24 @@ pub fn lcore_interpret(
                 let length = arrays.len();
 
                 if let Value::Array(ref mut v) = arrays[length - 1] {
-                    if let Some(last) = v.last_mut() {
-                        // Replace the quote with the current node (skipping
-                        // it)
-                        //*last = node;
+					// Lookup the current node and push it
 
-                        // if let Value::Quote = last {
-                        // if LCORE_DEBUG { println!("Quoted"); }
-                        // last = node;
+					let key = node.as_identifier();
+					if !symbol_table.contains_key(key.as_str().to_string())
+					{
+						return Err(LCoreError::NameError(format!(
+							"NameError: Cannot lookup name: \"{}\"",
+							key
+						)));
+					}
 
-
-
-
-						
-                        //if let Value::Quote(b) = last {
-                            // *last = node;
-						//	v.push(node);
-                        //} else {
-						
-
-
-
-                            // Lookup the current node and push it
-
-                            let key = node.as_identifier();
-                            if !symbol_table
-                                .contains_key(key.as_str().to_string())
-                            {
-                                // crash(format!("NameError: Cannot lookup
-                                // name:
-                                // \"{}\"", key));
-
-                                return Err(LCoreError::NameError(format!(
-                                    "NameError: Cannot lookup name: \"{}\"",
-                                    key
-                                )));
-                            }
-                            let length = arrays.len();
-                            if let Value::Array(ref mut array) =
-                                arrays[length - 1]
-                            {
-                                array.push(
-                                    symbol_table
-                                        .get(key.as_str().to_string())
-                                        .unwrap()
-                                        .clone(),
-                                )
-                            }
-                        //}
-
-						
-
-                    } else {
-                        // Lookup the current node and push it
-                        if LCORE_DEBUG {
-                            println!("Normal");
-                        }
-
-                        let key = node.as_identifier();
-                        if !symbol_table.contains_key(key.as_str().to_string())
-                        {
-                            // crash(format!("NameError: Cannot lookup name:
-                            // \"{}\"", key));
-
-                            return Err(LCoreError::NameError(format!(
-                                "NameError: Cannot lookup name: \"{}\"",
-                                key
-                            )));
-                        }
-                        let length = arrays.len();
-                        if let Value::Array(ref mut array) = arrays[length - 1]
-                        {
-                            array.push(
-                                symbol_table
-                                    .get(key.as_str().to_string())
-                                    .unwrap()
-                                    .clone(),
-                            )
-                        }
-                    }
-                }
-
-                // let key = node.as_identifier();
-                // if !symbol_table.contains_key(key.as_str()) {
-                // crash(format!("Undefined Variable: No variable named
-                // \"{}\"", key)); }
-                // let length = arrays.len();
-                // if let Value::Array(ref mut v) = arrays[length - 1] {
-                // v.push(symbol_table.get(key.as_str()).unwrap().clone())
-                // }
+					v.push(
+						symbol_table
+							.get(key.as_str().to_string())
+							.unwrap()
+							.clone(),
+					)
+				}
             }
 
             Value::Boolean(ref v) => {
