@@ -411,7 +411,6 @@ pub fn lcore_to_str(args: &mut Value, symbol_table: &mut Environment) -> Result<
 	Ok(Value::String(String::from("LambdaCore String!")))
 }
 
-
 pub fn import_builtins(symbol_table: &mut Environment) {
 	symbol_table.insert(String::from("print"), Value::Func { f: lcore_print });
 	symbol_table.insert(String::from("prin"), Value::Func  { f: lcore_prin });
@@ -426,3 +425,6 @@ pub fn import_builtins(symbol_table: &mut Environment) {
 	symbol_table.insert(String::from("import"), Value::Func  { f: lcore_import });
 	symbol_table.insert(String::from("to-str"), Value::Func  { f: lcore_to_str });
 }
+
+
+

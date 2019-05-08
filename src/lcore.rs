@@ -170,7 +170,7 @@ impl Environment {
 	}*/
 
 	pub fn extend(&mut self, table: SymTab) {
-		let mut current = self.scopes.last_mut().unwrap();
+		let current = self.scopes.last_mut().unwrap();
 		current.extend(table);
 	}
 
@@ -701,10 +701,10 @@ pub fn lcore_repl() {
 						}
 
 						// NOTE(pebaz): Repr print a non-null value
-						Ok(mut val) => {
+						Ok(val) => {
 							if let Value::Null = val { } else {
 								print!("-> ");
-								lcore_print(&mut Value::Array(vec![val]), &mut symbol_table);
+								lcore_print(&mut Value::Array(vec![val]), &mut symbol_table).ok();
 							}
 						}
 					}
@@ -789,4 +789,9 @@ pub fn lcore_import_file(file: String) -> SymTab {
 #[test]
 pub fn test_tests() {
 	assert_eq!(4, 4);
+}
+
+#[test]
+pub fn test_stdout() {
+	
 }

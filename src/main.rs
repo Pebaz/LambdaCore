@@ -86,7 +86,7 @@ fn main() {
 
 	// Get other CLI switches (not FILE yet)
 
-	let mut code_file = matches.value_of("file");
+	let code_file = matches.value_of("file");
 
 	if let Option::None = code_file {
 		lcore_repl();
