@@ -512,7 +512,26 @@ pub fn lcore_swap(
 
 				Value::Array(ref mut v) => {
 					// current_obj = v[indexer]
-				}
+
+					if let Value::Int(i) = indexer {
+						if *i > v.len() as i64 {
+							return Err(LCoreError::ArgumentError(format!(
+								"Index out of bounds: got {} but len is {}",
+								i,
+								v.len()
+							)));
+						} else {
+							let len = v.len() as i64;
+							let mut idx = i % len;
+							if idx < 0 {
+								idx += len
+							}
+							current_obj = v.get_mut(idx as usize).unwrap();
+						}
+					} else {
+						return Err(LCoreError::IndexError("IndexError: Cannot index array with non-int".to_string()));
+					}
+				} 
 
 				_ => unreachable!()
 			}
@@ -529,7 +548,25 @@ pub fn lcore_swap(
 			}
 
 			Value::Array(ref mut v) => {
+				if let Value::Int(i) = indexer {
 
+					if *i > v.len() as i64 {
+						return Err(LCoreError::ArgumentError(format!(
+							"Index out of bounds: got {} but len is {}",
+							i,
+							v.len()
+						)));
+					} else {
+						let len = v.len() as i64;
+						let mut idx = i % len;
+						if idx < 0 {
+							idx += len
+						}
+						*v.get_mut(idx as usize).unwrap() = value.clone();
+					}
+				} else {
+					return Err(LCoreError::IndexError("IndexError: Cannot index array with non-int".to_string()));
+				}
 			}
 
 			_ => unreachable!()

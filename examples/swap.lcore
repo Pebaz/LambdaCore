@@ -1,6 +1,18 @@
+:: ----------------------------------------------------------------------------
 (print "Swapping Nest Level: 1")
 
-(set 'a (dict 'b 3 'c (dict 'inner "Nah.")))
+(set 'a (dict
+	'b 3
+	'c (dict 'inner "Nah.")
+	'd ["ZERO"]
+	'e (dict 'inner2
+		(dict 'inner3 [
+			"SO MUCH INNER"
+			(dict 'like-so-much-inner "FAILURE")
+			:: DOESN'T EVAL HERE... BUG BUG BUG!
+		]))
+))
+
 (prin "Before: ")
 (print (get a 'b))
 
@@ -10,6 +22,8 @@
 (prin "After:  ")
 (print (get a 'b))
 
+
+:: ----------------------------------------------------------------------------
 (print "")(print "Swapping Nest Level: 2")
 
 (prin "Before: ")
@@ -19,3 +33,27 @@
 
 (prin "After:  ")
 (print (get a 'c))
+
+
+:: ----------------------------------------------------------------------------
+(print "")(print "Swapping Nest Level: 2")
+
+(prin "Before: ")
+(print (get a 'd))
+
+(swap 'a '[d 0] "ONE")
+
+(prin "After:  ")
+(print (get a 'd))
+
+
+:: ----------------------------------------------------------------------------
+(print "")(print "Swapping Nest Level: 3")
+
+(prin "Before: ")
+(print (get a 'e))
+
+(swap 'a '[e inner2 inner3 1 like-so-much-inner] "VICTORY")
+
+(prin "After:  ")
+(print (get a 'e))
