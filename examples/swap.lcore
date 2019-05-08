@@ -1,4 +1,6 @@
-(set 'a (dict 'b 3))
+(print "Swapping Nest Level: 1")
+
+(set 'a (dict 'b 3 'c (dict 'inner "Nah.")))
 (prin "Before: ")
 (print (get a 'b))
 
@@ -7,3 +9,13 @@
 
 (prin "After:  ")
 (print (get a 'b))
+
+(print "")(print "Swapping Nest Level: 2")
+
+(prin "Before: ")
+(print (get a 'c))
+
+(swap 'a '[c inner] "Huzzah!")
+
+(prin "After:  ")
+(print (get a 'c))

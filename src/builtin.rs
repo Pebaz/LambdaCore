@@ -466,9 +466,12 @@ pub fn lcore_swap(
 
 	//println!("{}, {:?}, {:?}", obj_id, index, value);
 
-    if let Some(ref mut obj) = symbol_table.get(obj_id.to_string()) {
+    if let Some(obj) = symbol_table.get(obj_id.to_string()) {
         //println!("{:?}", obj);
 
+
+		//---------------------------------------------------------------------
+		/*
 		let dict = obj.as_dict();
 
 		if let Value::Quote(q) = index {
@@ -486,6 +489,50 @@ pub fn lcore_swap(
 					*dict.get_mut(indexer).unwrap() = value.clone();
 				}
 			}
+		}
+		*/
+		//---------------------------------------------------------------------
+
+		let mut current_obj = obj;
+
+		let indexers = index.as_value().as_array();
+		for i in 0..indexers.len() - 1 {
+		//for indexer in index.as_value().as_array() {
+			let indexer = &indexers[i];
+
+			match current_obj {
+				Value::Dict(ref mut v) => {
+					// current_obj = v[indexer]
+					if let Value::Identifier(s) = indexer {
+						current_obj = v.get_mut(&Value::String(s.to_string())).unwrap();
+					} else {
+						current_obj = v.get_mut(&indexer).unwrap();
+					}
+				}
+
+				Value::Array(ref mut v) => {
+					// current_obj = v[indexer]
+				}
+
+				_ => unreachable!()
+			}
+		}
+
+		let indexer = &indexers[indexers.len() - 1];
+		match current_obj {
+			Value::Dict(ref mut v) => {
+				if let Value::Identifier(s) = indexer {
+					*v.get_mut(&Value::String(s.to_string())).unwrap() = value.clone();
+				} else {
+					*v.get_mut(&indexer).unwrap() = value.clone();
+				}
+			}
+
+			Value::Array(ref mut v) => {
+
+			}
+
+			_ => unreachable!()
 		}
 
 		// lcore_print_value(
