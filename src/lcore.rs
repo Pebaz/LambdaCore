@@ -688,12 +688,20 @@ pub fn lcore_repl() {
 
 					// lcore_interpret(&mut stack, &mut symbol_table);
 
-					if let Err(err) = lcore_interpret(&mut stack, &mut symbol_table) {
-						match err {
-							LCoreError::LambdaCoreError(s) => println!("{}", s),
-							LCoreError::IndexError(s) => println!("{}", s),
-							LCoreError::ArgumentError(s) => println!("{}", s),
-							LCoreError::NameError(s) => println!("{}", s)
+					match lcore_interpret(&mut stack, &mut symbol_table) {
+						
+						Err(err) => {
+							match err {
+								LCoreError::LambdaCoreError(s) => println!("{}", s),
+								LCoreError::IndexError(s) => println!("{}", s),
+								LCoreError::ArgumentError(s) => println!("{}", s),
+								LCoreError::NameError(s) => println!("{}", s)
+							}
+						}
+
+						Ok(mut val) => {
+							print!("-> ");
+							lcore_print(&mut Value::Array(vec![val]), &mut symbol_table);
 						}
 					}
 

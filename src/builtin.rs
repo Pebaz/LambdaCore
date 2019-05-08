@@ -11,12 +11,12 @@ pub fn lcore_print_value(args: &mut Value) -> Result<Value, LCoreError> {
 			//print!("{}", v);
 			//print!("\"{}\"", v);
 			print!("\"");
-			io::stdout().write(v.as_bytes());
+			io::stdout().write(v.as_bytes()).ok();
 			print!("\"");
 		} else {
 			//print!("{}", &v[1 .. v.len() - 1]);
 			//print!("{}", v);
-			io::stdout().write(v.as_bytes());
+			io::stdout().write(v.as_bytes()).ok();
 		}
 	}
 
@@ -135,13 +135,13 @@ pub fn lcore_print_value(args: &mut Value) -> Result<Value, LCoreError> {
 
 
 pub fn lcore_prin(args: &mut Value, symbol_table: &mut Environment) -> Result<Value, LCoreError> {
-	lcore_print_value(args);
+	lcore_print_value(args).ok();
 	Ok(Value::Null)
 }
 
 
 pub fn lcore_print(args: &mut Value, symbol_table: &mut Environment) -> Result<Value, LCoreError> {
-	lcore_print_value(args);
+	lcore_print_value(args).ok();
 	println!("");
 	Ok(Value::Null)
 }
@@ -402,9 +402,13 @@ pub fn lcore_import(args: &mut Value, symbol_table: &mut Environment) -> Result<
 		symbol_table.extend(lcore_import_file(file.to_string()));
 	}
 
-	io::stdout().write(String::from("Hello\nWorld!").as_bytes());
+	io::stdout().write(String::from("Hello\nWorld!").as_bytes()).ok();
 
 	Ok(Value::Null)
+}
+
+pub fn lcore_to_str(args: &mut Value, symbol_table: &mut Environment) -> Result<Value, LCoreError> {
+	Ok(Value::String(String::from("LambdaCore String!")))
 }
 
 
@@ -420,4 +424,5 @@ pub fn import_builtins(symbol_table: &mut Environment) {
 	symbol_table.insert(String::from("get"), Value::Func  { f: lcore_get });
 	symbol_table.insert(String::from("dict"), Value::Func  { f: lcore_dict });
 	symbol_table.insert(String::from("import"), Value::Func  { f: lcore_import });
+	symbol_table.insert(String::from("to-str"), Value::Func  { f: lcore_to_str });
 }
