@@ -3,6 +3,18 @@
 # LambdaCore
 A small Lisp written in Rust.
 
+## Hello World
+
+```LambdaCore
+(print "Hello World")
+```
+
+## Features
+
+ * Tail Call Optimization (Coming Soon)
+ * Syntax Recognized by GitHub (Coming Soon)
+ * Code Formatter (Coming Soon)
+
 ### Plan
 
 - [x] Read Lisp file in. File extension: `.lcore`

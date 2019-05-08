@@ -543,13 +543,14 @@ pub fn lcore_interpret(
 						v.push(match ret {
 							Ok(i) => i,
 							Err(err) => {
-								match err {
+								return Err(err);
+								/*match err {
 									LCoreError::LambdaCoreError(s) => println!("{}", s),
 									LCoreError::IndexError(s) => println!("{}", s),
 									LCoreError::ArgumentError(s) => println!("{}", s),
 									LCoreError::NameError(s) => println!("{}", s)
 								}
-								exit(1);
+								exit(1);*/
 							}
 						});
 					}
