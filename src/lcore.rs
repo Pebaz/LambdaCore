@@ -423,14 +423,19 @@ pub fn lcore_interpret(
                         // if LCORE_DEBUG { println!("Quoted"); }
                         // last = node;
 
-                        if let Value::Quote(b) = last {
-                            println!("Quoted");
-                            *last = node;
-                        } else {
+
+
+
+						
+                        //if let Value::Quote(b) = last {
+                            // *last = node;
+						//	v.push(node);
+                        //} else {
+						
+
+
+
                             // Lookup the current node and push it
-                            if LCORE_DEBUG {
-                                println!("Normal");
-                            }
 
                             let key = node.as_identifier();
                             if !symbol_table
@@ -456,7 +461,10 @@ pub fn lcore_interpret(
                                         .clone(),
                                 )
                             }
-                        }
+                        //}
+
+						
+
                     } else {
                         // Lookup the current node and push it
                         if LCORE_DEBUG {
@@ -702,7 +710,6 @@ pub fn lcore_interpret(
 pub fn count_newlines(s: &str) -> usize {
     s.as_bytes().iter().filter(|&&c| c == b'\n').count()
 }
-
 
 pub fn lcore_repl() {
     print!("LambdaCore Programming Language v");

@@ -1,2 +1,6 @@
 (set 'person (dict 'name "Pebaz"))
-(swap 'person 'name "Protodip")
+(swap 'person '[name] "Protodip")
+
+(set 'age 24)
+(set 'foo 'age)
+(swap 'age '[] "Protodip")

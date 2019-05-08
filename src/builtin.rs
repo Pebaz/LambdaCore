@@ -191,13 +191,13 @@ pub fn lcore_set(
     let var = args
         .next()
         .expect("Not enough arguments on call to \"set\": 0/2");
+
+	println!("{:?}", var);
+	lcore_print_value(&mut Value::Array(vec![var.clone()]));
+
     let value = args
         .next()
         .expect("Not enough arguments on call to \"set\": 1/2");
-
-    // if let Value::Identifier(v) = var {
-    // symbol_table.insert(v.clone().to_string(), value.clone());
-    // }
 
     match var {
         // Identifier
@@ -467,6 +467,9 @@ pub fn lcore_swap(
     let obj_id = args.next().unwrap().as_identifier();
     let index = args.next().unwrap();
     let value = args.next().unwrap();
+
+	// TODO(pebaz): The `index` is a quoted list of values to index by:
+	// a[b][c][d][e]
 
     if let Some(ref mut obj) = symbol_table.get(obj_id.to_string()) {
         println!("{:?}", obj);
