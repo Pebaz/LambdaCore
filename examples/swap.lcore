@@ -1,6 +1,9 @@
-(set 'person (dict 'name "Pebaz"))
-(swap 'person '[name] "Protodip")
+(set 'a (dict 'b 3))
+(prin "Before: ")
+(print (get a 'b))
 
-(set 'age 24)
-(set 'foo 'age)
-(swap 'age '[] "Protodip")
+:: Swap
+(swap 'a '[b] 4)
+
+(prin "After:  ")
+(print (get a 'b))

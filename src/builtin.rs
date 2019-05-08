@@ -457,15 +457,42 @@ pub fn lcore_swap(
     symbol_table: &mut Environment,
 ) -> Result<Value, LCoreError> {
     let mut args = args.as_array().iter();
-    let obj_id = args.next().unwrap().as_identifier();
+    let obj_id = args.next().unwrap().as_value().as_identifier();
     let index = args.next().unwrap();
     let value = args.next().unwrap();
 
 	// TODO(pebaz): The `index` is a quoted list of values to index by:
 	// a[b][c][d][e]
 
+	//println!("{}, {:?}, {:?}", obj_id, index, value);
+
     if let Some(ref mut obj) = symbol_table.get(obj_id.to_string()) {
-        println!("{:?}", obj);
+        //println!("{:?}", obj);
+
+		let dict = obj.as_dict();
+
+		if let Value::Quote(q) = index {
+			//println!("All the way inside here! {:?}", q);
+			//let mut indexer;
+
+			for indexer in index.as_value().as_array() {
+				//println!("Index Type: {:?}", indexer);
+
+				if let Value::Identifier(s) = indexer {
+					//println!("Setting value: {:?}", value);
+					*dict.get_mut(&Value::String(s.to_string())).unwrap() = value.clone();
+				} else {
+					//println!("Setting value: {:?}", value);
+					*dict.get_mut(indexer).unwrap() = value.clone();
+				}
+			}
+		}
+
+		// lcore_print_value(
+		// 	&mut Value::Array(vec![
+		// 		symbol_table.get(obj_id.to_string()).unwrap().clone()
+		// 	])
+		// );
     }
 
     Ok(Value::Null)
@@ -491,7 +518,7 @@ pub fn import_builtins(symbol_table: &mut Environment) {
     symbol_table.insert(String::from("dict"), Value::Func { f: lcore_dict });
     symbol_table
         .insert(String::from("import"), Value::Func { f: lcore_import });
-    symbol_table.insert(String::from("swap"), Value::Func { f: lcore_import });
+    symbol_table.insert(String::from("swap"), Value::Func { f: lcore_swap });
 
     symbol_table
         .insert(String::from("to-str"), Value::Func { f: lcore_to_str });

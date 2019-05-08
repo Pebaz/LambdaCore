@@ -98,6 +98,13 @@ impl Value {
         }
     }
 
+	pub fn as_dict(&mut self) -> &mut HashMap<Value, Value> {
+		match self {
+			Value::Dict(ref mut d) => return d,
+			_ => unreachable!(),
+		}
+	}
+
     pub fn as_func(
         &self,
     ) -> &fn(&mut Value, &mut Environment) -> Result<Value, LCoreError> {
