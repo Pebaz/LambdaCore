@@ -582,6 +582,32 @@ pub fn lcore_swap(
     Ok(Value::Null)
 }
 
+pub fn lcore_len(
+    args: &mut Value,
+    symbol_table: &mut Environment,
+) -> Result<Value, LCoreError> {
+
+	let mut args = args.as_array().iter();
+	let arg = match args.next() {
+        Some(e) => e,
+        None => {
+            return Err(LCoreError::ArgumentError(format!(
+            	"ArgumentError: Not enough arguments on call to \"len\": 0/1"
+        	)))
+        }
+    };
+
+    return match arg {
+		Value::Array(v) => Ok(Value::Int(v.len() as i64)),
+		Value::Dict(v) => Ok(Value::Int(v.len() as i64)),
+		Value::String(v) => Ok(Value::Int(v.len() as i64)),
+		Value::Quote(v) => Ok(Value::Int(1)),
+		_ => {
+			Err(LCoreError::ArgumentError(format!("ArgumentError: {:?} has no length", arg)))
+		}
+	}
+}
+
 pub fn lcore_to_str(
     args: &mut Value,
     symbol_table: &mut Environment,
@@ -600,6 +626,7 @@ pub fn import_builtins(symbol_table: &mut Environment) {
     symbol_table.insert(String::from("defn"), Value::Func { f: lcore_defn });
     symbol_table.insert(String::from("get"), Value::Func { f: lcore_get });
     symbol_table.insert(String::from("dict"), Value::Func { f: lcore_dict });
+	symbol_table.insert(String::from("len"), Value::Func { f: lcore_len });
     symbol_table
         .insert(String::from("import"), Value::Func { f: lcore_import });
     symbol_table.insert(String::from("swap"), Value::Func { f: lcore_swap });

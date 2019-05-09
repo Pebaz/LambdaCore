@@ -1,0 +1,5 @@
+:: Array evaluation bug
+
+(set 'bug ["Hello" (print "World")])
+(print bug)
+(print (len bug))

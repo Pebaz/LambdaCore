@@ -580,6 +580,8 @@ pub fn lcore_interpret(
                 }
             }
 
+			/*
+			TODO(pebaz): This seems to not be being used anymore ???????
             Value::OpenBrace => {
                 if LCORE_DEBUG {
                     println!("[");
@@ -588,9 +590,7 @@ pub fn lcore_interpret(
             }
 
             Value::CloseBrace => {
-                if LCORE_DEBUG {
-                    println!("]");
-                }
+                println!(":]  :]");
 
                 let array = arrays.pop().unwrap();
 
@@ -600,7 +600,7 @@ pub fn lcore_interpret(
                 if let Value::Array(ref mut v) = arrays[length - 1] {
                     v.push(array)
                 }
-            }
+            }*/
 
             Value::BackTick | Value::Comma => {
                 if LCORE_DEBUG {
@@ -613,9 +613,21 @@ pub fn lcore_interpret(
             }
 
             Value::Array(ref v) => {
+				fn recursive_eval(array: Value) -> VecDeque<Value> {
+					let mut array_stack = VecDeque::new();
+					while let Some(token) = array.pop() {
+						// if its a func:
+						// let val = lcore_interpret(&mut array_stack, symbol_table);
+						//array_stack.push_front(token);
+					}
+				}
+
+				println!("IN ARRAY");
                 let length = arrays.len();
-                if let Value::Array(ref mut v) = arrays[length - 1] {
-                    v.push(node)
+                if let Value::Array(ref mut last) = arrays[length - 1] {
+                    // v.push(node)
+
+					last.push(recursive_eval(v));
                 }
             }
 
@@ -623,6 +635,8 @@ pub fn lcore_interpret(
                 let length = arrays.len();
                 if let Value::Array(ref mut v) = arrays[length - 1] {
                     v.push(node)
+
+					// ************************************************************************************************************************************
                 }
             }
 
