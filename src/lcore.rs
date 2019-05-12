@@ -613,21 +613,34 @@ pub fn lcore_interpret(
             }
 
             Value::Array(ref v) => {
+
+                ///
+                /// While most other stack values are merely added to an array
+                /// to act like arguments, arrays need to be evaluated
+                /// recursively because they could contain function calls that
+                /// return values.
+                ///
 				fn recursive_eval(array: Value) -> VecDeque<Value> {
 					let mut array_stack = VecDeque::new();
-					while let Some(token) = array.pop() {
+                    let mut vector = array.as_array().clone();
+					while let Some(token) = vector.pop() {
 						// if its a func:
 						// let val = lcore_interpret(&mut array_stack, symbol_table);
 						//array_stack.push_front(token);
 					}
+                    array_stack
 				}
 
 				println!("IN ARRAY");
                 let length = arrays.len();
                 if let Value::Array(ref mut last) = arrays[length - 1] {
-                    // v.push(node)
+                    let length = arrays.len();
+                    if let Value::Array(ref mut v) = arrays[length - 1] {
+                        v.push(node)
+                    }
 
-					last.push(recursive_eval(v));
+                    // TODO(pebaz): HERE HERE HERE
+					//last.push(recursive_eval(v));
                 }
             }
 
