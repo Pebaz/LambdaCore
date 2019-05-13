@@ -9,7 +9,6 @@
 		(dict 'inner3 [
 			"SO MUCH INNER"
 			(dict 'like-so-much-inner "FAILURE")
-			:: DOESN'T EVAL HERE... BUG BUG BUG!
 		]))
 ))
 
