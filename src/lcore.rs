@@ -382,7 +382,9 @@ pub fn lcore_interpret(
     arrays.push(Value::Array(Vec::new()));
 
     while let Some(node) = stack.pop_front() {
-        match node {
+        let err = lcore_interpret_expression(stack, symbol_table, &mut arrays, node);
+
+        /*match node {
             Value::Int(ref v) => {
                 if LCORE_DEBUG {
                     println!("Int: {}", node.as_int());
@@ -406,6 +408,36 @@ pub fn lcore_interpret(
             Value::String(ref v) => {
                 if LCORE_DEBUG {
                     println!("String: {}", node.as_string());
+                }
+                let length = arrays.len();
+                if let Value::Array(ref mut v) = arrays[length - 1] {
+                    v.push(node)
+                }
+            }
+
+            Value::Boolean(ref v) => {
+                if LCORE_DEBUG {
+                    println!("Boolean: {}", node.as_string());
+                }
+                let length = arrays.len();
+                if let Value::Array(ref mut v) = arrays[length - 1] {
+                    v.push(node)
+                }
+            }
+
+            Value::Null => {
+                if LCORE_DEBUG {
+                    println!("Null");
+                }
+                let length = arrays.len();
+                if let Value::Array(ref mut v) = arrays[length - 1] {
+                    v.push(node)
+                }
+            }
+
+            Value::BackTick | Value::Comma => {
+                if LCORE_DEBUG {
+                    println!("{:?}", node);
                 }
                 let length = arrays.len();
                 if let Value::Array(ref mut v) = arrays[length - 1] {
@@ -441,28 +473,7 @@ pub fn lcore_interpret(
 				}
             }
 
-            Value::Boolean(ref v) => {
-                if LCORE_DEBUG {
-                    println!("Boolean: {}", node.as_string());
-                }
-                let length = arrays.len();
-                if let Value::Array(ref mut v) = arrays[length - 1] {
-                    v.push(node)
-                }
-            }
-
-            Value::Null => {
-                if LCORE_DEBUG {
-                    println!("Null");
-                }
-                let length = arrays.len();
-                if let Value::Array(ref mut v) = arrays[length - 1] {
-                    v.push(node)
-                }
-            }
-
             Value::OpenFunc => {
-                // Call the function & store result in `arrays`
                 if LCORE_DEBUG {
                     println!("(");
                 }
@@ -470,6 +481,7 @@ pub fn lcore_interpret(
             }
 
             Value::CloseFunc => {
+                // Call the function & store result in `arrays`
                 if LCORE_DEBUG {
                     println!(")");
                 }
@@ -580,35 +592,12 @@ pub fn lcore_interpret(
                 }
             }
 
-			/*
-			TODO(pebaz): This seems to not be being used anymore ???????
-            Value::OpenBrace => {
-                if LCORE_DEBUG {
-                    println!("[");
-                }
-                arrays.push(Value::Array(Vec::new()));
-            }
-
-            Value::CloseBrace => {
-                println!(":]  :]");
-
-                let array = arrays.pop().unwrap();
-
-                // arrays.push(Value::Array(Vec::new()));
-
-                let length = arrays.len();
-                if let Value::Array(ref mut v) = arrays[length - 1] {
-                    v.push(array)
-                }
-            }*/
-
-            Value::BackTick | Value::Comma => {
-                if LCORE_DEBUG {
-                    println!("{:?}", node);
-                }
+            Value::Quote(ref v) => {
                 let length = arrays.len();
                 if let Value::Array(ref mut v) = arrays[length - 1] {
                     v.push(node)
+
+					// ************************************************************************************************************************************
                 }
             }
 
@@ -644,19 +633,188 @@ pub fn lcore_interpret(
                 }
             }
 
-            Value::Quote(ref v) => {
-                let length = arrays.len();
-                if let Value::Array(ref mut v) = arrays[length - 1] {
-                    v.push(node)
-
-					// ************************************************************************************************************************************
-                }
-            }
+            
 
             // Ignored Values:
             // Value::Func
-            _ => (),
+            _ => () ,
+        }*/
+
+
+        // GOOD
+        /*
+        match node {
+            Value::Identifier(ref v) => {
+                if LCORE_DEBUG {
+                    println!("Identifier: {}", node.as_identifier());
+                }
+
+                let length = arrays.len();
+
+                if let Value::Array(ref mut v) = arrays[length - 1] {
+					// Lookup the current node and push it
+
+					let key = node.as_identifier();
+					if !symbol_table.contains_key(key.as_str().to_string())
+					{
+						return Err(LCoreError::NameError(format!(
+							"NameError: Cannot lookup name: \"{}\"",
+							key
+						)));
+					}
+
+					v.push(
+						symbol_table
+							.get(key.as_str().to_string())
+							.unwrap()
+							.clone(),
+					)
+				}
+            }
+
+            Value::OpenFunc => {
+                if LCORE_DEBUG {
+                    println!("(");
+                }
+                arrays.push(Value::Array(Vec::new()));
+            }
+
+            Value::CloseFunc => {
+                // Call the function & store result in `arrays`
+                if LCORE_DEBUG {
+                    println!(")");
+                }
+
+                let length = arrays.len();
+                if let Value::Array(ref mut v) = arrays[length - 1] {
+                    let func = v.remove(0);
+                    let mut args = arrays.pop().unwrap();
+
+                    // IMPORTANT(pebaz): Either the func is a native function
+                    // or a LambdaCore function.
+
+                    let ret = match func {
+                        Value::Func { f } => f(&mut args, symbol_table),
+
+                        Value::Array(a) => {
+                            // The argument names
+                            let arg_names = match &a[0] {
+                                Value::Array(argument_names) => argument_names,
+                                _ => unreachable!(),
+                            };
+
+                            // TODO(pebaz): In order to do Tail-Call
+                            // Optimization,
+                            // it is necessary to remove the next code line.
+                            // This will allow the function to reuse names
+                            // (and therefore storage) from previous call.
+
+                            // Push a new scope
+                            symbol_table.push();
+
+                            // Bind all arguments to the given values
+                            if let Value::Array(ref mut v) = args {
+                                let mut count = 0;
+                                while let Some(value) = v.pop() {
+                                    match &arg_names[count] {
+                                        Value::Quote(v) => {
+                                            symbol_table.insert(
+                                                v.as_identifier().to_string(),
+                                                value,
+                                            );
+                                        }
+
+                                        _ => unreachable!(),
+                                    }
+
+                                    count += 1;
+                                }
+                            }
+
+                            let ret = match &a[1] {
+                                Value::Array(def) => {
+                                    let mut body =
+                                        VecDeque::from_iter(def.clone());
+                                    lcore_interpret(&mut body, symbol_table)
+                                }
+                                _ => unreachable!(),
+                            };
+
+                            // Reclaim all old variables
+                            symbol_table.pop();
+
+                            // Value::Null
+                            ret
+                        }
+
+                        _ => Ok(Value::Null),
+                    };
+
+                    let length = arrays.len();
+                    if let Value::Array(ref mut v) = arrays[length - 1] {
+                        // v.push(ret.ok().unwrap())
+
+                        v.push(match ret {
+                            Ok(i) => i,
+                            Err(err) => {
+                                return Err(err);
+                                // match err {
+                                // LCoreError::LambdaCoreError(s) =>
+                                // println!("{}", s),
+                                // LCoreError::IndexError(s) => println!("{}",
+                                // s),
+                                // LCoreError::ArgumentError(s) =>
+                                // println!("{}", s),
+                                // LCoreError::NameError(s) => println!("{}",
+                                // s) }
+                                // exit(1);
+                            }
+                        });
+                    }
+                }
+            }
+
+            Value::Array(ref v) => {
+
+                ///
+                /// While most other stack values are merely added to an array
+                /// to act like arguments, arrays need to be evaluated
+                /// recursively because they could contain function calls that
+                /// return values.
+                ///
+				fn recursive_eval(array: Value) -> VecDeque<Value> {
+					let mut array_stack = VecDeque::new();
+                    let mut vector = array.as_array().clone();
+					while let Some(token) = vector.pop() {
+						// if its a func:
+						// let val = lcore_interpret(&mut array_stack, symbol_table);
+						//array_stack.push_front(token);
+					}
+                    array_stack
+				}
+
+				println!("IN ARRAY");
+                let length = arrays.len();
+                if let Value::Array(ref mut last) = arrays[length - 1] {
+                    let length = arrays.len();
+                    if let Value::Array(ref mut v) = arrays[length - 1] {
+                        v.push(node)
+                    }
+
+                    // TODO(pebaz): HERE HERE HERE
+					//last.push(recursive_eval(v));
+                }
+            }
+
+            // NOTE(pebaz): Put all the other tokens into the stack
+            _ => {
+                let length = arrays.len();
+                if let Value::Array(ref mut v) = arrays[length - 1] {
+                    v.push(node)
+                }
+            }
         }
+        */
     }
 
     // Return the value from the last function to be called
@@ -669,6 +827,173 @@ pub fn lcore_interpret(
         _ => unreachable!(),
     }
 }
+
+
+pub fn lcore_interpret_expression(
+    stack: &mut VecDeque<Value>,
+    symbol_table: &mut Environment,
+    arrays: &mut Vec<Value>,
+    node: Value
+) -> Result<Value, LCoreError> {
+    let mut arrays: Vec<Value> = Vec::new();
+    arrays.push(Value::Array(Vec::new()));
+
+    match node {
+        Value::Identifier(ref v) => {
+            if LCORE_DEBUG {
+                println!("Identifier: {}", node.as_identifier());
+            }
+
+            let length = arrays.len();
+
+            if let Value::Array(ref mut v) = arrays[length - 1] {
+                // Lookup the current node and push it
+
+                let key = node.as_identifier();
+                if !symbol_table.contains_key(key.as_str().to_string())
+                {
+                    return Err(LCoreError::NameError(format!(
+                        "NameError: Cannot lookup name: \"{}\"",
+                        key
+                    )));
+                }
+
+                v.push(
+                    symbol_table
+                        .get(key.as_str().to_string())
+                        .unwrap()
+                        .clone(),
+                )
+            }
+        }
+
+        Value::OpenFunc => arrays.push(Value::Array(Vec::new())),
+
+        Value::CloseFunc => {
+            // Call the function & store result in `arrays`
+
+            let length = arrays.len();
+            if let Value::Array(ref mut v) = arrays[length - 1] {
+                let func = v.remove(0);
+                let mut args = arrays.pop().unwrap();
+
+                // IMPORTANT(pebaz): Either the func is a native function
+                // or a LambdaCore function.
+
+                let ret = match func {
+                    Value::Func { f } => f(&mut args, symbol_table),
+
+                    Value::Array(a) => {
+                        let arg_names = match &a[0] {
+                            Value::Array(argument_names) => argument_names,
+                            _ => unreachable!(),
+                        };
+
+                        // TODO(pebaz): In order to do Tail-Call
+                        // Optimization,
+                        // it is necessary to remove the next code line.
+                        // This will allow the function to reuse names
+                        // (and therefore storage) from previous call.
+
+                        // Push a new scope
+                        symbol_table.push();
+
+                        // Bind all arguments to the given values
+                        if let Value::Array(ref mut v) = args {
+                            let mut count = 0;
+                            while let Some(value) = v.pop() {
+                                match &arg_names[count] {
+                                    Value::Quote(v) => {
+                                        symbol_table.insert(
+                                            v.as_identifier().to_string(),
+                                            value,
+                                        );
+                                    }
+
+                                    _ => unreachable!(),
+                                }
+
+                                count += 1;
+                            }
+                        }
+
+                        let ret = match &a[1] {
+                            Value::Array(def) => {
+                                let mut body =
+                                    VecDeque::from_iter(def.clone());
+                                lcore_interpret(&mut body, symbol_table)
+                            }
+                            _ => unreachable!(),
+                        };
+
+                        // Reclaim all old variables
+                        symbol_table.pop();
+
+                        // Value::Null
+                        ret
+                    }
+
+                    _ => Ok(Value::Null),
+                };
+
+                let length = arrays.len();
+                if let Value::Array(ref mut v) = arrays[length - 1] {
+                    // v.push(ret.ok().unwrap())
+
+                    v.push(match ret {
+                        Ok(i) => i,
+                        Err(err) => return Err(err)
+                    });
+                }
+            }
+        }
+
+        Value::Array(ref v) => {
+            fn recursive_eval(array: Value) -> VecDeque<Value> {
+                let mut array_stack = VecDeque::new();
+                let mut vector = array.as_array().clone();
+                while let Some(token) = vector.pop() {
+                    // if its a func:
+                    // let val = lcore_interpret(&mut array_stack, symbol_table);
+                    //array_stack.push_front(token);
+                }
+                array_stack
+            }
+
+            println!("IN ARRAY");
+
+            let result = lcore_interpret_expression(stack, symbol_table, &mut arrays, node);
+
+            let length = arrays.len();
+            if let Value::Array(ref mut last) = arrays[length - 1] {
+                match result {
+                    Ok(value) => last.push(value),
+                    Err(err) => return Err(err)
+                }
+            }
+        }
+
+        // NOTE(pebaz): Put all the other tokens into the stack
+        _ => {
+            let length = arrays.len();
+            if let Value::Array(ref mut array) = arrays[length - 1] {
+                array.push(node)
+            }
+        }
+    }
+
+    let mut last_array = arrays.pop().unwrap();
+    match last_array {
+        Value::Array(ref mut v) => match v.pop() {
+            Some(e) => return Ok(e),
+            None => return Ok(Value::Null),
+        },
+        _ => unreachable!(),
+    }
+}
+
+
+
 
 pub fn count_newlines(s: &str) -> usize {
     s.as_bytes().iter().filter(|&&c| c == b'\n').count()
