@@ -851,7 +851,6 @@ pub fn lcore_interpret_expression(
 
             if let Value::Array(ref mut v) = arrays[length - 1] {
                 // Lookup the current node and push it
-
                 let key = node.as_identifier();
                 if !symbol_table.contains_key(key.as_str().to_string())
                 {
@@ -865,7 +864,7 @@ pub fn lcore_interpret_expression(
                     symbol_table
                         .get(key.as_str().to_string())
                         .unwrap()
-                        .clone(),
+                        .clone()
                 )
             }
         }
@@ -958,26 +957,31 @@ pub fn lcore_interpret_expression(
             println!("IN ARRAY");
 
             // MAY NEED TO CREATE A NEW `ARRAYS` SO THAT THIS ONE DOESN'T USE OURS :D
+            /* ----- */       arrays.push(Value::Array(Vec::new()));       /* ----- */
+
             let result = lcore_interpret_expression(stack, symbol_table, arrays, node);
+
+            let resulting_array = arrays.pop().unwrap();
 
             let length = arrays.len();
             if let Value::Array(ref mut last) = arrays[length - 1] {
-                match result {
-                    Ok(value) => last.push(value),
-                    Err(err) => return Err(err)
-                }
+                last.push(resulting_array);
             }
         }
 
         // NOTE(pebaz): Put all the other tokens into the stack
         _ => {
-            let length = arrays.len();
+            /*let length = arrays.len();
             if let Value::Array(ref mut array) = arrays[length - 1] {
                 array.push(node);
+            }*/
+            if let Value::Array(ref mut last) = arrays.last_mut().expect("Vec len is 0!") {
+                last.push(node);
             }
         }
     }
 
+    /*
     let mut last_array = arrays.pop().unwrap();
     match last_array {
         Value::Array(ref mut v) => match v.pop() {
@@ -986,6 +990,9 @@ pub fn lcore_interpret_expression(
         },
         _ => unreachable!(),
     }
+    */
+
+    Ok(Value::Null)
 }
 
 
