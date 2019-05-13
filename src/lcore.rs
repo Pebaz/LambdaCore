@@ -953,13 +953,20 @@ pub fn lcore_interpret_expression(
             }
         }
 
-        Value::Array(ref v) => {
+        Value::Array(mut v) => {
             println!("IN ARRAY");
 
             // MAY NEED TO CREATE A NEW `ARRAYS` SO THAT THIS ONE DOESN'T USE OURS :D
             /* ----- */       arrays.push(Value::Array(Vec::new()));       /* ----- */
 
-            let result = lcore_interpret_expression(stack, symbol_table, arrays, node);
+            let mut elements = VecDeque::with_capacity(v.len());
+            while let Some(element) = v.pop() {
+                elements.push_front(element);
+            }
+
+            while let Some(element) = elements.pop_front() {
+                let result = lcore_interpret_expression(stack, symbol_table, arrays, element);
+            }
 
             let resulting_array = arrays.pop().unwrap();
 
