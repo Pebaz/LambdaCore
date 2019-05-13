@@ -608,6 +608,22 @@ pub fn lcore_len(
 	}
 }
 
+pub fn lcore_equals(
+    args: &mut Value,
+    symbol_table: &mut Environment,
+) -> Result<Value, LCoreError> {
+
+    let mut args = args.as_array().iter();
+    let a = args.next().unwrap();
+    let b = args.next().unwrap();
+
+    match (a, b) {
+        (Value::Int(a), Value::Int(b)) => Ok(Value::Boolean(a == b)),
+        _ => Err(LCoreError::ArgumentError(
+            format!("ArgumentError: Type mismatch ({:?} and {:?})", a, b)))
+    }
+}
+
 pub fn lcore_to_str(
     args: &mut Value,
     symbol_table: &mut Environment,
@@ -616,21 +632,22 @@ pub fn lcore_to_str(
 }
 
 pub fn import_builtins(symbol_table: &mut Environment) {
-    symbol_table.insert(String::from("print"), Value::Func { f: lcore_print });
-    symbol_table.insert(String::from("prin"), Value::Func { f: lcore_prin });
-    symbol_table.insert(String::from("+"), Value::Func { f: lcore_add });
-    symbol_table.insert(String::from("quit"), Value::Func { f: lcore_quit });
-    symbol_table.insert(String::from("exit"), Value::Func { f: lcore_quit });
-    symbol_table.insert(String::from("set"), Value::Func { f: lcore_set });
-    symbol_table.insert(String::from("loop"), Value::Func { f: lcore_loop });
-    symbol_table.insert(String::from("defn"), Value::Func { f: lcore_defn });
-    symbol_table.insert(String::from("get"), Value::Func { f: lcore_get });
-    symbol_table.insert(String::from("dict"), Value::Func { f: lcore_dict });
-	symbol_table.insert(String::from("len"), Value::Func { f: lcore_len });
+    symbol_table.insert("print".to_string(), Value::Func { f: lcore_print });
+    symbol_table.insert("prin".to_string(), Value::Func { f: lcore_prin });
+    symbol_table.insert("+".to_string(), Value::Func { f: lcore_add });
+    symbol_table.insert("quit".to_string(), Value::Func { f: lcore_quit });
+    symbol_table.insert("exit".to_string(), Value::Func { f: lcore_quit });
+    symbol_table.insert("set".to_string(), Value::Func { f: lcore_set });
+    symbol_table.insert("loop".to_string(), Value::Func { f: lcore_loop });
+    symbol_table.insert("defn".to_string(), Value::Func { f: lcore_defn });
+    symbol_table.insert("get".to_string(), Value::Func { f: lcore_get });
+    symbol_table.insert("dict".to_string(), Value::Func { f: lcore_dict });
+	symbol_table.insert("len".to_string(), Value::Func { f: lcore_len });
     symbol_table
         .insert(String::from("import"), Value::Func { f: lcore_import });
     symbol_table.insert(String::from("swap"), Value::Func { f: lcore_swap });
 
     symbol_table
-        .insert(String::from("to-str"), Value::Func { f: lcore_to_str });
+        .insert("to-str".to_string(), Value::Func { f: lcore_to_str });
+    symbol_table.insert("=".to_string(), Value::Func { f: lcore_equals });
 }
