@@ -17,3 +17,7 @@
 (prin "'a     != 'a     : ")(print (!= 'a 'a))
 (prin "[1]    != [1]    : ")(print (!= [1] [1]))
 (prin "{a: 1} != {a: 1} : ")(print (!= (dict 'a 1) (dict 'a 1)))
+
+(print "")
+
+(prin "True   or True    : ")(print (or True True))

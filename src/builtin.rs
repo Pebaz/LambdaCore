@@ -674,6 +674,24 @@ pub fn lcore_not_equals(
     }
 }
 
+
+pub fn lcore_logical_or(
+    args: &mut Value,
+    symbol_table: &mut Environment,
+) -> Result<Value, LCoreError> {
+
+    let mut args = args.as_array().iter();
+    let a = args.next().unwrap();
+    let b = args.next().unwrap();
+
+    match (a, b) {
+        (Value::Boolean(a), Value::Boolean(b)) => Ok(Value::Boolean(a | b)),
+
+        _ => Err(LCoreError::ArgumentError(
+            format!("ArgumentError: Not booleans ({:?} and {:?})", a, b)))
+    }
+}
+
 pub fn lcore_to_str(
     args: &mut Value,
     symbol_table: &mut Environment,
@@ -701,4 +719,5 @@ pub fn import_builtins(symbol_table: &mut Environment) {
         .insert("to-str".to_string(), Value::Func { f: lcore_to_str });
     symbol_table.insert("=".to_string(), Value::Func { f: lcore_equals });
     symbol_table.insert("!=".to_string(), Value::Func { f: lcore_not_equals });
+    symbol_table.insert("or".to_string(), Value::Func { f: lcore_logical_or });
 }
