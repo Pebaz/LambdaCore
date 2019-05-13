@@ -835,12 +835,6 @@ pub fn lcore_interpret_expression(
     arrays: &mut Vec<Value>,
     node: Value
 ) -> Result<Value, LCoreError> {
-    //let mut arrays: Vec<Value> = Vec::new();
-    // arrays.push(Value::Array(Vec::new()));
-    //println!("    PUSHING    <--111");
-
-    println!("{:?}", node);
-
     match node {
         Value::Identifier(ref v) => {
             if LCORE_DEBUG {
@@ -870,7 +864,6 @@ pub fn lcore_interpret_expression(
         }
 
         Value::OpenFunc => {
-            println!("    PUSHING    <--222");
             arrays.push(Value::Array(Vec::new()));
         }
 
@@ -954,10 +947,7 @@ pub fn lcore_interpret_expression(
         }
 
         Value::Array(mut v) => {
-            println!("IN ARRAY");
-
-            // MAY NEED TO CREATE A NEW `ARRAYS` SO THAT THIS ONE DOESN'T USE OURS :D
-            /* ----- */       arrays.push(Value::Array(Vec::new()));       /* ----- */
+            arrays.push(Value::Array(Vec::new()));
 
             let mut elements = VecDeque::with_capacity(v.len());
             while let Some(element) = v.pop() {
@@ -983,17 +973,6 @@ pub fn lcore_interpret_expression(
             }
         }
     }
-
-    /*
-    let mut last_array = arrays.pop().unwrap();
-    match last_array {
-        Value::Array(ref mut v) => match v.pop() {
-            Some(e) => return Ok(e),
-            None => return Ok(Value::Null),
-        },
-        _ => unreachable!(),
-    }
-    */
 
     Ok(Value::Null)
 }
