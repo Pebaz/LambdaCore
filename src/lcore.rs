@@ -971,11 +971,7 @@ pub fn lcore_interpret_expression(
 
         // NOTE(pebaz): Put all the other tokens into the stack
         _ => {
-            /*let length = arrays.len();
-            if let Value::Array(ref mut array) = arrays[length - 1] {
-                array.push(node);
-            }*/
-            if let Value::Array(ref mut last) = arrays.last_mut().expect("Vec len is 0!") {
+            if let Value::Array(ref mut last) = arrays.last_mut().unwrap() {
                 last.push(node);
             }
         }
@@ -1005,7 +1001,7 @@ pub fn count_newlines(s: &str) -> usize {
 pub fn lcore_repl() {
     print!("LambdaCore Programming Language v");
     println!(env!("CARGO_PKG_VERSION"));
-    println!("Type CTRL+Z or (quit) to exit.");
+    println!("Type CTRL+C or (quit) to exit.");
 
     let mut symbol_table = Environment::new();
     symbol_table.push();
@@ -1131,6 +1127,32 @@ pub fn lcore_import_file(file: String) -> SymTab {
     // Return the resulting namespace to be merged with importing module
     // The importer would then symtab.extend(val);
     symbol_table.pop()
+}
+
+pub fn lcore_execute_string(code: String) {
+    let program = LambdaCoreParser::parse(Rule::Program, &code)
+        .expect("LCORE: Failed To Parse")
+        .next()
+        .unwrap();
+
+    let mut symbol_table = Environment::new();
+    symbol_table.push();
+
+    import_builtins(&mut symbol_table);
+
+    let mut stack = VecDeque::new();
+    let planned = stack.capacity();
+    lcore_parse(program, &mut stack);
+
+    if let Err(err) = lcore_interpret(&mut stack, &mut symbol_table) {
+        match err {
+            LCoreError::LambdaCoreError(s) => println!("{}", s),
+            LCoreError::IndexError(s) => println!("{}", s),
+            LCoreError::ArgumentError(s) => println!("{}", s),
+            LCoreError::NameError(s) => println!("{}", s),
+        }
+    }
+    symbol_table.pop();
 }
 
 #[test]
