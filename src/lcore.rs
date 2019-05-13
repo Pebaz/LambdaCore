@@ -815,6 +815,15 @@ pub fn lcore_interpret(
             }
         }
         */
+
+        if let Err(error) = err {
+        match error {
+            LCoreError::LambdaCoreError(s) => println!("{}", s),
+            LCoreError::IndexError(s) => println!("{}", s),
+            LCoreError::ArgumentError(s) => println!("{}", s),
+            LCoreError::NameError(s) => println!("{}", s),
+        }
+    }
     }
 
     // Return the value from the last function to be called

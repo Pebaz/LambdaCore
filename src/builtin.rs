@@ -405,7 +405,7 @@ pub fn lcore_dict(
     if args.len() % 2 != 0 {
         // crash(format!("Odd number of arguments passed to \"dict\""));
         return Err(LCoreError::ArgumentError(format!(
-            "Odd number of arguments passed to \"dict\""
+            "ArgumentError: Odd number of arguments passed to \"dict\""
         )));
     }
 
