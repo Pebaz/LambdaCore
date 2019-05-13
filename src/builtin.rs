@@ -619,6 +619,23 @@ pub fn lcore_equals(
 
     match (a, b) {
         (Value::Int(a), Value::Int(b)) => Ok(Value::Boolean(a == b)),
+        (Value::Float(a), Value::Float(b)) => Ok(Value::Boolean(a == b)),
+        (Value::String(a), Value::String(b)) => Ok(Value::Boolean(a == b)),
+        (Value::Boolean(a), Value::Boolean(b)) => Ok(Value::Boolean(a == b)),
+        (Value::Null, Value::Null) => Ok(Value::Boolean(true)),
+        (Value::Identifier(a), Value::Identifier(b)) => Ok(Value::Boolean(a == b)),
+        (Value::Dict(a), Value::Dict(b)) => Ok(Value::Boolean(a == b)),
+        (Value::Array(a), Value::Array(b)) => Ok(Value::Boolean(a == b)),
+        (Value::Quote(a), Value::Quote(b)) => lcore_equals(&mut Value::Array(vec![*a.clone(), *b.clone()]), symbol_table),
+
+        (Value::Func { f: a }, Value::Func { f: b }) => {
+            // TODO(pebaz): Allow comparing builtin funcs?
+            let addr_a = format!("{:p}", &*a);
+            let addr_b = format!("{:p}", &*b);
+            println!("HERE: {}, {}", addr_a, addr_b);
+            Ok(Value::Boolean(addr_a == addr_b))
+        }
+
         _ => Err(LCoreError::ArgumentError(
             format!("ArgumentError: Type mismatch ({:?} and {:?})", a, b)))
     }
