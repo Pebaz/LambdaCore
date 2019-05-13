@@ -73,6 +73,14 @@ fn main() {
         .author(crate_authors!())
         .about("Lisp dialect written in Rust")
         .arg(
+            Arg::with_name("code")
+                .short("c")
+                .long("code")
+                .value_name("CODE")
+                .help("Run a string of code")
+                .required(false),
+        )
+        .arg(
             Arg::with_name("file")
                 .short("f")
                 .long("file")
@@ -84,59 +92,13 @@ fn main() {
 
     // Get other CLI switches (not FILE yet)
 
+    let code_str = matches.value_of("code");
     let code_file = matches.value_of("file");
 
-    if let Option::None = code_file {
-        lcore_repl();
+    match (code_file, code_str) {
+        (None, None) => lcore_repl(),
+        (None, Some(code)) => lcore_execute_string(code.to_string()),
+        (Some(file), None) => { let _ = lcore_import_file(file.to_string()); }
+        _ => ()
     }
-
-    lcore_import_file(code_file.unwrap().to_string());
-
-    // let unparsed_file =
-    // fs::read_to_string(code_file.unwrap()).expect("LCORE: Error Reading
-    // File");
-    //
-    // This can be a concurrent task
-    // let lines_of_code = count_newlines(unparsed_file.as_str()) + 1;
-    //
-    // let program = LambdaCoreParser::parse(Rule::Program, &unparsed_file)
-    // .expect("LCORE: Failed To Parse") // Unwrap the parse result :D
-    // .next().unwrap(); // Get and unwrap the `Program` rule; never failes
-    //
-    // if LCORE_DEBUG { println!("{:#?}", program); }
-    //
-    // let mut symbol_table: SymTab = HashMap::new();
-    // let mut symbol_table = Environment::new();
-    // symbol_table.push();
-    //
-    // import_builtins(&mut symbol_table);
-    //
-    // Interpret the Program
-    // interpret(program, 0, &mut symbol_table);
-    //
-    // let mut stack = VecDeque::with_capacity(lines_of_code);
-    //
-    // let planned = stack.capacity();
-    // let loc = lcore_parse(program, &mut stack);
-    //
-    // if LCORE_DEBUG {
-    // println!("---------------------------------------------");
-    // println!("| Code Lines | Planned Stack | Actual Stack |");
-    // println!("| {: <10} | {: <13} | {: <12} |", lines_of_code, planned,
-    // stack.len());
-    // println!("---------------------------------------------\n");
-    // }
-    //
-    // if let Err(err) = lcore_interpret(&mut stack, &mut symbol_table) {
-    // match err {
-    // LCoreError::LambdaCoreError(s) => println!("{}", s),
-    // LCoreError::IndexError(s) => println!("{}", s),
-    // LCoreError::ArgumentError(s) => println!("{}", s),
-    // LCoreError::NameError(s) => println!("{}", s)
-    // }
-    // }
-    //
-    // Print Single symbol
-    // let a = symbol_table.remove(&mut String::from("hello-world")).unwrap();
-    // lcore_print_value(&mut Value::Array(vec![a]));
 }
