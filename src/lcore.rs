@@ -835,8 +835,11 @@ pub fn lcore_interpret_expression(
     arrays: &mut Vec<Value>,
     node: Value
 ) -> Result<Value, LCoreError> {
-    let mut arrays: Vec<Value> = Vec::new();
-    arrays.push(Value::Array(Vec::new()));
+    //let mut arrays: Vec<Value> = Vec::new();
+    // arrays.push(Value::Array(Vec::new()));
+    //println!("    PUSHING    <--111");
+
+    println!("{:?}", node);
 
     match node {
         Value::Identifier(ref v) => {
@@ -867,7 +870,10 @@ pub fn lcore_interpret_expression(
             }
         }
 
-        Value::OpenFunc => arrays.push(Value::Array(Vec::new())),
+        Value::OpenFunc => {
+            println!("    PUSHING    <--222");
+            arrays.push(Value::Array(Vec::new()));
+        }
 
         Value::CloseFunc => {
             // Call the function & store result in `arrays`
@@ -949,21 +955,10 @@ pub fn lcore_interpret_expression(
         }
 
         Value::Array(ref v) => {
-            fn recursive_eval(array: Value) -> VecDeque<Value> {
-                let mut array_stack = VecDeque::new();
-                let mut vector = array.as_array().clone();
-                while let Some(token) = vector.pop() {
-                    // if its a func:
-                    // let val = lcore_interpret(&mut array_stack, symbol_table);
-                    //array_stack.push_front(token);
-                }
-                array_stack
-            }
-
             println!("IN ARRAY");
 
             // MAY NEED TO CREATE A NEW `ARRAYS` SO THAT THIS ONE DOESN'T USE OURS :D
-            let result = lcore_interpret_expression(stack, symbol_table, &mut arrays, node);
+            let result = lcore_interpret_expression(stack, symbol_table, arrays, node);
 
             let length = arrays.len();
             if let Value::Array(ref mut last) = arrays[length - 1] {
@@ -978,7 +973,7 @@ pub fn lcore_interpret_expression(
         _ => {
             let length = arrays.len();
             if let Value::Array(ref mut array) = arrays[length - 1] {
-                array.push(node)
+                array.push(node);
             }
         }
     }
