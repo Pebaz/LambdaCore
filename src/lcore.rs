@@ -962,6 +962,7 @@ pub fn lcore_interpret_expression(
 
             println!("IN ARRAY");
 
+            // MAY NEED TO CREATE A NEW `ARRAYS` SO THAT THIS ONE DOESN'T USE OURS :D
             let result = lcore_interpret_expression(stack, symbol_table, &mut arrays, node);
 
             let length = arrays.len();
