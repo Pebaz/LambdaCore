@@ -151,29 +151,29 @@ pub fn lcore_print(
     Ok(Value::Null)
 }
 
-pub fn lcore_add(
-    args: &mut Value,
-    symbol_table: &mut Environment,
-) -> Result<Value, LCoreError> {
-    let mut args = args.as_array().iter();
-    let a = args
-        .next()
-        .expect("Not enough arguments on call to \"add\": 0/2");
-    let b = args
-        .next()
-        .expect("Not enough arguments on call to \"add\": 1/2");
-    match (a, b) {
-        (Value::Int(v1), Value::Int(v2)) => {
-            return Ok(Value::Int(a.as_int() + b.as_int()));
-        }
+// pub fn lcore_add(
+//     args: &mut Value,
+//     symbol_table: &mut Environment,
+// ) -> Result<Value, LCoreError> {
+//     let mut args = args.as_array().iter();
+//     let a = args
+//         .next()
+//         .expect("Not enough arguments on call to \"add\": 0/2");
+//     let b = args
+//         .next()
+//         .expect("Not enough arguments on call to \"add\": 1/2");
+//     match (a, b) {
+//         (Value::Int(v1), Value::Int(v2)) => {
+//             return Ok(Value::Int(a.as_int() + b.as_int()));
+//         }
 
-        (Value::Float(v1), Value::Float(v2)) => {
-            return Ok(Value::Float(a.as_float() + b.as_float()));
-        }
+//         (Value::Float(v1), Value::Float(v2)) => {
+//             return Ok(Value::Float(a.as_float() + b.as_float()));
+//         }
 
-        _ => unreachable!(), // Handle error
-    }
-}
+//         _ => unreachable!(), // Handle error
+//     }
+// }
 
 pub fn lcore_quit(
     args: &mut Value,
@@ -734,10 +734,137 @@ pub fn lcore_to_str(
     Ok(Value::String(String::from("LambdaCore String!")))
 }
 
+
+pub fn lcore_add(
+    args: &mut Value,
+    symbol_table: &mut Environment,
+) -> Result<Value, LCoreError> {
+
+    let mut args = args.as_array().iter();
+    let a = args.next().unwrap();
+    let b = args.next().unwrap();
+
+    match (a, b) {
+        (Value::Int(a), Value::Int(b)) => Ok(Value::Int(a + b)),
+        (Value::Float(a), Value::Float(b)) => Ok(Value::Float(a + b)),
+        (Value::String(a), Value::String(b)) => {
+            let mut result = a.clone();
+            result.push_str(b);
+            Ok(Value::String(result.to_string()))
+        }
+        (Value::Array(a), Value::Array(b)) => {
+            let mut result = a.clone();
+            result.extend(b.iter().cloned());
+            Ok(Value::Array(result))
+        }
+
+        _ => Err(LCoreError::ArgumentError(
+            format!("ArgumentError: Invalid operands ({:?} and {:?})", a, b)))
+    }
+}
+
+
+pub fn lcore_sub(
+    args: &mut Value,
+    symbol_table: &mut Environment,
+) -> Result<Value, LCoreError> {
+
+    let mut args = args.as_array().iter();
+    let a = args.next().unwrap();
+    let b = args.next().unwrap();
+
+    match (a, b) {
+        (Value::Int(a), Value::Int(b)) => Ok(Value::Int(a - b)),
+        (Value::Float(a), Value::Float(b)) => Ok(Value::Float(a - b)),
+
+        _ => Err(LCoreError::ArgumentError(
+            format!("ArgumentError: Invalid operands ({:?} and {:?})", a, b)))
+    }
+}
+
+pub fn lcore_mul(
+    args: &mut Value,
+    symbol_table: &mut Environment,
+) -> Result<Value, LCoreError> {
+
+    let mut args = args.as_array().iter();
+    let a = args.next().unwrap();
+    let b = args.next().unwrap();
+
+    match (a, b) {
+        (Value::Int(a), Value::Int(b)) => Ok(Value::Int(a * b)),
+        (Value::Float(a), Value::Float(b)) => Ok(Value::Float(a * b)),
+        (Value::String(a), Value::Int(b)) => {
+            let mut result = a.clone();
+            for i in 0..*b - 1 {
+                result.push_str(a);
+            }
+            Ok(Value::String(result.to_string()))
+        }
+        (Value::Array(a), Value::Int(b)) => {
+            let aa = a.clone();
+            let mut result = a.clone();
+            for i in 0..*b - 1 {
+                result.extend(aa.iter().cloned());
+            }
+            Ok(Value::Array(result))
+        }
+
+        _ => Err(LCoreError::ArgumentError(
+            format!("ArgumentError: Invalid operands ({:?} and {:?})", a, b)))
+    }
+}
+
+
+pub fn lcore_div(
+    args: &mut Value,
+    symbol_table: &mut Environment,
+) -> Result<Value, LCoreError> {
+
+    let mut args = args.as_array().iter();
+    let a = args.next().unwrap();
+    let b = args.next().unwrap();
+
+    match (a, b) {
+        (Value::Int(a), Value::Int(b)) => Ok(Value::Int(a / b)),
+        (Value::Float(a), Value::Float(b)) => Ok(Value::Float(a / b)),
+
+        _ => Err(LCoreError::ArgumentError(
+            format!("ArgumentError: Invalid operands ({:?} and {:?})", a, b)))
+    }
+}
+
+
+pub fn lcore_exponent(
+    args: &mut Value,
+    symbol_table: &mut Environment,
+) -> Result<Value, LCoreError> {
+
+    let mut args = args.as_array().iter();
+    let a = args.next().unwrap();
+    let b = args.next().unwrap();
+
+    match (a, b) {
+        (Value::Int(a), Value::Int(b)) => {
+            if *b >= 0 {
+                Ok(Value::Int(i64::pow(*a, *b as u32)))
+            } else {
+                Err(LCoreError::ArgumentError(
+                    format!("ArgumentError: Negative exponent ({})", b)
+                ))
+            }
+        }
+        (Value::Float(a), Value::Float(b)) => Ok(Value::Float(f64::powf(*a, *b))),
+
+        _ => Err(LCoreError::ArgumentError(
+            format!("ArgumentError: Invalid operands ({:?} and {:?})", a, b)))
+    }
+}
+
+
 pub fn import_builtins(symbol_table: &mut Environment) {
     symbol_table.insert("print".to_string(), Value::Func { f: lcore_print });
     symbol_table.insert("prin".to_string(), Value::Func { f: lcore_prin });
-    symbol_table.insert("+".to_string(), Value::Func { f: lcore_add });
     symbol_table.insert("quit".to_string(), Value::Func { f: lcore_quit });
     symbol_table.insert("exit".to_string(), Value::Func { f: lcore_quit });
     symbol_table.insert("set".to_string(), Value::Func { f: lcore_set });
@@ -757,4 +884,9 @@ pub fn import_builtins(symbol_table: &mut Environment) {
     symbol_table.insert("or".to_string(), Value::Func { f: lcore_logical_or });
     symbol_table.insert("and".to_string(), Value::Func { f: lcore_logical_and });
     symbol_table.insert("not".to_string(), Value::Func { f: lcore_logical_not });
+    symbol_table.insert("+".to_string(), Value::Func { f: lcore_add });
+    symbol_table.insert("-".to_string(), Value::Func { f: lcore_sub });
+    symbol_table.insert("*".to_string(), Value::Func { f: lcore_mul });
+    symbol_table.insert("/".to_string(), Value::Func { f: lcore_div });
+    symbol_table.insert("**".to_string(), Value::Func { f: lcore_exponent });
 }

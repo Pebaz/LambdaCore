@@ -1,0 +1,26 @@
+(print "--------------------")
+(print "Int")
+(print (+ 2 4))
+(print (- 2 4))
+(print (* 2 4))
+(print (/ 2 4))
+(print (** 2 4))
+
+
+(print "")(print "--------------------")
+(print "Float")
+(print (+ 2 4))
+(print (- 2 4))
+(print (* 2 4))
+(print (/ 2 4))
+(print (** 2 4))
+
+(print "")(print "--------------------")
+(print "String")
+(print (+ "Hello " "World!"))
+(print (* "Hi" 3))
+
+(print "")(print "--------------------")
+(print "Array")
+(print (+ [1 2] [3 4]))
+(print (* [11] 2))
