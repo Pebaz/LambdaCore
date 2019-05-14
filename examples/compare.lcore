@@ -21,3 +21,4 @@
 (print "")
 
 (prin "True   or True    : ")(print (or True True))
+(prin "True   and True   : ")(print (and True True))
