@@ -7,3 +7,7 @@
 (if False
     '[(print "It's True!")]
     '[(print "It's False!")])
+
+(print
+    (if (= 1 1)
+        '[11 12 13 14]))

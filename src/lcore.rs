@@ -559,17 +559,33 @@ pub fn lcore_interpret_array(
     let mut stack = VecDeque::new();
     let mut arrays: Vec<Value> = Vec::new();
     arrays.push(Value::Array(Vec::new()));
-    lcore_interpret_expression(
-        &mut stack,
-        symbol_table,
-        &mut arrays,
-        element.clone(),
-    )
+
+    if let Err(error) =
+        lcore_interpret_expression(
+            &mut stack,
+            symbol_table,
+            &mut arrays,
+            element.clone(),
+        )
+    {
+        return Err(error);
+    } else {
+        // NOTE(pebaz): Return the last value from the array
+        let mut array = arrays.pop().unwrap();
+        if let Value::Array(ref mut r) = array {
+            return Ok(r.pop().unwrap());
+        }
+
+        // There should always be an array at the end.
+        unreachable!();
+    }
 }
+
 
 pub fn count_newlines(s: &str) -> usize {
     s.as_bytes().iter().filter(|&&c| c == b'\n').count()
 }
+
 
 pub fn lcore_repl() {
     print!("LambdaCore Programming Language v");

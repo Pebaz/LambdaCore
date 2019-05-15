@@ -877,6 +877,7 @@ pub fn lcore_exponent(
     }
 }
 
+
 pub fn lcore_if(
     args: &mut Value,
     symbol_table: &mut Environment,
@@ -885,6 +886,7 @@ pub fn lcore_if(
     let mut vecargs = args.iter();
     let condition = vecargs.next().unwrap();
     let block_true = vecargs.next().unwrap();
+
     let block_false = if args.len() > 2 {
         vecargs.next().unwrap()
     } else {
@@ -894,16 +896,32 @@ pub fn lcore_if(
     if *condition.as_bool() {
         let element = block_true.as_value();
         let result = lcore_interpret_array(element, symbol_table);
+        let mut result = result.ok().unwrap();
+
+        // TODO(pebaz): Check for errors on the result
+
+        if let Value::Array(ref mut r) = result {
+            let ret = r.pop().unwrap();
+            //lcore_print_value(&mut Value::Array(vec![ret]));
+            //println!("  <--");
+            return Ok(ret);
+        }
     } else {
-        if let Value::Null = block_false {
-        } else {
+        if let Value::Null = block_false { } else {
             let element = block_false.as_value();
             let result = lcore_interpret_array(element, symbol_table);
+            let mut result = result.ok().unwrap();
+
+            if let Value::Array(ref mut r) = result {
+                let ret = r.pop().unwrap();
+                return Ok(ret);
+            }
         }
     }
 
     Ok(Value::Null)
 }
+
 
 pub fn import_builtins(symbol_table: &mut Environment) {
     symbol_table.insert("print".to_string(), Value::Func { f: lcore_print });
