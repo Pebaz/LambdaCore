@@ -1,4 +1,4 @@
-(set 'num 3)
+(set 'num 2)
 
 (sel num
     1 '[
