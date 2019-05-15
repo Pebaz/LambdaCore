@@ -98,7 +98,9 @@ fn main() {
     match (code_file, code_str) {
         (None, None) => lcore_repl(),
         (None, Some(code)) => lcore_execute_string(code.to_string()),
-        (Some(file), None) => { let _ = lcore_import_file(file.to_string()); }
-        _ => ()
+        (Some(file), None) => {
+            let _ = lcore_import_file(file.to_string());
+        }
+        _ => (),
     }
 }

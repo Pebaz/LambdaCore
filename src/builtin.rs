@@ -461,10 +461,10 @@ pub fn lcore_swap(
     let index = args.next().unwrap();
     let value = args.next().unwrap();
 
-	// TODO(pebaz): The `index` is a quoted list of values to index by:
-	// a[b][c][d][e]
+    // TODO(pebaz): The `index` is a quoted list of values to index by:
+    // a[b][c][d][e]
 
-	//println!("{}, {:?}, {:?}", obj_id, index, value);
+    // println!("{}, {:?}, {:?}", obj_id, index, value);
 
     if let Some(obj) = symbol_table.get(obj_id.to_string()) {
         //println!("{:?}", obj);
@@ -531,7 +531,7 @@ pub fn lcore_swap(
 					} else {
 						return Err(LCoreError::IndexError("IndexError: Cannot index array with non-int".to_string()));
 					}
-				} 
+				}
 
 				_ => unreachable!()
 			}
@@ -586,33 +586,32 @@ pub fn lcore_len(
     args: &mut Value,
     symbol_table: &mut Environment,
 ) -> Result<Value, LCoreError> {
-
-	let mut args = args.as_array().iter();
-	let arg = match args.next() {
+    let mut args = args.as_array().iter();
+    let arg = match args.next() {
         Some(e) => e,
         None => {
             return Err(LCoreError::ArgumentError(format!(
-            	"ArgumentError: Not enough arguments on call to \"len\": 0/1"
-        	)))
+                "ArgumentError: Not enough arguments on call to \"len\": 0/1"
+            )))
         }
     };
 
     return match arg {
-		Value::Array(v) => Ok(Value::Int(v.len() as i64)),
-		Value::Dict(v) => Ok(Value::Int(v.len() as i64)),
-		Value::String(v) => Ok(Value::Int(v.len() as i64)),
-		Value::Quote(v) => Ok(Value::Int(1)),
-		_ => {
-			Err(LCoreError::ArgumentError(format!("ArgumentError: {:?} has no length", arg)))
-		}
-	}
+        Value::Array(v) => Ok(Value::Int(v.len() as i64)),
+        Value::Dict(v) => Ok(Value::Int(v.len() as i64)),
+        Value::String(v) => Ok(Value::Int(v.len() as i64)),
+        Value::Quote(v) => Ok(Value::Int(1)),
+        _ => Err(LCoreError::ArgumentError(format!(
+            "ArgumentError: {:?} has no length",
+            arg
+        ))),
+    };
 }
 
 pub fn lcore_equals(
     args: &mut Value,
     symbol_table: &mut Environment,
 ) -> Result<Value, LCoreError> {
-
     let mut args = args.as_array().iter();
     let a = args.next().unwrap();
     let b = args.next().unwrap();
@@ -623,10 +622,15 @@ pub fn lcore_equals(
         (Value::Float(a), Value::Float(b)) => Ok(Value::Boolean(a == b)),
         (Value::String(a), Value::String(b)) => Ok(Value::Boolean(a == b)),
         (Value::Boolean(a), Value::Boolean(b)) => Ok(Value::Boolean(a == b)),
-        (Value::Identifier(a), Value::Identifier(b)) => Ok(Value::Boolean(a == b)),
+        (Value::Identifier(a), Value::Identifier(b)) => {
+            Ok(Value::Boolean(a == b))
+        }
         (Value::Dict(a), Value::Dict(b)) => Ok(Value::Boolean(a == b)),
         (Value::Array(a), Value::Array(b)) => Ok(Value::Boolean(a == b)),
-        (Value::Quote(a), Value::Quote(b)) => lcore_equals(&mut Value::Array(vec![*a.clone(), *b.clone()]), symbol_table),
+        (Value::Quote(a), Value::Quote(b)) => lcore_equals(
+            &mut Value::Array(vec![*a.clone(), *b.clone()]),
+            symbol_table,
+        ),
 
         (Value::Func { f: a }, Value::Func { f: b }) => {
             // TODO(pebaz): Allow comparing builtin funcs?
@@ -636,8 +640,10 @@ pub fn lcore_equals(
             Ok(Value::Boolean(addr_a == addr_b))
         }
 
-        _ => Err(LCoreError::ArgumentError(
-            format!("ArgumentError: Type mismatch ({:?} and {:?})", a, b)))
+        _ => Err(LCoreError::ArgumentError(format!(
+            "ArgumentError: Type mismatch ({:?} and {:?})",
+            a, b
+        ))),
     }
 }
 
@@ -645,7 +651,6 @@ pub fn lcore_not_equals(
     args: &mut Value,
     symbol_table: &mut Environment,
 ) -> Result<Value, LCoreError> {
-
     let mut args = args.as_array().iter();
     let a = args.next().unwrap();
     let b = args.next().unwrap();
@@ -656,10 +661,15 @@ pub fn lcore_not_equals(
         (Value::Float(a), Value::Float(b)) => Ok(Value::Boolean(a != b)),
         (Value::String(a), Value::String(b)) => Ok(Value::Boolean(a != b)),
         (Value::Boolean(a), Value::Boolean(b)) => Ok(Value::Boolean(a != b)),
-        (Value::Identifier(a), Value::Identifier(b)) => Ok(Value::Boolean(a != b)),
+        (Value::Identifier(a), Value::Identifier(b)) => {
+            Ok(Value::Boolean(a != b))
+        }
         (Value::Dict(a), Value::Dict(b)) => Ok(Value::Boolean(a != b)),
         (Value::Array(a), Value::Array(b)) => Ok(Value::Boolean(a != b)),
-        (Value::Quote(a), Value::Quote(b)) => lcore_not_equals(&mut Value::Array(vec![*a.clone(), *b.clone()]), symbol_table),
+        (Value::Quote(a), Value::Quote(b)) => lcore_not_equals(
+            &mut Value::Array(vec![*a.clone(), *b.clone()]),
+            symbol_table,
+        ),
 
         (Value::Func { f: a }, Value::Func { f: b }) => {
             // TODO(pebaz): Allow comparing builtin funcs?
@@ -669,17 +679,17 @@ pub fn lcore_not_equals(
             Ok(Value::Boolean(addr_a != addr_b))
         }
 
-        _ => Err(LCoreError::ArgumentError(
-            format!("ArgumentError: Type mismatch ({:?} and {:?})", a, b)))
+        _ => Err(LCoreError::ArgumentError(format!(
+            "ArgumentError: Type mismatch ({:?} and {:?})",
+            a, b
+        ))),
     }
 }
-
 
 pub fn lcore_logical_or(
     args: &mut Value,
     symbol_table: &mut Environment,
 ) -> Result<Value, LCoreError> {
-
     let mut args = args.as_array().iter();
     let a = args.next().unwrap();
     let b = args.next().unwrap();
@@ -687,17 +697,17 @@ pub fn lcore_logical_or(
     match (a, b) {
         (Value::Boolean(a), Value::Boolean(b)) => Ok(Value::Boolean(a | b)),
 
-        _ => Err(LCoreError::ArgumentError(
-            format!("ArgumentError: Not booleans ({:?} and {:?})", a, b)))
+        _ => Err(LCoreError::ArgumentError(format!(
+            "ArgumentError: Not booleans ({:?} and {:?})",
+            a, b
+        ))),
     }
 }
-
 
 pub fn lcore_logical_and(
     args: &mut Value,
     symbol_table: &mut Environment,
 ) -> Result<Value, LCoreError> {
-
     let mut args = args.as_array().iter();
     let a = args.next().unwrap();
     let b = args.next().unwrap();
@@ -705,8 +715,10 @@ pub fn lcore_logical_and(
     match (a, b) {
         (Value::Boolean(a), Value::Boolean(b)) => Ok(Value::Boolean(a & b)),
 
-        _ => Err(LCoreError::ArgumentError(
-            format!("ArgumentError: Not booleans ({:?} and {:?})", a, b)))
+        _ => Err(LCoreError::ArgumentError(format!(
+            "ArgumentError: Not booleans ({:?} and {:?})",
+            a, b
+        ))),
     }
 }
 
@@ -714,16 +726,16 @@ pub fn lcore_logical_not(
     args: &mut Value,
     symbol_table: &mut Environment,
 ) -> Result<Value, LCoreError> {
-
     let mut args = args.as_array().iter();
     let a = args.next().unwrap();
 
     if let Value::Boolean(b) = a {
         return Ok(Value::Boolean(!b));
     } else {
-        return Err(LCoreError::ArgumentError(
-            format!("ArgumentError: Not a boolean ({:?})", a)
-        ));
+        return Err(LCoreError::ArgumentError(format!(
+            "ArgumentError: Not a boolean ({:?})",
+            a
+        )));
     }
 }
 
@@ -734,12 +746,10 @@ pub fn lcore_to_str(
     Ok(Value::String(String::from("LambdaCore String!")))
 }
 
-
 pub fn lcore_add(
     args: &mut Value,
     symbol_table: &mut Environment,
 ) -> Result<Value, LCoreError> {
-
     let mut args = args.as_array().iter();
     let a = args.next().unwrap();
     let b = args.next().unwrap();
@@ -758,17 +768,17 @@ pub fn lcore_add(
             Ok(Value::Array(result))
         }
 
-        _ => Err(LCoreError::ArgumentError(
-            format!("ArgumentError: Invalid operands ({:?} and {:?})", a, b)))
+        _ => Err(LCoreError::ArgumentError(format!(
+            "ArgumentError: Invalid operands ({:?} and {:?})",
+            a, b
+        ))),
     }
 }
-
 
 pub fn lcore_sub(
     args: &mut Value,
     symbol_table: &mut Environment,
 ) -> Result<Value, LCoreError> {
-
     let mut args = args.as_array().iter();
     let a = args.next().unwrap();
     let b = args.next().unwrap();
@@ -777,8 +787,10 @@ pub fn lcore_sub(
         (Value::Int(a), Value::Int(b)) => Ok(Value::Int(a - b)),
         (Value::Float(a), Value::Float(b)) => Ok(Value::Float(a - b)),
 
-        _ => Err(LCoreError::ArgumentError(
-            format!("ArgumentError: Invalid operands ({:?} and {:?})", a, b)))
+        _ => Err(LCoreError::ArgumentError(format!(
+            "ArgumentError: Invalid operands ({:?} and {:?})",
+            a, b
+        ))),
     }
 }
 
@@ -786,7 +798,6 @@ pub fn lcore_mul(
     args: &mut Value,
     symbol_table: &mut Environment,
 ) -> Result<Value, LCoreError> {
-
     let mut args = args.as_array().iter();
     let a = args.next().unwrap();
     let b = args.next().unwrap();
@@ -810,17 +821,17 @@ pub fn lcore_mul(
             Ok(Value::Array(result))
         }
 
-        _ => Err(LCoreError::ArgumentError(
-            format!("ArgumentError: Invalid operands ({:?} and {:?})", a, b)))
+        _ => Err(LCoreError::ArgumentError(format!(
+            "ArgumentError: Invalid operands ({:?} and {:?})",
+            a, b
+        ))),
     }
 }
-
 
 pub fn lcore_div(
     args: &mut Value,
     symbol_table: &mut Environment,
 ) -> Result<Value, LCoreError> {
-
     let mut args = args.as_array().iter();
     let a = args.next().unwrap();
     let b = args.next().unwrap();
@@ -829,17 +840,17 @@ pub fn lcore_div(
         (Value::Int(a), Value::Int(b)) => Ok(Value::Int(a / b)),
         (Value::Float(a), Value::Float(b)) => Ok(Value::Float(a / b)),
 
-        _ => Err(LCoreError::ArgumentError(
-            format!("ArgumentError: Invalid operands ({:?} and {:?})", a, b)))
+        _ => Err(LCoreError::ArgumentError(format!(
+            "ArgumentError: Invalid operands ({:?} and {:?})",
+            a, b
+        ))),
     }
 }
-
 
 pub fn lcore_exponent(
     args: &mut Value,
     symbol_table: &mut Environment,
 ) -> Result<Value, LCoreError> {
-
     let mut args = args.as_array().iter();
     let a = args.next().unwrap();
     let b = args.next().unwrap();
@@ -849,18 +860,22 @@ pub fn lcore_exponent(
             if *b >= 0 {
                 Ok(Value::Int(i64::pow(*a, *b as u32)))
             } else {
-                Err(LCoreError::ArgumentError(
-                    format!("ArgumentError: Negative exponent ({})", b)
-                ))
+                Err(LCoreError::ArgumentError(format!(
+                    "ArgumentError: Negative exponent ({})",
+                    b
+                )))
             }
         }
-        (Value::Float(a), Value::Float(b)) => Ok(Value::Float(f64::powf(*a, *b))),
+        (Value::Float(a), Value::Float(b)) => {
+            Ok(Value::Float(f64::powf(*a, *b)))
+        }
 
-        _ => Err(LCoreError::ArgumentError(
-            format!("ArgumentError: Invalid operands ({:?} and {:?})", a, b)))
+        _ => Err(LCoreError::ArgumentError(format!(
+            "ArgumentError: Invalid operands ({:?} and {:?})",
+            a, b
+        ))),
     }
 }
-
 
 pub fn lcore_if(
     args: &mut Value,
@@ -878,24 +893,17 @@ pub fn lcore_if(
 
     if *condition.as_bool() {
         let element = block_true.as_value();
-        let mut stack = VecDeque::new();
-        let mut arrays: Vec<Value> = Vec::new();
-        arrays.push(Value::Array(Vec::new()));
-        let result = lcore_interpret_expression(&mut stack, symbol_table, &mut arrays, element.clone());
-
+        let result = lcore_interpret_array(element, symbol_table);
     } else {
-        if let Value::Null = block_false { } else {
+        if let Value::Null = block_false {
+        } else {
             let element = block_false.as_value();
-            let mut stack = VecDeque::new();
-            let mut arrays: Vec<Value> = Vec::new();
-            arrays.push(Value::Array(Vec::new()));
-            let result = lcore_interpret_expression(&mut stack, symbol_table, &mut arrays, element.clone());
+            let result = lcore_interpret_array(element, symbol_table);
         }
     }
 
     Ok(Value::Null)
 }
-
 
 pub fn import_builtins(symbol_table: &mut Environment) {
     symbol_table.insert("print".to_string(), Value::Func { f: lcore_print });
@@ -907,18 +915,37 @@ pub fn import_builtins(symbol_table: &mut Environment) {
     symbol_table.insert("defn".to_string(), Value::Func { f: lcore_defn });
     symbol_table.insert("get".to_string(), Value::Func { f: lcore_get });
     symbol_table.insert("dict".to_string(), Value::Func { f: lcore_dict });
-	symbol_table.insert("len".to_string(), Value::Func { f: lcore_len });
+    symbol_table.insert("len".to_string(), Value::Func { f: lcore_len });
     symbol_table
         .insert(String::from("import"), Value::Func { f: lcore_import });
     symbol_table.insert(String::from("swap"), Value::Func { f: lcore_swap });
 
-    symbol_table
-        .insert("to-str".to_string(), Value::Func { f: lcore_to_str });
+    symbol_table.insert("to-str".to_string(), Value::Func { f: lcore_to_str });
     symbol_table.insert("=".to_string(), Value::Func { f: lcore_equals });
-    symbol_table.insert("!=".to_string(), Value::Func { f: lcore_not_equals });
-    symbol_table.insert("or".to_string(), Value::Func { f: lcore_logical_or });
-    symbol_table.insert("and".to_string(), Value::Func { f: lcore_logical_and });
-    symbol_table.insert("not".to_string(), Value::Func { f: lcore_logical_not });
+    symbol_table.insert(
+        "!=".to_string(),
+        Value::Func {
+            f: lcore_not_equals,
+        },
+    );
+    symbol_table.insert(
+        "or".to_string(),
+        Value::Func {
+            f: lcore_logical_or,
+        },
+    );
+    symbol_table.insert(
+        "and".to_string(),
+        Value::Func {
+            f: lcore_logical_and,
+        },
+    );
+    symbol_table.insert(
+        "not".to_string(),
+        Value::Func {
+            f: lcore_logical_not,
+        },
+    );
     symbol_table.insert("+".to_string(), Value::Func { f: lcore_add });
     symbol_table.insert("-".to_string(), Value::Func { f: lcore_sub });
     symbol_table.insert("*".to_string(), Value::Func { f: lcore_mul });

@@ -98,12 +98,12 @@ impl Value {
         }
     }
 
-	pub fn as_dict(&mut self) -> &mut HashMap<Value, Value> {
-		match self {
-			Value::Dict(ref mut d) => return d,
-			_ => unreachable!(),
-		}
-	}
+    pub fn as_dict(&mut self) -> &mut HashMap<Value, Value> {
+        match self {
+            Value::Dict(ref mut d) => return d,
+            _ => unreachable!(),
+        }
+    }
 
     pub fn as_func(
         &self,
@@ -329,7 +329,8 @@ pub fn lcore_parse(
 
             let mut quote_stack = VecDeque::new();
 
-            // TODO(pebaz): NEED TO NEST ALL OTHER VALUES WITHIN ALL TYPES OF QUOTES :/
+            // TODO(pebaz): NEED TO NEST ALL OTHER VALUES WITHIN ALL TYPES OF
+            // QUOTES :/
 
             for rule in node.into_inner() {
                 loc += lcore_parse(rule, &mut quote_stack);
@@ -381,7 +382,9 @@ pub fn lcore_interpret(
     arrays.push(Value::Array(Vec::new()));
 
     while let Some(node) = stack.pop_front() {
-        if let Err(error) = lcore_interpret_expression(stack, symbol_table, &mut arrays, node) {
+        if let Err(error) =
+            lcore_interpret_expression(stack, symbol_table, &mut arrays, node)
+        {
             return Err(error);
         }
     }
@@ -397,12 +400,11 @@ pub fn lcore_interpret(
     }
 }
 
-
 pub fn lcore_interpret_expression(
     stack: &mut VecDeque<Value>,
     symbol_table: &mut Environment,
     arrays: &mut Vec<Value>,
-    node: Value
+    node: Value,
 ) -> Result<Value, LCoreError> {
     match node {
         Value::Identifier(ref v) => {
@@ -415,8 +417,7 @@ pub fn lcore_interpret_expression(
             if let Value::Array(ref mut v) = arrays[length - 1] {
                 // Lookup the current node and push it
                 let key = node.as_identifier();
-                if !symbol_table.contains_key(key.as_str().to_string())
-                {
+                if !symbol_table.contains_key(key.as_str().to_string()) {
                     return Err(LCoreError::NameError(format!(
                         "NameError: Cannot lookup name: \"{}\"",
                         key
@@ -427,7 +428,7 @@ pub fn lcore_interpret_expression(
                     symbol_table
                         .get(key.as_str().to_string())
                         .unwrap()
-                        .clone()
+                        .clone(),
                 )
             }
         }
@@ -509,7 +510,7 @@ pub fn lcore_interpret_expression(
 
                     v.push(match ret {
                         Ok(i) => i,
-                        Err(err) => return Err(err)
+                        Err(err) => return Err(err),
                     });
                 }
             }
@@ -524,7 +525,12 @@ pub fn lcore_interpret_expression(
             }
 
             while let Some(element) = elements.pop_front() {
-                let result = lcore_interpret_expression(stack, symbol_table, arrays, element);
+                let result = lcore_interpret_expression(
+                    stack,
+                    symbol_table,
+                    arrays,
+                    element,
+                );
             }
 
             let resulting_array = arrays.pop().unwrap();
@@ -546,8 +552,20 @@ pub fn lcore_interpret_expression(
     Ok(Value::Null)
 }
 
-
-
+pub fn lcore_interpret_array(
+    element: &Value,
+    symbol_table: &mut Environment,
+) -> Result<Value, LCoreError> {
+    let mut stack = VecDeque::new();
+    let mut arrays: Vec<Value> = Vec::new();
+    arrays.push(Value::Array(Vec::new()));
+    lcore_interpret_expression(
+        &mut stack,
+        symbol_table,
+        &mut arrays,
+        element.clone(),
+    )
+}
 
 pub fn count_newlines(s: &str) -> usize {
     s.as_bytes().iter().filter(|&&c| c == b'\n').count()
