@@ -862,6 +862,41 @@ pub fn lcore_exponent(
 }
 
 
+pub fn lcore_if(
+    args: &mut Value,
+    symbol_table: &mut Environment,
+) -> Result<Value, LCoreError> {
+    let args = args.as_array();
+    let mut vecargs = args.iter();
+    let condition = vecargs.next().unwrap();
+    let block_true = vecargs.next().unwrap();
+    let block_false = if args.len() > 2 {
+        vecargs.next().unwrap()
+    } else {
+        &Value::Null
+    };
+
+    if *condition.as_bool() {
+        let element = block_true.as_value();
+        let mut stack = VecDeque::new();
+        let mut arrays: Vec<Value> = Vec::new();
+        arrays.push(Value::Array(Vec::new()));
+        let result = lcore_interpret_expression(&mut stack, symbol_table, &mut arrays, element.clone());
+
+    } else {
+        if let Value::Null = block_false { } else {
+            let element = block_false.as_value();
+            let mut stack = VecDeque::new();
+            let mut arrays: Vec<Value> = Vec::new();
+            arrays.push(Value::Array(Vec::new()));
+            let result = lcore_interpret_expression(&mut stack, symbol_table, &mut arrays, element.clone());
+        }
+    }
+
+    Ok(Value::Null)
+}
+
+
 pub fn import_builtins(symbol_table: &mut Environment) {
     symbol_table.insert("print".to_string(), Value::Func { f: lcore_print });
     symbol_table.insert("prin".to_string(), Value::Func { f: lcore_prin });
@@ -889,4 +924,5 @@ pub fn import_builtins(symbol_table: &mut Environment) {
     symbol_table.insert("*".to_string(), Value::Func { f: lcore_mul });
     symbol_table.insert("/".to_string(), Value::Func { f: lcore_div });
     symbol_table.insert("**".to_string(), Value::Func { f: lcore_exponent });
+    symbol_table.insert("if".to_string(), Value::Func { f: lcore_if });
 }

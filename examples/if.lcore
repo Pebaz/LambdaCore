@@ -1,0 +1,9 @@
+(if True
+    '[(print "It's True!")]
+    '[(print "It's False!")])
+
+(if (= 1 1) '[(print "One does in fact equal one!")])
+
+(if False
+    '[(print "It's True!")]
+    '[(print "It's False!")])
