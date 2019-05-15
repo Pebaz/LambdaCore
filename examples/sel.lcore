@@ -1,6 +1,6 @@
 (set 'num 2)
 
-(sel num
+(sel (+ num 1)
     1 '[
         (print "It's One!")
     ]
@@ -11,4 +11,8 @@
 
     3 '[
         (print "It's Three!")
+    ]
+
+    'default '[
+        (print "Nothing matched :(")
     ])

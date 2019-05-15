@@ -931,13 +931,22 @@ pub fn lcore_sel(
     let compare = vecargs.next().unwrap();
     
     while let (Some(value), Some(code)) = (vecargs.next(), vecargs.next()) {
-        //lcore_print_value(&mut Value::Array(vec![value.clone()])); println!("");
+
+        // NOTE(pebaz): Check for `'default` block
+        if let Value::Quote(q) = value {
+            if let Value::Identifier(s) = value.as_value() {
+                if s == "default" {
+                    let result = lcore_interpret_array(code.as_value(), symbol_table);
+                    break;
+                }
+            }
+        }
+
         let res = lcore_equals(&mut Value::Array(vec![compare.clone(), value.clone()]), symbol_table);
-        //lcore_print_value(&mut Value::Array(vec![res.ok().unwrap()])); println!("");
         if let Ok(res) = res {
             if *res.as_bool() {
-                let element = code.as_value();
-                let result = lcore_interpret_array(element, symbol_table);
+                let result = lcore_interpret_array(code.as_value(), symbol_table);
+                break;
             }
         }
     }
