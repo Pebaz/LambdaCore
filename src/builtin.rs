@@ -922,6 +922,23 @@ pub fn lcore_if(
     Ok(Value::Null)
 }
 
+pub fn lcore_sel(
+    args: &mut Value,
+    symbol_table: &mut Environment,
+) -> Result<Value, LCoreError> {
+    let args = args.as_array();
+    let mut vecargs = args.iter();
+    let compare = vecargs.next().unwrap();
+    
+    while let (Some(value), Some(code)) = (vecargs.next(), vecargs.next()) {
+        lcore_print_value(&mut Value::Array(vec![value.clone()])); println!("");
+        let res = lcore_equals(&mut Value::Array(vec![compare.clone(), value.clone()]), symbol_table);
+        lcore_print_value(&mut Value::Array(vec![res.ok().unwrap()])); println!("");
+    }
+    
+    Ok(Value::Null)
+}
+
 
 pub fn import_builtins(symbol_table: &mut Environment) {
     symbol_table.insert("print".to_string(), Value::Func { f: lcore_print });
@@ -970,4 +987,5 @@ pub fn import_builtins(symbol_table: &mut Environment) {
     symbol_table.insert("/".to_string(), Value::Func { f: lcore_div });
     symbol_table.insert("**".to_string(), Value::Func { f: lcore_exponent });
     symbol_table.insert("if".to_string(), Value::Func { f: lcore_if });
+    symbol_table.insert("sel".to_string(), Value::Func { f: lcore_sel });
 }

@@ -1,0 +1,14 @@
+(set 'num 3)
+
+(sel num
+    1 '[
+        (print "It's One!")
+    ]
+
+    2 '[
+        (print "It's Two!")
+    ]
+
+    3 '[
+        (print "It's Three!")
+    ])
