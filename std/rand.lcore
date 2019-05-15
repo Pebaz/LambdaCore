@@ -1,0 +1,3 @@
+(defn 'rand-int ['min 'max] '[
+	256
+])
