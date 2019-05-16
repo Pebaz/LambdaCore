@@ -1,0 +1,47 @@
+<style>
+	code-block 		{ background-color: none; font-family: "Consolas"; }
+	code-keyword 	{ color: blue; 	 }
+	code-function 	{ color: rgb(0, 80, 185);  }
+	code-string 	{ color: purple; 	 }
+	code-int 		{ color: purple; }
+	code-comment 	{ color: gray;   }
+	code-path 		{ color: rgb(255, 0, 55); }
+    code-bool       { color: rgb(0, 155, 255);    }
+</style>
+
+<pre>
+<code><code-comment>:&gt;
+Hello World Function
+&lt;:</code-comment>
+(<code-function>defn</code-function> <code-path>'</code-path>add-sub [<code-path>'</code-path>a <code-path>'</code-path>b <code-path>'</code-path>sub] <code-path>'</code-path>[
+    (<code-function>if</code-function> sub <code-path>'</code-path>[
+        <code-comment>:: Return early</code-comment>
+        (<code-function>ret</code-function> (<code-function>-</code-function> a b))
+    ]<code-path>'</code-path>[
+        (<code-function>ret</code-function> (<code-function>+</code-function> a b))
+    ])
+])
+
+(<code-function>print</code-function> (<code-function>add-sub</code-function> <code-int>2</code-int> <code-int>4</code-int> <code-bool>True</code-bool>))
+
+<code-comment>:: A simple code example</code-comment>
+(<code-function>print</code-function> <code-string>"Hello World!"</code-string>)
+
+
+<code-comment>:&gt;
+A function named "hello-world" that takes a single
+argument named "person".
+
+Prints "Hello &lt;person&gt;!"
+
+Returns Null.
+&lt;:</code-comment>
+(<code-function>defn</code-function> <code-path>'</code-path>hello-world [<code-path>'</code-path>person] <code-path>'</code-path>[
+    (<code-function>prin</code-function> <code-string>"Hello "</code-string>)
+    (<code-function>prin</code-function> person)
+    (<code-function>print</code-function> <code-string>"!"</code-string>)
+])
+
+(<code-function>hello-world</code-function> <code-string>"LambdaCore"</code-string>)
+</code>
+</pre>
