@@ -200,7 +200,22 @@ pub struct Environment {
 
 impl Environment {
     pub fn new() -> Environment {
-        Environment { scopes: Vec::new(), return_vals: Vec::new() }
+        Environment { scopes: Vec::new(), return_vals: vec![Value::Null] }
+    }
+
+    pub fn current_ret_index(&self) -> usize {
+        self.return_vals.len() - 1
+    }
+
+    pub fn pop_ret_index(&mut self, index: usize) -> Value {
+        // Remove everything after the index
+        self.return_vals.truncate(index);
+        // return the item at the index
+        self.return_vals.pop().unwrap()
+    }
+
+    pub fn push_ret(&mut self, value: Value) {
+        self.return_vals.push(value);
     }
 
     // fn get_iter(&mut self) -> i32 {
@@ -469,11 +484,9 @@ pub fn lcore_interpret_expression(
 
                         // Bind all arguments to the given values
                         if let Value::Array(ref mut v) = args {
-                            //let mut count = 0;
                             let mut count = v.len();
-
                             while let Some(value) = v.pop() {
-                                count -= 1;
+                                count -= 1;  // Iterate in reverse
                                 match &arg_names[count] {
                                     Value::Quote(v) => {
                                         symbol_table.insert(
@@ -484,8 +497,6 @@ pub fn lcore_interpret_expression(
 
                                     _ => unreachable!(),
                                 }
-
-                                //count += 1;
                             }
                         }
 
@@ -493,7 +504,18 @@ pub fn lcore_interpret_expression(
                             Value::Array(def) => {
                                 let mut body =
                                     VecDeque::from_iter(def.clone());
-                                lcore_interpret(&mut body, symbol_table)
+
+                                
+                                //lcore_interpret(&mut body, symbol_table)
+                                let return_point = symbol_table.current_ret_index();
+                                let return_this = lcore_interpret(&mut body, symbol_table);
+                                println!("RP: {}, CUR: {}", return_point, symbol_table.current_ret_index());
+                                println!("{:?}", symbol_table.return_vals);
+                                if symbol_table.current_ret_index() > return_point {
+                                    Ok(symbol_table.pop_ret_index(return_point + 1))
+                                } else {
+                                    return_this
+                                }
                             }
                             _ => unreachable!(),
                         };

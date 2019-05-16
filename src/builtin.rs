@@ -962,7 +962,7 @@ pub fn lcore_return(
     let args = args.as_array();
     let mut vecargs = args.iter();
     let value = vecargs.next().unwrap();
-    // symbol_table.push_ret(value.clone());
+    symbol_table.push_ret(value.clone());
     Ok(Value::Null)
 }
 

@@ -1,13 +1,11 @@
-(defn 'add-sub ['a 'b 'c] '[
-    (print [a b c])
-    (if c '[
-        (print a)
+(defn 'add-sub ['a 'b 'sub] '[
+    (if sub '[
+        :: (print a)
+        (ret (- a b))
     ]'[
-        (print b)
+        :: (print b)
+        (ret (+ a b))
     ])
 ])
 
-::(add-sub (print "1") (print "2") (print "3"))
-(add-sub 2 4 False)
-
-:: BUG: arguments are added backwards
+(print (add-sub 2 4 False))
