@@ -11,6 +11,7 @@
 (defn 'add-sub ['a 'b 'sub] '[
     (if sub '[
         (ret (- a b))
+        (print "SHOULD NEVER GET HERE")
     ])
     (+ a b)
 ])
