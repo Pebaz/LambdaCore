@@ -1,11 +1,26 @@
 (defn 'add-sub ['a 'b 'sub] '[
     (if sub '[
-        :: (print a)
         (ret (- a b))
     ]'[
-        :: (print b)
         (ret (+ a b))
     ])
 ])
 
+(print (add-sub 2 4 True))
+
+(defn 'add-sub ['a 'b 'sub] '[
+    (if sub '[
+        (ret (- a b))
+    ])
+    (+ a b)
+])
+
+(defn 'bobby [] '[
+    (if True '[
+        (ret (add-sub 2 4 False))
+    ])
+    52
+])
+
 (print (add-sub 2 4 False))
+(print (bobby))

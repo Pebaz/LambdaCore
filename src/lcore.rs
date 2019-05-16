@@ -209,7 +209,7 @@ impl Environment {
 
     pub fn pop_ret_index(&mut self, index: usize) -> Value {
         // Remove everything after the index
-        self.return_vals.truncate(index);
+        self.return_vals.truncate(index + 1);
         // return the item at the index
         self.return_vals.pop().unwrap()
     }
@@ -509,10 +509,9 @@ pub fn lcore_interpret_expression(
                                 //lcore_interpret(&mut body, symbol_table)
                                 let return_point = symbol_table.current_ret_index();
                                 let return_this = lcore_interpret(&mut body, symbol_table);
-                                println!("RP: {}, CUR: {}", return_point, symbol_table.current_ret_index());
-                                println!("{:?}", symbol_table.return_vals);
                                 if symbol_table.current_ret_index() > return_point {
-                                    Ok(symbol_table.pop_ret_index(return_point + 1))
+                                    let r = symbol_table.pop_ret_index(return_point + 1);
+                                    Ok(r)
                                 } else {
                                     return_this
                                 }
