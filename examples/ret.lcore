@@ -1,6 +1,6 @@
 (defn 'add-sub ['a 'b 'c] '[
     (print [a b c])
-    (if True '[
+    (if c '[
         (print a)
     ]'[
         (print b)
@@ -8,6 +8,6 @@
 ])
 
 ::(add-sub (print "1") (print "2") (print "3"))
-(add-sub 2 4 True)
+(add-sub 2 4 False)
 
 :: BUG: arguments are added backwards

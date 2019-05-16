@@ -469,8 +469,11 @@ pub fn lcore_interpret_expression(
 
                         // Bind all arguments to the given values
                         if let Value::Array(ref mut v) = args {
-                            let mut count = 0;
+                            //let mut count = 0;
+                            let mut count = v.len();
+
                             while let Some(value) = v.pop() {
+                                count -= 1;
                                 match &arg_names[count] {
                                     Value::Quote(v) => {
                                         symbol_table.insert(
@@ -482,7 +485,7 @@ pub fn lcore_interpret_expression(
                                     _ => unreachable!(),
                                 }
 
-                                count += 1;
+                                //count += 1;
                             }
                         }
 
