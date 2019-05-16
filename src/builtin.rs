@@ -955,6 +955,18 @@ pub fn lcore_sel(
 }
 
 
+pub fn lcore_return(
+    args: &mut Value,
+    symbol_table: &mut Environment,
+) -> Result<Value, LCoreError> {
+    let args = args.as_array();
+    let mut vecargs = args.iter();
+    let value = vecargs.next().unwrap();
+    // symbol_table.push_ret(value.clone());
+    Ok(Value::Null)
+}
+
+
 pub fn import_builtins(symbol_table: &mut Environment) {
     symbol_table.insert("print".to_string(), Value::Func { f: lcore_print });
     symbol_table.insert("prin".to_string(), Value::Func { f: lcore_prin });
@@ -1003,4 +1015,5 @@ pub fn import_builtins(symbol_table: &mut Environment) {
     symbol_table.insert("**".to_string(), Value::Func { f: lcore_exponent });
     symbol_table.insert("if".to_string(), Value::Func { f: lcore_if });
     symbol_table.insert("sel".to_string(), Value::Func { f: lcore_sel });
+    symbol_table.insert("ret".to_string(), Value::Func { f: lcore_return });
 }

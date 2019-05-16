@@ -1,0 +1,13 @@
+(defn 'add-sub ['a 'b 'c] '[
+    (print [a b c])
+    (if True '[
+        (print a)
+    ]'[
+        (print b)
+    ])
+])
+
+::(add-sub (print "1") (print "2") (print "3"))
+(add-sub 2 4 True)
+
+:: BUG: arguments are added backwards

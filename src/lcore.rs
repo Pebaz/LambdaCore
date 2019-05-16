@@ -195,11 +195,12 @@ impl fmt::Debug for Value {
 
 pub struct Environment {
     scopes: Vec<SymTab>,
+    return_vals: Vec<Value>
 }
 
 impl Environment {
     pub fn new() -> Environment {
-        Environment { scopes: Vec::new() }
+        Environment { scopes: Vec::new(), return_vals: Vec::new() }
     }
 
     // fn get_iter(&mut self) -> i32 {
