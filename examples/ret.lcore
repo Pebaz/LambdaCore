@@ -18,7 +18,7 @@
 
 (defn 'bobby [] '[
     (if True '[
-        (ret (add-sub 2 4 False))
+        (ret (add-sub 2 4 True))
     ])
     52
 ])

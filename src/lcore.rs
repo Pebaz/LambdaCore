@@ -398,6 +398,7 @@ pub fn lcore_interpret(
     arrays.push(Value::Array(Vec::new()));
 
     while let Some(node) = stack.pop_front() {
+        println!("RET LEN: {}", symbol_table.return_vals.len());
         if let Err(error) =
             lcore_interpret_expression(stack, symbol_table, &mut arrays, node)
         {
