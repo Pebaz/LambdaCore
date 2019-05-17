@@ -1,0 +1,15 @@
+(defn 'bug-ret [] '[
+    (ret 52)
+    (print "HELLO")
+])
+
+(print (bug-ret))
+
+(defn 'bug-ret [] '[
+    (if True '[
+        (ret 52)
+        (print "HELLO")
+    ])
+])
+
+(print (bug-ret))

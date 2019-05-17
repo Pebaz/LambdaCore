@@ -963,7 +963,9 @@ pub fn lcore_return(
     let mut vecargs = args.iter();
     let value = vecargs.next().unwrap();
     symbol_table.push_ret(value.clone());
-    Ok(Value::Null)
+    //Ok(Value::Null)
+    //Err(LCoreError::LambdaCoreError(format!("BREAK")))
+    LCoreError::LambdaCore(format!("BREAK"))
 }
 
 

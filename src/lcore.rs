@@ -263,11 +263,30 @@ impl Environment {
     }
 }
 
+#[derive(Debug)]
 pub enum LCoreError {
     LambdaCoreError(String),
     IndexError(String),
     ArgumentError(String),
     NameError(String),
+}
+
+impl LCoreError {
+    pub fn LambdaCore(msg: String) -> Result<Value, LCoreError> {
+        Err(LCoreError::LambdaCoreError(msg))
+    }
+
+    pub fn Index(msg: String) -> Result<Value, LCoreError> {
+        Err(LCoreError::IndexError(msg))
+    }
+
+    pub fn Argument(msg: String) -> Result<Value, LCoreError> {
+        Err(LCoreError::ArgumentError(msg))
+    }
+
+    pub fn Name(msg: String) -> Result<Value, LCoreError> {
+        Err(LCoreError::NameError(msg))
+    }
 }
 
 pub fn crash(msg: String) {
@@ -397,12 +416,17 @@ pub fn lcore_interpret(
     // a top-level array to catch any global function call return values.
     arrays.push(Value::Array(Vec::new()));
 
+    let current = symbol_table.current_ret_index();
+    
     while let Some(node) = stack.pop_front() {
-        println!("RET LEN: {}", symbol_table.return_vals.len());
         if let Err(error) =
             lcore_interpret_expression(stack, symbol_table, &mut arrays, node)
         {
             return Err(error);
+        }
+
+        if symbol_table.current_ret_index() > current {
+            break;
         }
     }
 
@@ -594,6 +618,7 @@ pub fn lcore_interpret_array(
             element.clone(),
         )
     {
+        println!("--> {:?}", error);
         return Err(error);
     } else {
         // NOTE(pebaz): Return the last value from the array
