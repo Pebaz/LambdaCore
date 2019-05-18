@@ -264,11 +264,14 @@ impl Environment {
 }
 
 #[derive(Debug)]
+#[derive(Clone)]
 pub enum LCoreError {
     LambdaCoreError(String),
     IndexError(String),
     ArgumentError(String),
     NameError(String),
+    ReturnError(Value),
+    BreakError
 }
 
 impl LCoreError {
@@ -286,6 +289,14 @@ impl LCoreError {
 
     pub fn Name(msg: String) -> Result<Value, LCoreError> {
         Err(LCoreError::NameError(msg))
+    }
+
+    pub fn Return(val: Value) -> Result<Value, LCoreError> {
+        Err(LCoreError::ReturnError(val))
+    }
+
+    pub fn Break() -> Result<Value, LCoreError> {
+        Err(LCoreError::BreakError)
     }
 }
 
@@ -415,18 +426,12 @@ pub fn lcore_interpret(
     // NOTE(pebaz): Since a function can be called in the global scope, we need
     // a top-level array to catch any global function call return values.
     arrays.push(Value::Array(Vec::new()));
-
-    let current = symbol_table.current_ret_index();
     
     while let Some(node) = stack.pop_front() {
         if let Err(error) =
             lcore_interpret_expression(stack, symbol_table, &mut arrays, node)
         {
             return Err(error);
-        }
-
-        if symbol_table.current_ret_index() > current {
-            break;
         }
     }
 
@@ -581,6 +586,15 @@ pub fn lcore_interpret_expression(
                     arrays,
                     element,
                 );
+
+                if let Err(ref err) = result {
+                    match err {
+                        LCoreError::ReturnError(v) => return Err(err.clone()),
+                        LCoreError::BreakError => println!("NOT IMPLEMENTED!"),
+
+                        _ => return Err(err.clone())
+                    }
+                }
             }
 
             let resulting_array = arrays.pop().unwrap();
@@ -618,7 +632,7 @@ pub fn lcore_interpret_array(
             element.clone(),
         )
     {
-        println!("--> {:?}", error);
+        //println!("--> {:?}", error);
         return Err(error);
     } else {
         // NOTE(pebaz): Return the last value from the array
@@ -679,6 +693,9 @@ pub fn lcore_repl() {
                             LCoreError::IndexError(s) => println!("{}", s),
                             LCoreError::ArgumentError(s) => println!("{}", s),
                             LCoreError::NameError(s) => println!("{}", s),
+
+                            LCoreError::ReturnError(v) => println!("NOT IMPLEMENTED ERROR"),
+                            LCoreError::BreakError => println!("NOT IMPLEMENTED!")
                         },
 
                         // NOTE(pebaz): Repr print a non-null value
@@ -761,6 +778,9 @@ pub fn lcore_import_file(file: String) -> SymTab {
             LCoreError::IndexError(s) => println!("{}", s),
             LCoreError::ArgumentError(s) => println!("{}", s),
             LCoreError::NameError(s) => println!("{}", s),
+
+            LCoreError::ReturnError(v) => println!("IMPORT: NOT IMPLEMENTED ERROR"),
+            LCoreError::BreakError => println!("IMPORT: NOT IMPLEMENTED!")
         }
     }
 
@@ -790,6 +810,9 @@ pub fn lcore_execute_string(code: String) {
             LCoreError::IndexError(s) => println!("{}", s),
             LCoreError::ArgumentError(s) => println!("{}", s),
             LCoreError::NameError(s) => println!("{}", s),
+
+            LCoreError::ReturnError(v) => println!("EXECUTE_STRING: NOT IMPLEMENTED ERROR"),
+            LCoreError::BreakError => println!("EXECUTE_STRING: NOT IMPLEMENTED!")
         }
     }
     symbol_table.pop();

@@ -151,30 +151,6 @@ pub fn lcore_print(
     Ok(Value::Null)
 }
 
-// pub fn lcore_add(
-//     args: &mut Value,
-//     symbol_table: &mut Environment,
-// ) -> Result<Value, LCoreError> {
-//     let mut args = args.as_array().iter();
-//     let a = args
-//         .next()
-//         .expect("Not enough arguments on call to \"add\": 0/2");
-//     let b = args
-//         .next()
-//         .expect("Not enough arguments on call to \"add\": 1/2");
-//     match (a, b) {
-//         (Value::Int(v1), Value::Int(v2)) => {
-//             return Ok(Value::Int(a.as_int() + b.as_int()));
-//         }
-
-//         (Value::Float(v1), Value::Float(v2)) => {
-//             return Ok(Value::Float(a.as_float() + b.as_float()));
-//         }
-
-//         _ => unreachable!(), // Handle error
-//     }
-// }
-
 pub fn lcore_quit(
     args: &mut Value,
     symbol_table: &mut Environment,
@@ -246,6 +222,8 @@ pub fn lcore_loop(
                 LCoreError::IndexError(s) => println!("{}", s),
                 LCoreError::ArgumentError(s) => println!("{}", s),
                 LCoreError::NameError(s) => println!("{}", s),
+                LCoreError::ReturnError(v) => println!("CANNOT RETURN FROM FOR LOOP"),
+                LCoreError::BreakError => break
             }
         }
     }
@@ -467,31 +445,6 @@ pub fn lcore_swap(
     // println!("{}, {:?}, {:?}", obj_id, index, value);
 
     if let Some(obj) = symbol_table.get(obj_id.to_string()) {
-        //println!("{:?}", obj);
-
-
-		//---------------------------------------------------------------------
-		/*
-		let dict = obj.as_dict();
-
-		if let Value::Quote(q) = index {
-			//println!("All the way inside here! {:?}", q);
-			//let mut indexer;
-
-			for indexer in index.as_value().as_array() {
-				//println!("Index Type: {:?}", indexer);
-
-				if let Value::Identifier(s) = indexer {
-					//println!("Setting value: {:?}", value);
-					*dict.get_mut(&Value::String(s.to_string())).unwrap() = value.clone();
-				} else {
-					//println!("Setting value: {:?}", value);
-					*dict.get_mut(indexer).unwrap() = value.clone();
-				}
-			}
-		}
-		*/
-		//---------------------------------------------------------------------
 
 		let mut current_obj = obj;
 
@@ -896,7 +849,12 @@ pub fn lcore_if(
     if *condition.as_bool() {
         let element = block_true.as_value();
         let result = lcore_interpret_array(element, symbol_table);
-        let mut result = result.ok().unwrap();
+        //let mut result = result.ok().unwrap();
+
+        let mut result = match result {
+            Err(err) => return Err(err),
+            Ok(yeah) => yeah
+        };
 
         // TODO(pebaz): Check for errors on the result
 
@@ -965,7 +923,7 @@ pub fn lcore_return(
     symbol_table.push_ret(value.clone());
     //Ok(Value::Null)
     //Err(LCoreError::LambdaCoreError(format!("BREAK")))
-    LCoreError::LambdaCore(format!("BREAK"))
+    LCoreError::Return(value.clone())
 }
 
 
