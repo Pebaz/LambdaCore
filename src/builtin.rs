@@ -194,6 +194,7 @@ pub fn lcore_loop(
     args: &mut Value,
     symbol_table: &mut Environment,
 ) -> Result<Value, LCoreError> {
+    symbol_table.push();
     let mut args = args.as_array().iter();
 
     let quote = args
@@ -218,17 +219,18 @@ pub fn lcore_loop(
 
         if let Err(err) = lcore_interpret(&mut loop_body, symbol_table) {
             match err {
-                LCoreError::LambdaCoreError(s) => println!("{}", s),
-                LCoreError::IndexError(s) => println!("{}", s),
-                LCoreError::ArgumentError(s) => println!("{}", s),
-                LCoreError::NameError(s) => println!("{}", s),
+                LCoreError::LambdaCoreError(..) => return Err(err),
+                LCoreError::IndexError(..) => return Err(err),
+                LCoreError::ArgumentError(..) => return Err(err),
+                LCoreError::NameError(..) => return Err(err),
                 //LCoreError::ReturnError(v) => println!("CANNOT RETURN FROM FOR LOOP"),
-                LCoreError::ReturnError => println!("CANNOT RETURN FROM FOR LOOP"),
+                LCoreError::ReturnError => return Err(err),
                 LCoreError::BreakError => break
             }
         }
     }
 
+    symbol_table.pop();
     Ok(Value::Null)
 }
 
@@ -929,6 +931,14 @@ pub fn lcore_return(
 }
 
 
+pub fn lcore_break(
+    args: &mut Value,
+    symbol_table: &mut Environment,
+) -> Result<Value, LCoreError> {
+    LCoreError::Break()
+}
+
+
 pub fn import_builtins(symbol_table: &mut Environment) {
     symbol_table.insert("print".to_string(), Value::Func { f: lcore_print });
     symbol_table.insert("prin".to_string(), Value::Func { f: lcore_prin });
@@ -978,4 +988,5 @@ pub fn import_builtins(symbol_table: &mut Environment) {
     symbol_table.insert("if".to_string(), Value::Func { f: lcore_if });
     symbol_table.insert("sel".to_string(), Value::Func { f: lcore_sel });
     symbol_table.insert("ret".to_string(), Value::Func { f: lcore_return });
+    symbol_table.insert("break".to_string(), Value::Func { f: lcore_break });
 }

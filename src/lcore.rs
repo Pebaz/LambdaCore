@@ -594,7 +594,7 @@ pub fn lcore_interpret_expression(
                     match err {
                         //LCoreError::ReturnError(v) => return Err(err.clone()),
                         LCoreError::ReturnError => return Err(err.clone()),
-                        LCoreError::BreakError => println!("NOT IMPLEMENTED!"),
+                        LCoreError::BreakError => return Err(err.clone()),
 
                         _ => return Err(err.clone())
                     }
