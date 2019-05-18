@@ -222,7 +222,8 @@ pub fn lcore_loop(
                 LCoreError::IndexError(s) => println!("{}", s),
                 LCoreError::ArgumentError(s) => println!("{}", s),
                 LCoreError::NameError(s) => println!("{}", s),
-                LCoreError::ReturnError(v) => println!("CANNOT RETURN FROM FOR LOOP"),
+                //LCoreError::ReturnError(v) => println!("CANNOT RETURN FROM FOR LOOP"),
+                LCoreError::ReturnError => println!("CANNOT RETURN FROM FOR LOOP"),
                 LCoreError::BreakError => break
             }
         }
@@ -923,7 +924,8 @@ pub fn lcore_return(
     symbol_table.push_ret(value.clone());
     //Ok(Value::Null)
     //Err(LCoreError::LambdaCoreError(format!("BREAK")))
-    LCoreError::Return(value.clone())
+    //LCoreError::Return(value.clone())
+    LCoreError::Return()
 }
 
 

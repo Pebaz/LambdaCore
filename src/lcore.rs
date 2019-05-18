@@ -270,7 +270,8 @@ pub enum LCoreError {
     IndexError(String),
     ArgumentError(String),
     NameError(String),
-    ReturnError(Value),
+    //ReturnError(Value),
+    ReturnError,
     BreakError
 }
 
@@ -291,8 +292,10 @@ impl LCoreError {
         Err(LCoreError::NameError(msg))
     }
 
-    pub fn Return(val: Value) -> Result<Value, LCoreError> {
-        Err(LCoreError::ReturnError(val))
+    //pub fn Return(val: Value) -> Result<Value, LCoreError> {
+    pub fn Return() -> Result<Value, LCoreError> {
+        //Err(LCoreError::ReturnError(val))
+        Err(LCoreError::ReturnError)
     }
 
     pub fn Break() -> Result<Value, LCoreError> {
@@ -589,7 +592,8 @@ pub fn lcore_interpret_expression(
 
                 if let Err(ref err) = result {
                     match err {
-                        LCoreError::ReturnError(v) => return Err(err.clone()),
+                        //LCoreError::ReturnError(v) => return Err(err.clone()),
+                        LCoreError::ReturnError => return Err(err.clone()),
                         LCoreError::BreakError => println!("NOT IMPLEMENTED!"),
 
                         _ => return Err(err.clone())
@@ -694,7 +698,8 @@ pub fn lcore_repl() {
                             LCoreError::ArgumentError(s) => println!("{}", s),
                             LCoreError::NameError(s) => println!("{}", s),
 
-                            LCoreError::ReturnError(v) => println!("NOT IMPLEMENTED ERROR"),
+                            //LCoreError::ReturnError(v) => println!("NOT IMPLEMENTED ERROR"),
+                            LCoreError::ReturnError => println!("NOT IMPLEMENTED ERROR"),
                             LCoreError::BreakError => println!("NOT IMPLEMENTED!")
                         },
 
@@ -779,7 +784,8 @@ pub fn lcore_import_file(file: String) -> SymTab {
             LCoreError::ArgumentError(s) => println!("{}", s),
             LCoreError::NameError(s) => println!("{}", s),
 
-            LCoreError::ReturnError(v) => println!("IMPORT: NOT IMPLEMENTED ERROR"),
+            //LCoreError::ReturnError(v) => println!("IMPORT: NOT IMPLEMENTED ERROR"),
+            LCoreError::ReturnError => println!("IMPORT: NOT IMPLEMENTED ERROR"),
             LCoreError::BreakError => println!("IMPORT: NOT IMPLEMENTED!")
         }
     }
@@ -811,7 +817,8 @@ pub fn lcore_execute_string(code: String) {
             LCoreError::ArgumentError(s) => println!("{}", s),
             LCoreError::NameError(s) => println!("{}", s),
 
-            LCoreError::ReturnError(v) => println!("EXECUTE_STRING: NOT IMPLEMENTED ERROR"),
+            //LCoreError::ReturnError(v) => println!("EXECUTE_STRING: NOT IMPLEMENTED ERROR"),
+            LCoreError::ReturnError => println!("EXECUTE_STRING: NOT IMPLEMENTED ERROR"),
             LCoreError::BreakError => println!("EXECUTE_STRING: NOT IMPLEMENTED!")
         }
     }
