@@ -642,6 +642,36 @@ pub fn lcore_not_equals(
     }
 }
 
+pub fn lcore_less_than(
+    args: &mut Value,
+    symbol_table: &mut Environment,
+) -> Result<Value, LCoreError> {
+    let mut args = args.as_array().iter();
+    let a = args.next().unwrap();
+    let b = args.next().unwrap();
+
+    match (a, b) {
+        (Value::Int(a), Value::Int(b)) => Ok(Value::Boolean(a < b)),
+        (Value::Float(a), Value::Float(b)) => Ok(Value::Boolean(a < b)),
+        (Value::String(a), Value::String(b)) => Ok(Value::Boolean(a.len() < b.len())),
+        (Value::Identifier(a), Value::Identifier(b)) => {
+            Ok(Value::Boolean(a.len() < b.len()))
+        }
+        (Value::Dict(a), Value::Dict(b)) => Ok(Value::Boolean(a.len() < b.len())),
+        (Value::Array(a), Value::Array(b)) => Ok(Value::Boolean(a.len() < b.len())),
+        (Value::Quote(a), Value::Quote(b)) => lcore_less_than(
+            &mut Value::Array(vec![*a.clone(), *b.clone()]),
+            symbol_table,
+        ),
+
+        _ => Err(LCoreError::ArgumentError(format!(
+            "ArgumentError: Invalid Argument Types ({:?} and {:?})",
+            a, b
+        ))),
+    }
+}
+
+
 pub fn lcore_logical_or(
     args: &mut Value,
     symbol_table: &mut Environment,
@@ -898,6 +928,9 @@ pub fn lcore_sel(
             if let Value::Identifier(s) = value.as_value() {
                 if s == "default" {
                     let result = lcore_interpret_array(code.as_value(), symbol_table);
+                    if let Err(..) = result {
+                        return result;
+                    }
                     break;
                 }
             }
@@ -907,6 +940,9 @@ pub fn lcore_sel(
         if let Ok(res) = res {
             if *res.as_bool() {
                 let result = lcore_interpret_array(code.as_value(), symbol_table);
+                if let Err(..) = result {
+                    return result;
+                }
                 break;
             }
         }
@@ -989,4 +1025,5 @@ pub fn import_builtins(symbol_table: &mut Environment) {
     symbol_table.insert("sel".to_string(), Value::Func { f: lcore_sel });
     symbol_table.insert("ret".to_string(), Value::Func { f: lcore_return });
     symbol_table.insert("break".to_string(), Value::Func { f: lcore_break });
+    symbol_table.insert("<".to_string(), Value::Func { f: lcore_less_than });
 }

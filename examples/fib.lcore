@@ -1,0 +1,28 @@
+(defn 'fib ['n] '[
+    (set 'a 0)
+    (set 'b 1)
+    (sel True
+        (< n 0) '[
+            (return "Invalid Input")
+        ]
+
+        (= n 0) '[
+            (return a)
+        ]
+
+        (= n 1) '[
+            (return b)
+        ]
+
+        'default '[
+            (loop 'i (- n 2) '[
+                (set 'c (+ a b))
+                (set 'a b)
+                (set 'b c)
+                (print b)  :: BUG -- THE SYMBOL TABLE IS REDEFINING `'b` every iteration!
+            ])
+            (ret b)
+        ])
+])
+
+(print (fib 23))
