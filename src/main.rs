@@ -54,10 +54,12 @@ extern crate clap;
 
 mod builtin;
 mod lcore;
+mod format;
 
 use crate::builtin::*;
 use crate::lcore::pest::Parser;
 use crate::lcore::*;
+use crate::format::*;
 use clap::{App, Arg};
 use colored::*;
 use std::cmp::min;
@@ -89,19 +91,31 @@ fn main() {
                 .help("The script to run")
                 .required(false),
         )
+		.arg(
+			Arg::with_name("format")
+				.long("fmt")
+				.value_name("FORMAT")
+				.help("Output properly formatted LambdaCore code from a file")
+				.required(false)
+		)
         .get_matches();
 
     // Get other CLI switches (not FILE yet)
 
     let code_str = matches.value_of("code");
     let code_file = matches.value_of("file");
+	let code_format = matches.value_of("format");
 
-    match (code_file, code_str) {
-        (None, None) => lcore_repl(),
-        (None, Some(code)) => lcore_execute_string(code.to_string()),
-        (Some(file), None) => {
+    match (code_file, code_str, code_format) {
+        (None, None, None) => lcore_repl(),
+        (None, Some(code), None) => lcore_execute_string(code.to_string()),
+        (Some(file), None, None) => {
             let _ = lcore_import_file(file.to_string());
         }
+		(None, None, Some(file)) => {
+			println!("Filename: {}\n", file);
+			println!("{}", lcore_format_code(fs::read_to_string(file).unwrap()));
+		}
         _ => (),
     }
 }
