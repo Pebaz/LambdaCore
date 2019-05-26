@@ -12,11 +12,6 @@ A small Lisp written in Rust.
 For more examples look in the [examples](https://github.com/Pebaz/LambdaCore/tree/master/examples)
 directory. For a list of tutorials head over to LambdaCore's [website](https://sites.google.com/view/lcore).
 
-## Features
-
- * Tail Call Optimization (Coming Soon)
- * Code Formatter [(Coming Soon)](https://github.com/murarth/ketos/blob/master/docs/README.md)
-
 ### Data Types
 
  * Null
