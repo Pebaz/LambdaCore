@@ -243,12 +243,22 @@ impl Environment {
     }
 
     pub fn insert(&mut self, key: String, value: Value) {
-        let scope = self.scopes.last_mut().unwrap();
-        scope.insert(key, value);
+        // NOTE(pebaz): Need to check if the var exists first. If it exists in
+        // another block, set that var's value, don't define a new one.
+
+        if !self.contains_key(key.clone()) {
+            let scope = self.scopes.last_mut().unwrap();
+            scope.insert(key, value);
+        } else {
+            if let Some(already_there) = self.get(key.clone()) {
+                *already_there = value;
+            }
+        }
     }
 
     pub fn contains_key(&self, name: String) -> bool {
         for scope in self.scopes.iter().rev() {
+            //println!("{:p}: ", scope);
             if let Some(value) = scope.get(&name) {
                 return true;
             }

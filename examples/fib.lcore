@@ -19,10 +19,11 @@
                 (set 'c (+ a b))
                 (set 'a b)
                 (set 'b c)
-                (print b)  :: BUG -- THE SYMBOL TABLE IS REDEFINING `'b` every iteration!
             ])
             (ret b)
         ])
 ])
 
-(print (fib 23))
+(set 'result (fib 40))
+(prin "(fib 40) = ")
+(print result)

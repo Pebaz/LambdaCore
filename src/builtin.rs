@@ -173,6 +173,7 @@ pub fn lcore_set(
         .expect("Not enough arguments on call to \"set\": 1/2");
 
     match var {
+
         // Identifier
         Value::Identifier(v) => {
             symbol_table.insert(v.clone().to_string(), value.clone());
