@@ -1,38 +1,37 @@
-use crate::lcore::*;
-use crate::lcore::LambdaCoreParser;
 use crate::lcore::pest::Parser;
+use crate::lcore::LambdaCoreParser;
+use crate::lcore::*;
 use pest::iterators::Pair;
 
 pub fn lcore_format_code(code: String) -> String {
-	let program = LambdaCoreParser::parse(Rule::Program, &code)
+    let program = LambdaCoreParser::parse(Rule::Program, &code)
         .expect("LCORE: Failed To Parse")
         .next()
         .unwrap();
 
-	println!("{:#?}", program);
+    println!("{:#?}", program);
 
-	let mut buffer = String::from("");
-	lcore_format_rule(program, &mut buffer);
+    let mut buffer = String::from("");
+    lcore_format_rule(program, &mut buffer);
 
-	println!("\n\n{}\n\n", code);
+    println!("\n\n{}\n\n", code);
 
-	buffer
+    buffer
 }
 
 pub fn lcore_highlight_code(code: String) -> String {
-	code
+    code
 }
 
-
 pub fn lcore_format_rule(node: Pair<'_, Rule>, buffer: &mut String) {
-	fn push_str(s: &mut String, string: String, nest: i32, indent: i32) {
-		for i in 0..indent {
-			s.push_str("    ");
-		}
+    fn push_str(s: &mut String, string: String, nest: i32, indent: i32) {
+        for i in 0..indent {
+            s.push_str("    ");
+        }
 
-		s.push_str(&string);
-		s.push_str(" ");
-	}
+        s.push_str(&string);
+        s.push_str(" ");
+    }
 
     match node.as_rule() {
         Rule::Program => {
@@ -46,7 +45,7 @@ pub fn lcore_format_rule(node: Pair<'_, Rule>, buffer: &mut String) {
         Rule::Function => {
             buffer.push_str("(");
 
-            for rule in node.into_inner() { 
+            for rule in node.into_inner() {
                 lcore_format_rule(rule, buffer);
             }
 
@@ -95,4 +94,3 @@ pub fn lcore_format_rule(node: Pair<'_, Rule>, buffer: &mut String) {
         _ => (),
     }
 }
-

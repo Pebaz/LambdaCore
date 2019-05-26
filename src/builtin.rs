@@ -223,9 +223,10 @@ pub fn lcore_loop(
                 LCoreError::IndexError(..) => return Err(err),
                 LCoreError::ArgumentError(..) => return Err(err),
                 LCoreError::NameError(..) => return Err(err),
-                //LCoreError::ReturnError(v) => println!("CANNOT RETURN FROM FOR LOOP"),
+                // LCoreError::ReturnError(v) => println!("CANNOT RETURN FROM
+                // FOR LOOP"),
                 LCoreError::ReturnError => return Err(err),
-                LCoreError::BreakError => break
+                LCoreError::BreakError => break,
             }
         }
     }
@@ -448,91 +449,97 @@ pub fn lcore_swap(
     // println!("{}, {:?}, {:?}", obj_id, index, value);
 
     if let Some(obj) = symbol_table.get(obj_id.to_string()) {
+        let mut current_obj = obj;
 
-		let mut current_obj = obj;
+        let indexers = index.as_value().as_array();
+        for i in 0..indexers.len() - 1 {
+            // for indexer in index.as_value().as_array() {
+            let indexer = &indexers[i];
 
-		let indexers = index.as_value().as_array();
-		for i in 0..indexers.len() - 1 {
-		//for indexer in index.as_value().as_array() {
-			let indexer = &indexers[i];
+            match current_obj {
+                Value::Dict(ref mut v) => {
+                    // current_obj = v[indexer]
+                    if let Value::Identifier(s) = indexer {
+                        current_obj =
+                            v.get_mut(&Value::String(s.to_string())).unwrap();
+                    } else {
+                        current_obj = v.get_mut(&indexer).unwrap();
+                    }
+                }
 
-			match current_obj {
-				Value::Dict(ref mut v) => {
-					// current_obj = v[indexer]
-					if let Value::Identifier(s) = indexer {
-						current_obj = v.get_mut(&Value::String(s.to_string())).unwrap();
-					} else {
-						current_obj = v.get_mut(&indexer).unwrap();
-					}
-				}
+                Value::Array(ref mut v) => {
+                    // current_obj = v[indexer]
 
-				Value::Array(ref mut v) => {
-					// current_obj = v[indexer]
+                    if let Value::Int(i) = indexer {
+                        if *i > v.len() as i64 {
+                            return Err(LCoreError::ArgumentError(format!(
+                                "Index out of bounds: got {} but len is {}",
+                                i,
+                                v.len()
+                            )));
+                        } else {
+                            let len = v.len() as i64;
+                            let mut idx = i % len;
+                            if idx < 0 {
+                                idx += len
+                            }
+                            current_obj = v.get_mut(idx as usize).unwrap();
+                        }
+                    } else {
+                        return Err(LCoreError::IndexError(
+                            "IndexError: Cannot index array with non-int"
+                                .to_string(),
+                        ));
+                    }
+                }
 
-					if let Value::Int(i) = indexer {
-						if *i > v.len() as i64 {
-							return Err(LCoreError::ArgumentError(format!(
-								"Index out of bounds: got {} but len is {}",
-								i,
-								v.len()
-							)));
-						} else {
-							let len = v.len() as i64;
-							let mut idx = i % len;
-							if idx < 0 {
-								idx += len
-							}
-							current_obj = v.get_mut(idx as usize).unwrap();
-						}
-					} else {
-						return Err(LCoreError::IndexError("IndexError: Cannot index array with non-int".to_string()));
-					}
-				}
+                _ => unreachable!(),
+            }
+        }
 
-				_ => unreachable!()
-			}
-		}
+        let indexer = &indexers[indexers.len() - 1];
+        match current_obj {
+            Value::Dict(ref mut v) => {
+                if let Value::Identifier(s) = indexer {
+                    *v.get_mut(&Value::String(s.to_string())).unwrap() =
+                        value.clone();
+                } else {
+                    *v.get_mut(&indexer).unwrap() = value.clone();
+                }
+            }
 
-		let indexer = &indexers[indexers.len() - 1];
-		match current_obj {
-			Value::Dict(ref mut v) => {
-				if let Value::Identifier(s) = indexer {
-					*v.get_mut(&Value::String(s.to_string())).unwrap() = value.clone();
-				} else {
-					*v.get_mut(&indexer).unwrap() = value.clone();
-				}
-			}
+            Value::Array(ref mut v) => {
+                if let Value::Int(i) = indexer {
+                    if *i > v.len() as i64 {
+                        return Err(LCoreError::ArgumentError(format!(
+                            "Index out of bounds: got {} but len is {}",
+                            i,
+                            v.len()
+                        )));
+                    } else {
+                        let len = v.len() as i64;
+                        let mut idx = i % len;
+                        if idx < 0 {
+                            idx += len
+                        }
+                        *v.get_mut(idx as usize).unwrap() = value.clone();
+                    }
+                } else {
+                    return Err(LCoreError::IndexError(
+                        "IndexError: Cannot index array with non-int"
+                            .to_string(),
+                    ));
+                }
+            }
 
-			Value::Array(ref mut v) => {
-				if let Value::Int(i) = indexer {
+            _ => unreachable!(),
+        }
 
-					if *i > v.len() as i64 {
-						return Err(LCoreError::ArgumentError(format!(
-							"Index out of bounds: got {} but len is {}",
-							i,
-							v.len()
-						)));
-					} else {
-						let len = v.len() as i64;
-						let mut idx = i % len;
-						if idx < 0 {
-							idx += len
-						}
-						*v.get_mut(idx as usize).unwrap() = value.clone();
-					}
-				} else {
-					return Err(LCoreError::IndexError("IndexError: Cannot index array with non-int".to_string()));
-				}
-			}
-
-			_ => unreachable!()
-		}
-
-		// lcore_print_value(
-		// 	&mut Value::Array(vec![
-		// 		symbol_table.get(obj_id.to_string()).unwrap().clone()
-		// 	])
-		// );
+        // lcore_print_value(
+        // 	&mut Value::Array(vec![
+        // 		symbol_table.get(obj_id.to_string()).unwrap().clone()
+        // 	])
+        // );
     }
 
     Ok(Value::Null)
@@ -653,12 +660,18 @@ pub fn lcore_less_than(
     match (a, b) {
         (Value::Int(a), Value::Int(b)) => Ok(Value::Boolean(a < b)),
         (Value::Float(a), Value::Float(b)) => Ok(Value::Boolean(a < b)),
-        (Value::String(a), Value::String(b)) => Ok(Value::Boolean(a.len() < b.len())),
+        (Value::String(a), Value::String(b)) => {
+            Ok(Value::Boolean(a.len() < b.len()))
+        }
         (Value::Identifier(a), Value::Identifier(b)) => {
             Ok(Value::Boolean(a.len() < b.len()))
         }
-        (Value::Dict(a), Value::Dict(b)) => Ok(Value::Boolean(a.len() < b.len())),
-        (Value::Array(a), Value::Array(b)) => Ok(Value::Boolean(a.len() < b.len())),
+        (Value::Dict(a), Value::Dict(b)) => {
+            Ok(Value::Boolean(a.len() < b.len()))
+        }
+        (Value::Array(a), Value::Array(b)) => {
+            Ok(Value::Boolean(a.len() < b.len()))
+        }
         (Value::Quote(a), Value::Quote(b)) => lcore_less_than(
             &mut Value::Array(vec![*a.clone(), *b.clone()]),
             symbol_table,
@@ -670,7 +683,6 @@ pub fn lcore_less_than(
         ))),
     }
 }
-
 
 pub fn lcore_logical_or(
     args: &mut Value,
@@ -863,7 +875,6 @@ pub fn lcore_exponent(
     }
 }
 
-
 pub fn lcore_if(
     args: &mut Value,
     symbol_table: &mut Environment,
@@ -882,23 +893,24 @@ pub fn lcore_if(
     if *condition.as_bool() {
         let element = block_true.as_value();
         let result = lcore_interpret_array(element, symbol_table);
-        //let mut result = result.ok().unwrap();
+        // let mut result = result.ok().unwrap();
 
         let mut result = match result {
             Err(err) => return Err(err),
-            Ok(yeah) => yeah
+            Ok(yeah) => yeah,
         };
 
         // TODO(pebaz): Check for errors on the result
 
         if let Value::Array(ref mut r) = result {
             let ret = r.pop().unwrap();
-            //lcore_print_value(&mut Value::Array(vec![ret]));
-            //println!("  <--");
+            // lcore_print_value(&mut Value::Array(vec![ret]));
+            // println!("  <--");
             return Ok(ret);
         }
     } else {
-        if let Value::Null = block_false { } else {
+        if let Value::Null = block_false {
+        } else {
             let element = block_false.as_value();
             let result = lcore_interpret_array(element, symbol_table);
             let mut result = result.ok().unwrap();
@@ -920,14 +932,14 @@ pub fn lcore_sel(
     let args = args.as_array();
     let mut vecargs = args.iter();
     let compare = vecargs.next().unwrap();
-    
-    while let (Some(value), Some(code)) = (vecargs.next(), vecargs.next()) {
 
+    while let (Some(value), Some(code)) = (vecargs.next(), vecargs.next()) {
         // NOTE(pebaz): Check for `'default` block
         if let Value::Quote(q) = value {
             if let Value::Identifier(s) = value.as_value() {
                 if s == "default" {
-                    let result = lcore_interpret_array(code.as_value(), symbol_table);
+                    let result =
+                        lcore_interpret_array(code.as_value(), symbol_table);
                     if let Err(..) = result {
                         return result;
                     }
@@ -936,10 +948,14 @@ pub fn lcore_sel(
             }
         }
 
-        let res = lcore_equals(&mut Value::Array(vec![compare.clone(), value.clone()]), symbol_table);
+        let res = lcore_equals(
+            &mut Value::Array(vec![compare.clone(), value.clone()]),
+            symbol_table,
+        );
         if let Ok(res) = res {
             if *res.as_bool() {
-                let result = lcore_interpret_array(code.as_value(), symbol_table);
+                let result =
+                    lcore_interpret_array(code.as_value(), symbol_table);
                 if let Err(..) = result {
                     return result;
                 }
@@ -947,10 +963,9 @@ pub fn lcore_sel(
             }
         }
     }
-    
+
     Ok(Value::Null)
 }
-
 
 pub fn lcore_return(
     args: &mut Value,
@@ -960,12 +975,11 @@ pub fn lcore_return(
     let mut vecargs = args.iter();
     let value = vecargs.next().unwrap();
     symbol_table.push_ret(value.clone());
-    //Ok(Value::Null)
-    //Err(LCoreError::LambdaCoreError(format!("BREAK")))
-    //LCoreError::Return(value.clone())
+    // Ok(Value::Null)
+    // Err(LCoreError::LambdaCoreError(format!("BREAK")))
+    // LCoreError::Return(value.clone())
     LCoreError::Return()
 }
-
 
 pub fn lcore_break(
     args: &mut Value,
@@ -973,7 +987,6 @@ pub fn lcore_break(
 ) -> Result<Value, LCoreError> {
     LCoreError::Break()
 }
-
 
 pub fn import_builtins(symbol_table: &mut Environment) {
     symbol_table.insert("print".to_string(), Value::Func { f: lcore_print });

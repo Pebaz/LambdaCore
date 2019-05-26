@@ -195,12 +195,15 @@ impl fmt::Debug for Value {
 
 pub struct Environment {
     scopes: Vec<SymTab>,
-    return_vals: Vec<Value>
+    return_vals: Vec<Value>,
 }
 
 impl Environment {
     pub fn new() -> Environment {
-        Environment { scopes: Vec::new(), return_vals: vec![Value::Null] }
+        Environment {
+            scopes: Vec::new(),
+            return_vals: vec![Value::Null],
+        }
     }
 
     pub fn current_ret_index(&self) -> usize {
@@ -263,16 +266,15 @@ impl Environment {
     }
 }
 
-#[derive(Debug)]
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum LCoreError {
     LambdaCoreError(String),
     IndexError(String),
     ArgumentError(String),
     NameError(String),
-    //ReturnError(Value),
+    // ReturnError(Value),
     ReturnError,
-    BreakError
+    BreakError,
 }
 
 impl LCoreError {
@@ -292,9 +294,9 @@ impl LCoreError {
         Err(LCoreError::NameError(msg))
     }
 
-    //pub fn Return(val: Value) -> Result<Value, LCoreError> {
+    // pub fn Return(val: Value) -> Result<Value, LCoreError> {
     pub fn Return() -> Result<Value, LCoreError> {
-        //Err(LCoreError::ReturnError(val))
+        // Err(LCoreError::ReturnError(val))
         Err(LCoreError::ReturnError)
     }
 
@@ -429,7 +431,7 @@ pub fn lcore_interpret(
     // NOTE(pebaz): Since a function can be called in the global scope, we need
     // a top-level array to catch any global function call return values.
     arrays.push(Value::Array(Vec::new()));
-    
+
     while let Some(node) = stack.pop_front() {
         if let Err(error) =
             lcore_interpret_expression(stack, symbol_table, &mut arrays, node)
@@ -519,7 +521,7 @@ pub fn lcore_interpret_expression(
                         if let Value::Array(ref mut v) = args {
                             let mut count = v.len();
                             while let Some(value) = v.pop() {
-                                count -= 1;  // Iterate in reverse
+                                count -= 1; // Iterate in reverse
                                 match &arg_names[count] {
                                     Value::Quote(v) => {
                                         symbol_table.insert(
@@ -538,12 +540,16 @@ pub fn lcore_interpret_expression(
                                 let mut body =
                                     VecDeque::from_iter(def.clone());
 
-                                
-                                //lcore_interpret(&mut body, symbol_table)
-                                let return_point = symbol_table.current_ret_index();
-                                let return_this = lcore_interpret(&mut body, symbol_table);
-                                if symbol_table.current_ret_index() > return_point {
-                                    let r = symbol_table.pop_ret_index(return_point + 1);
+                                // lcore_interpret(&mut body, symbol_table)
+                                let return_point =
+                                    symbol_table.current_ret_index();
+                                let return_this =
+                                    lcore_interpret(&mut body, symbol_table);
+                                if symbol_table.current_ret_index()
+                                    > return_point
+                                {
+                                    let r = symbol_table
+                                        .pop_ret_index(return_point + 1);
                                     Ok(r)
                                 } else {
                                     return_this
@@ -592,11 +598,12 @@ pub fn lcore_interpret_expression(
 
                 if let Err(ref err) = result {
                     match err {
-                        //LCoreError::ReturnError(v) => return Err(err.clone()),
+                        // LCoreError::ReturnError(v) => return
+                        // Err(err.clone()),
                         LCoreError::ReturnError => return Err(err.clone()),
                         LCoreError::BreakError => return Err(err.clone()),
 
-                        _ => return Err(err.clone())
+                        _ => return Err(err.clone()),
                     }
                 }
             }
@@ -628,15 +635,13 @@ pub fn lcore_interpret_array(
     let mut arrays: Vec<Value> = Vec::new();
     arrays.push(Value::Array(Vec::new()));
 
-    if let Err(error) =
-        lcore_interpret_expression(
-            &mut stack,
-            symbol_table,
-            &mut arrays,
-            element.clone(),
-        )
-    {
-        //println!("--> {:?}", error);
+    if let Err(error) = lcore_interpret_expression(
+        &mut stack,
+        symbol_table,
+        &mut arrays,
+        element.clone(),
+    ) {
+        // println!("--> {:?}", error);
         return Err(error);
     } else {
         // NOTE(pebaz): Return the last value from the array
@@ -650,11 +655,9 @@ pub fn lcore_interpret_array(
     }
 }
 
-
 pub fn count_newlines(s: &str) -> usize {
     s.as_bytes().iter().filter(|&&c| c == b'\n').count()
 }
-
 
 pub fn lcore_repl() {
     print!("LambdaCore Programming Language v");
@@ -698,9 +701,14 @@ pub fn lcore_repl() {
                             LCoreError::ArgumentError(s) => println!("{}", s),
                             LCoreError::NameError(s) => println!("{}", s),
 
-                            //LCoreError::ReturnError(v) => println!("NOT IMPLEMENTED ERROR"),
-                            LCoreError::ReturnError => println!("NOT IMPLEMENTED ERROR"),
-                            LCoreError::BreakError => println!("NOT IMPLEMENTED!")
+                            // LCoreError::ReturnError(v) => println!("NOT
+                            // IMPLEMENTED ERROR"),
+                            LCoreError::ReturnError => {
+                                println!("NOT IMPLEMENTED ERROR")
+                            }
+                            LCoreError::BreakError => {
+                                println!("NOT IMPLEMENTED!")
+                            }
                         },
 
                         // NOTE(pebaz): Repr print a non-null value
@@ -784,9 +792,12 @@ pub fn lcore_import_file(file: String) -> SymTab {
             LCoreError::ArgumentError(s) => println!("{}", s),
             LCoreError::NameError(s) => println!("{}", s),
 
-            //LCoreError::ReturnError(v) => println!("IMPORT: NOT IMPLEMENTED ERROR"),
-            LCoreError::ReturnError => println!("IMPORT: NOT IMPLEMENTED ERROR"),
-            LCoreError::BreakError => println!("IMPORT: NOT IMPLEMENTED!")
+            // LCoreError::ReturnError(v) => println!("IMPORT: NOT IMPLEMENTED
+            // ERROR"),
+            LCoreError::ReturnError => {
+                println!("IMPORT: NOT IMPLEMENTED ERROR")
+            }
+            LCoreError::BreakError => println!("IMPORT: NOT IMPLEMENTED!"),
         }
     }
 
@@ -817,9 +828,14 @@ pub fn lcore_execute_string(code: String) {
             LCoreError::ArgumentError(s) => println!("{}", s),
             LCoreError::NameError(s) => println!("{}", s),
 
-            //LCoreError::ReturnError(v) => println!("EXECUTE_STRING: NOT IMPLEMENTED ERROR"),
-            LCoreError::ReturnError => println!("EXECUTE_STRING: NOT IMPLEMENTED ERROR"),
-            LCoreError::BreakError => println!("EXECUTE_STRING: NOT IMPLEMENTED!")
+            // LCoreError::ReturnError(v) => println!("EXECUTE_STRING: NOT
+            // IMPLEMENTED ERROR"),
+            LCoreError::ReturnError => {
+                println!("EXECUTE_STRING: NOT IMPLEMENTED ERROR")
+            }
+            LCoreError::BreakError => {
+                println!("EXECUTE_STRING: NOT IMPLEMENTED!")
+            }
         }
     }
     symbol_table.pop();
