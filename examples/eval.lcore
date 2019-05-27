@@ -1,4 +1,4 @@
-:: Array evaluation bug
+:: Array evaluation
 
 (set 'bug ["Hello" (print "World")])
 (print bug)
