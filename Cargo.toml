@@ -2,7 +2,7 @@
 name = "lambda_core"
 version = "0.2.0"
 authors = ["Samuel Wilder <pebazium@gmail.com>"]
-edition = "2018"
+edition = "2019"
 
 [dependencies]
 pest = "2.1.0"
