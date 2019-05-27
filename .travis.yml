@@ -76,7 +76,7 @@ deploy:
   # - Encrypt it: `travis encrypt 0123456789012345678901234567890123456789
   # - Paste the output down here
   api_key:
-    secure: +V4m/oGm8Z38M9d39QFAyrKtVFlQY5T4RXUp6cZoJeciOS/VVqtUBwddtvsYiDR1
+    secure: pvuc9PEz0r84f7qpWlR4Ycam+i2V7VxEf7D3DA/vInovXOx/4JTw3JVYcPGksFan
   file_glob: true
   file: $CRATE_NAME-$TRAVIS_TAG-$TARGET.*
   on:
