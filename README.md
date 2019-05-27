@@ -39,16 +39,3 @@ cargo build --release
 * Tutorials: [https://sites.google.com/view/lcore](https://sites.google.com/view/lcore)
 * Documentation: [https://github.com/Pebaz/LambdaCore/wiki](https://github.com/Pebaz/LambdaCore/wiki)
 * Downloads: [https://github.com/Pebaz/LambdaCore/releases](https://github.com/Pebaz/LambdaCore/releases)
-
-### Data Types
-
- * Null
- * Identifier
- * Boolean
- * Int (x64)
- * Float (x64)
- * String
- * Array
- * Func
- * Quote
- * Dict
