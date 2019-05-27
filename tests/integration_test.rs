@@ -14,10 +14,11 @@ fn run(file: String) -> String {
 fn test_add() {
     let stdout = run("examples/add.lcore".to_string());
     let expect = "3\n\
-        3.2\n\
-        6\n\
-        Hello World\n\
-        15\n".to_string();
+                  3.2\n\
+                  6\n\
+                  Hello World\n\
+                  15\n"
+        .to_string();
     assert_eq!(stdout, expect);
 }
 
@@ -25,26 +26,27 @@ fn test_add() {
 fn test_break() {
     let stdout = run("examples/break.lcore".to_string());
     let expect = "X: 0\n\
-        Y: 0\n\
-        Y: 1\n\
-        Y: 2\n\
-        X: 1\n\
-        Y: 0\n\
-        Y: 1\n\
-        Y: 2\n\
-        X: 2\n\
-        Y: 0\n\
-        Y: 1\n\
-        Y: 2\n".to_string();
+                  Y: 0\n\
+                  Y: 1\n\
+                  Y: 2\n\
+                  X: 1\n\
+                  Y: 0\n\
+                  Y: 1\n\
+                  Y: 2\n\
+                  X: 2\n\
+                  Y: 0\n\
+                  Y: 1\n\
+                  Y: 2\n"
+        .to_string();
     assert_eq!(stdout, expect);
 }
-
 
 #[test]
 fn test_comment() {
     let stdout = run("examples/comment.lcore".to_string());
     let expect = "Line Comment\n\
-        Block Comment\n".to_string();
+                  Block Comment\n"
+        .to_string();
     assert_eq!(stdout, expect);
 }
 
@@ -52,26 +54,27 @@ fn test_comment() {
 fn test_compare() {
     let stdout = run("examples/compare.lcore".to_string());
     let expect = "1      =    1       : True\n\
-        'a'    =    'a'     : True\n\
-        3.14   =    3.14    : True\n\
-        Null   =    Null    : True\n\
-        True   =    True    : True\n\
-        'a     =    'a      : True\n\
-        [1]    =    [1]     : True\n\
-        {a: 1} =    {a: 1}  : True\n\
-        \n\
-        1      !=   1      : False\n\
-        'a'    !=   'a'    : False\n\
-        3.14   !=   3.14   : False\n\
-        Null   !=   Null   : False\n\
-        True   !=   True   : False\n\
-        'a     !=   'a     : False\n\
-        [1]    !=   [1]    : False\n\
-        {a: 1} !=   {a: 1} : False\n\
-        \n\
-        True   or   True   : True\n\
-        True   and  True   : True\n\
-        Not    True        : False\n".to_string();
+                  'a'    =    'a'     : True\n\
+                  3.14   =    3.14    : True\n\
+                  Null   =    Null    : True\n\
+                  True   =    True    : True\n\
+                  'a     =    'a      : True\n\
+                  [1]    =    [1]     : True\n\
+                  {a: 1} =    {a: 1}  : True\n\
+                  \n\
+                  1      !=   1      : False\n\
+                  'a'    !=   'a'    : False\n\
+                  3.14   !=   3.14   : False\n\
+                  Null   !=   Null   : False\n\
+                  True   !=   True   : False\n\
+                  'a     !=   'a     : False\n\
+                  [1]    !=   [1]    : False\n\
+                  {a: 1} !=   {a: 1} : False\n\
+                  \n\
+                  True   or   True   : True\n\
+                  True   and  True   : True\n\
+                  Not    True        : False\n"
+        .to_string();
     assert_eq!(stdout, expect);
 }
 
@@ -139,27 +142,32 @@ fn test_dict() {
         Float Value\n".to_string();
 
     assert!(
-        (stdout == expect1) |
-        (stdout == expect2) |
-        (stdout == expect3) |
-        (stdout == expect4) |
-        (stdout == expect5) |
-        (stdout == expect6)
+        (stdout == expect1)
+            | (stdout == expect2)
+            | (stdout == expect3)
+            | (stdout == expect4)
+            | (stdout == expect5)
+            | (stdout == expect6)
     );
 }
 
 #[test]
 fn test_error() {
     let stdout = run("examples/error.lcore".to_string());
-    assert_eq!(stdout, "ArgumentError: Odd number of arguments passed to \"dict\"\n".to_string());
+    assert_eq!(
+        stdout,
+        "ArgumentError: Odd number of arguments passed to \"dict\"\n"
+            .to_string()
+    );
 }
 
 #[test]
 fn test_eval() {
     let stdout = run("examples/eval.lcore".to_string());
     let expect = "World\n\
-        [\"Hello\" Null]\n\
-        2\n".to_string();
+                  [\"Hello\" Null]\n\
+                  2\n"
+    .to_string();
     assert_eq!(stdout, expect);
 }
 
@@ -173,11 +181,12 @@ fn test_fib() {
 fn test_func() {
     let stdout = run("examples/func.lcore".to_string());
     let expect = "Hello Pebaz!\n\
-        Hello 0!\n\
-        Hello 1!\n\
-        Hello 2!\n\
-        Hello 88!\n\
-        6\n".to_string();
+                  Hello 0!\n\
+                  Hello 1!\n\
+                  Hello 2!\n\
+                  Hello 88!\n\
+                  6\n"
+    .to_string();
     assert_eq!(stdout, expect);
 }
 
@@ -197,9 +206,10 @@ fn test_hello_world() {
 fn test_if() {
     let stdout = run("examples/if.lcore".to_string());
     let expect = "It's True!\n\
-        One does in fact equal one!\n\
-        It's False!\n\
-        14\n".to_string();
+                  One does in fact equal one!\n\
+                  It's False!\n\
+                  14\n"
+        .to_string();
     assert_eq!(stdout, expect);
 }
 
@@ -207,7 +217,8 @@ fn test_if() {
 fn test_import() {
     let stdout = run("examples/import.lcore".to_string());
     let expect = "You are importing the `add` function!\n\
-        10\n".to_string();
+                  10\n"
+        .to_string();
     assert_eq!(stdout, expect);
 }
 
@@ -227,30 +238,31 @@ fn test_loop() {
 fn test_math() {
     let stdout = run("examples/math.lcore".to_string());
     let expect = "--------------------\n\
-        Int\n\
-        6\n\
-        -2\n\
-        8\n\
-        0\n\
-        16\n\
-        \n\
-        --------------------\n\
-        Float\n\
-        6\n\
-        -2\n\
-        8\n\
-        0\n\
-        16\n\
-        \n\
-        --------------------\n\
-        String\n\
-        Hello World!\n\
-        HiHiHi\n\
-        \n\
-        --------------------\n\
-        Array\n\
-        [1 2 3 4]\n\
-        [11 11]\n".to_string();
+                  Int\n\
+                  6\n\
+                  -2\n\
+                  8\n\
+                  0\n\
+                  16\n\
+                  \n\
+                  --------------------\n\
+                  Float\n\
+                  6\n\
+                  -2\n\
+                  8\n\
+                  0\n\
+                  16\n\
+                  \n\
+                  --------------------\n\
+                  String\n\
+                  Hello World!\n\
+                  HiHiHi\n\
+                  \n\
+                  --------------------\n\
+                  Array\n\
+                  [1 2 3 4]\n\
+                  [11 11]\n"
+        .to_string();
     assert_eq!(stdout, expect);
 }
 
@@ -258,10 +270,11 @@ fn test_math() {
 fn test_order() {
     let stdout = run("examples/order.lcore".to_string());
     let expect = "First\n\
-        Second\n\
-        Null\n\
-        3\n\
-        [1 2 \"Three\"]\n".to_string();
+                  Second\n\
+                  Null\n\
+                  3\n\
+                  [1 2 \"Three\"]\n"
+        .to_string();
     assert_eq!(stdout, expect);
 }
 
@@ -272,15 +285,16 @@ fn test_print() {
 
     // TODO(pebaz): Use a regex for this:
     let expect = "String: Lambda Core version 0.1.0\n\
-        Boolean: True\n\
-        Integer: 11\n\
-        Float: 3.14\n\
-        Null: Null\n\
-        Array: [1 2 [3 4]]\n\
-        __repr__ String: [\"This Should Be Quoted\"]\n\
-        Function: <Func at 0x1e3958a5d78>\n\
-        Return Value: 11\n\
-        hello\\nworld!\n".to_string();
+                  Boolean: True\n\
+                  Integer: 11\n\
+                  Float: 3.14\n\
+                  Null: Null\n\
+                  Array: [1 2 [3 4]]\n\
+                  __repr__ String: [\"This Should Be Quoted\"]\n\
+                  Function: <Func at 0x1e3958a5d78>\n\
+                  Return Value: 11\n\
+                  hello\\nworld!\n"
+        .to_string();
     assert_eq!(stdout, expect);
 }
 
@@ -288,8 +302,9 @@ fn test_print() {
 fn test_quote() {
     let stdout = run("examples/quote.lcore".to_string());
     let expect = "3\n\
-        quoted-thing: (quote [1 2 3])\n\
-        (quote [( print \"Hello World!\" )])\n".to_string();
+                  quoted-thing: (quote [1 2 3])\n\
+                  (quote [( print \"Hello World!\" )])\n"
+        .to_string();
     assert_eq!(stdout, expect);
 }
 
@@ -331,4 +346,3 @@ fn test_swap() {
         After:  { \"inner2\": { \"inner3\": [\"SO MUCH INNER\" { \"like-so-much-inner\": \"VICTORY\" }] } }\n".to_string();
     assert_eq!(stdout, expect);
 }
-

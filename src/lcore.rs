@@ -258,7 +258,7 @@ impl Environment {
 
     pub fn contains_key(&self, name: String) -> bool {
         for scope in self.scopes.iter().rev() {
-            //println!("{:p}: ", scope);
+            // println!("{:p}: ", scope);
             if let Some(value) = scope.get(&name) {
                 return true;
             }
