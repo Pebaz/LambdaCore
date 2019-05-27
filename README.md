@@ -1,4 +1,4 @@
-<img src="dev/logo/LambdaCore - Logo.png" width=256 />
+<img src="misc/LambdaCoreLogo.png" width=256 />
 
 # LambdaCore
 A small Lisp written in Rust.
