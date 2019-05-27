@@ -5,12 +5,18 @@ A small Lisp written in Rust.
 
 ## Hello World
 
-```LambdaCore
+```clojure
 (print "Hello World")
+(set 'name "Pebaz")
+(prin "Hello ")
+(print name)
 ```
 
-For more examples look in the [examples](https://github.com/Pebaz/LambdaCore/tree/master/examples)
-directory. For a list of tutorials head over to LambdaCore's [website](https://sites.google.com/view/lcore).
+### Docs
+
+* Examples: [https://github.com/Pebaz/LambdaCore/tree/master/examples](https://github.com/Pebaz/LambdaCore/tree/master/examples)
+* Tutorials: [https://sites.google.com/view/lcore](https://sites.google.com/view/lcore)
+* Documentation: [https://github.com/Pebaz/LambdaCore/wiki](https://github.com/Pebaz/LambdaCore/wiki)
 
 ### Data Types
 
