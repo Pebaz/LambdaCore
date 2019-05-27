@@ -850,11 +850,3 @@ pub fn lcore_execute_string(code: String) {
     }
     symbol_table.pop();
 }
-
-#[test]
-pub fn test_tests() {
-    assert_eq!(4, 4);
-}
-
-#[test]
-pub fn test_stdout() {}
