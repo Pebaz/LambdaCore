@@ -9,11 +9,11 @@
 
 (print "")(print "--------------------")
 (print "Float")
-(print (+ 2 4))
-(print (- 2 4))
-(print (* 2 4))
-(print (/ 2 4))
-(print (** 2 4))
+(print (+ 2.0 4.0))
+(print (- 2.0 4.0))
+(print (* 2.0 4.0))
+(print (/ 2.0 4.0))
+(print (** 2.0 4.0))
 
 (print "")(print "--------------------")
 (print "String")
