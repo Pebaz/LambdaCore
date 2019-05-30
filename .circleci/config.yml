@@ -8,13 +8,21 @@ jobs:
         - master
     steps:
       - checkout
-      - run: echo "Building..."
-      - run: cargo build --release
-      - run: ls target/release/
-      - run: target/release/lambda_core -c '(print "Hello World!")'
-      - run: cargo test --release
-      - run: echo "Done"
+      - run: sudo apt-get install docker
+      - run: sudo systemctl start docker
+      - run: cargo install cross
 
+
+#   - run: echo "Building..."
+#   - run: cargo build --release
+#   - run: ls target/release/
+#   - run: target/release/lambda_core -c '(print "Hello World!")'
+#   - run: cargo test --release
+#   - run: echo "Done"
+
+
+# https://circleci.com/blog/exploring-domain-driven-design-at-circleci/
+# Publish only on tag
 #   publish:
 #     docker:
 #       - image: circleci/golang
