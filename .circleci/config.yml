@@ -9,6 +9,7 @@ jobs:
     steps:
       #- setup_remote_docker
       - checkout
+      - run: sudo apt-get install -y mingw-w64
       - run: rustup target add x86_64-pc-windows-gnu
       - run: cargo rustc --release --target=x86_64-pc-windows-gnu -- -C linker=x86_64-w64-mingw32-gcc
       #- run: cargo install cross
