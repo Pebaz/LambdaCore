@@ -2,34 +2,31 @@ version: 2
 jobs:
   build:
     docker:
-      - image: docker
+      - image: circleci/rust
     branches:
       only:
         - master
     steps:
-      - run: curl https://sh.rustup.rs -sSf | sh
-      - run: cargo install cross
+      - setup_remote_docker
       - checkout
-
-
-
-# I could docker run <rust-container> --cross build --target <target>
+      - run: cargo install cross
+      - run: cross build --target aarch64-unknown-linux-gnu
+      - run: ls target
 
 
 
 # docker:
-#   - image: circleci/rust
+#   - image: docker
 # branches:
 #   only:
 #     - master
 # steps:
-#   - setup_remote_docker
-#   - checkout
+#   - run: curl https://sh.rustup.rs -sSf | sh
 #   - run: cargo install cross
-#   - run: cross build --target aarch64-unknown-linux-gnu
-#   - run: ls target
-#   - run: ls target/release
+#   - checkout
 
+
+# I could docker run <rust-container> --cross build --target <target>
 
 #   - run: echo "Building..."
 #   - run: cargo build --release
