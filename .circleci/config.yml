@@ -1,38 +1,10 @@
 version: 2
 jobs:
-
-  lc-build:
+  lambda-core:
     docker:
-      - image: circleci/node:4.8.2
+      - image: circleci/rust
     steps:
       - checkout
       - run: echo "Building..."
-      - run: mkdir build
-      - run: wget https://pebaz.github.io/LambdaCore/asciinema-player.css -O build/hello.txt
-      - persist_to_workspace:
-          root: build
-          paths:
-            - hello.txt
       - run: echo "Done"
 
-  lc-test:
-    docker:
-      - image: circleci/node:4.8.2
-    steps:
-      - checkout
-      - run: echo "Testing..."
-      - attach_workspace:
-          at: build
-      - run: cat build/hello.txt
-      - run: echo "Done"
-
-
-workflows:
-  version: 2
-
-  lc-build-and-test:
-    jobs:
-      - lc-build
-      - lc-test:
-          requires:
-            - lc-build
