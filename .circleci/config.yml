@@ -8,13 +8,12 @@ jobs:
         - master
     steps:
       #- setup_remote_docker
-      - run: sudo apt-get install docker
-      - run: sudo echo "start on filesystem\nexec /usr/bin/dockerd" > /etc/init/docker.conf
-      - run: sudo service docker start
       - checkout
+      - run: rustup target add x86_64-pc-windows-gnu
+      - run: cargo build --target x86_64-pc-windows-gnu --release
       #- run: cargo install cross
       #- run: cross build --target aarch64-unknown-linux-gnu
-      #- run: ls target
+      - run: ls target
 
 
 
