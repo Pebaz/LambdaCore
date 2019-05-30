@@ -3,11 +3,15 @@ jobs:
   build:
     docker:
       - image: circleci/rust
+    branches:
+      only:
+        - master
     steps:
       - checkout
       - run: echo "Building..."
       - run: cargo build --release
       - run: ls target/release/
       - run: target/release/lambda_core -c '(print "Hello World!")'
+      - run: cargo test --release
       - run: echo "Done"
 
