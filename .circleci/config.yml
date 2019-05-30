@@ -15,3 +15,27 @@ jobs:
       - run: cargo test --release
       - run: echo "Done"
 
+#   publish:
+#     docker:
+#       - image: circleci/golang
+#     branches:
+#       only:
+#         - master
+
+
+# workflows:
+#   version: 2
+#   main:
+#     jobs:
+#       - build:
+#           filters:
+#             tags:
+#               only: /^v\d+\.\d+\.\d+$/
+#       - publish:
+#           requires:
+#             - build
+#           filters:
+#             branches:
+#               ignore: /.*/
+#             tags:
+#               only: /^v\d+\.\d+\.\d+$/
