@@ -1,7 +1,7 @@
 version: 2
 jobs:
 
-  lc_build:
+  lc-build:
     docker:
       - image: circleci/node:4.8.2
     steps:
@@ -15,7 +15,7 @@ jobs:
           - hello.txt
       - run: echo "Done"
 
-  lc_test:
+  lc-test:
     docker:
       - image: circleci/node:4.8.2
     steps:
@@ -30,9 +30,9 @@ jobs:
 workflows:
   version: 2
 
-  lc_build_and_test:
+  lc-build-and-test:
     jobs:
-      - lc_build
-      - lc_test:
-        requires:
-          - lc_build
+      - lc-build
+      - lc-test:
+          requires:
+            - lc-build
