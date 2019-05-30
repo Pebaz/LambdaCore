@@ -6,5 +6,6 @@ jobs:
     steps:
       - checkout
       - run: echo "Building..."
+      - run: cargo build --release
       - run: echo "Done"
 
