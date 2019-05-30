@@ -3,9 +3,6 @@ jobs:
   build:
     docker:
       - image: circleci/rust
-    branches:
-      only:
-        - master
     steps:
       - checkout
       - run: sudo apt-get install -y mingw-w64
@@ -23,9 +20,6 @@ jobs:
   publish:
     docker:
       - image: cibuilds/github:0.10
-    branches:
-      only:
-        - master
     steps:
       - attach_workspace:
           at: target
@@ -40,10 +34,13 @@ jobs:
 
 workflows:
   version: 2
-  
+
   untagged-build:
     jobs:
-      - build
+      - build:
+          branches:
+            only:
+              - master
 
   tagged-build:
     jobs:
@@ -51,6 +48,9 @@ workflows:
           filters:
             tags:
               only: /^v.*/
+            branches:
+              only:
+                - master
 
       - publish:
           requires:
@@ -58,6 +58,9 @@ workflows:
           filters:
             tags:
               only: /^v.*/
+            branches:
+              only:
+                - master
 
 
 
