@@ -40,7 +40,11 @@ workflows:
   # Only run publish when tags are given
   main:
     jobs:
-      - build
+      - build:
+          filters:
+            branches:
+              only:
+                - master
       - publish:
           requires:
             - build
