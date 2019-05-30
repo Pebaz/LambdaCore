@@ -7,11 +7,13 @@ jobs:
       only:
         - master
     steps:
-      - setup_remote_docker
+      #- setup_remote_docker
+      - sudo apt-get install docker
+      - dockerd
       - checkout
-      - run: cargo install cross
-      - run: cross build --target aarch64-unknown-linux-gnu
-      - run: ls target
+      #- run: cargo install cross
+      #- run: cross build --target aarch64-unknown-linux-gnu
+      #- run: ls target
 
 
 
