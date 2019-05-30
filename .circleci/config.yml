@@ -7,10 +7,9 @@ jobs:
       only:
         - master
     steps:
-      - checkout
-      - run: sudo apt-get install docker
-      - run: sudo systemctl start docker
+      - setup_remote_docker
       - run: cargo install cross
+      - checkout
 
 
 #   - run: echo "Building..."
