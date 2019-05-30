@@ -13,7 +13,7 @@ jobs:
       - persist_to_workspace:
           root: target
           paths:
-            - /*
+            - ./*
 
   # https://circleci.com/blog/exploring-domain-driven-design-at-circleci/
   # Publish only on tag
