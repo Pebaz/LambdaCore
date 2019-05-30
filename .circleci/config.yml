@@ -7,5 +7,6 @@ jobs:
       - checkout
       - run: echo "Building..."
       - run: cargo build --release
+      - run: ls target/release/
       - run: echo "Done"
 
