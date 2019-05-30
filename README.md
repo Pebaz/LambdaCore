@@ -3,6 +3,8 @@
 # LambdaCore
 A small Lisp written in Rust.
 
+<img alt="GitHub" src="https://img.shields.io/github/license/Pebaz/LambdaCore.svg"><img alt="CircleCI" src="https://img.shields.io/circleci/build/github/Pebaz/LambdaCore.svg"><img alt="GitHub release" src="https://img.shields.io/github/release/Pebaz/LambdaCore.svg">
+
 ## Hello World
 
 ```clojure
