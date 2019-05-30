@@ -10,6 +10,9 @@ jobs:
       # https://github.com/rust-lang/rust/issues/33465
       - run: cargo rustc --release --target=x86_64-pc-windows-gnu -- -C linker=x86_64-w64-mingw32-gcc
       - run: ls target
+      - run:
+        name: Parse LambdaCore version
+        command: cat Cargo.toml | head -n 3 | tail -n 1 | cut -c 12- | cut -c -5 > target/VERSION
       - persist_to_workspace:
           root: target
           paths:
@@ -29,7 +32,7 @@ jobs:
       - run:
           name: "Publish Release on GitHub"
           command: |
-            VERSION=$(my-binary --version)
+            VERSION=$(cat target/VERSION)
             ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} target/
 
 
