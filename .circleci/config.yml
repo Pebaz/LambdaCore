@@ -1,4 +1,4 @@
-version: 2
+version: 2.1
 jobs:
   build:
     docker:
@@ -21,9 +21,6 @@ jobs:
   # https://circleci.com/blog/exploring-domain-driven-design-at-circleci/
   # Publish only on tag
   publish:
-    filters:
-      tags:
-        only: /^v\d+\.\d+\.\d+$/
     docker:
       - image: cibuilds/github:0.10
     branches:
@@ -43,12 +40,25 @@ jobs:
 
 workflows:
   version: 2
-  main:
+  
+  untagged-build:
     jobs:
       - build
+
+  tagged-build:
+    jobs:
+      - build:
+          filters:
+            tags:
+              only: /^v.*/
+
       - publish:
           requires:
             - build
+          filters:
+            tags:
+              only: /^v.*/
+
 
 
 
