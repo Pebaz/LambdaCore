@@ -12,7 +12,8 @@ jobs:
       - run: ls target
       - run:
           name: Parse LambdaCore version
-          command: cat Cargo.toml | head -n 3 | tail -n 1 | cut -c 12- | cut -c -5 > target/VERSION
+          #command: cat Cargo.toml | head -n 3 | tail -n 1 | cut -c 12- | cut -c -5 > target/VERSION
+          command: cat Cargo.toml | head -n 3 | tail -n 1 | cut -c 12- | rev | cut -c 2- | rev > target/VERSION
       - persist_to_workspace:
           root: target
           paths:
@@ -41,9 +42,6 @@ jobs:
 
 workflows:
   version: 2
-
-  # Run `build` in any case.
-  # Only run publish when tags are given
   main:
     jobs:
       - build:
@@ -60,59 +58,3 @@ workflows:
             branches:
               only:
                 - master
-
-  # untagged-build:
-  #   jobs:
-  #     - build:
-  #         filters:
-  #           branches:
-  #             only:
-  #               - master
-
-  # tagged-build:
-  #   jobs:
-  #     - build:
-  #         filters:
-  #           tags:
-  #             only: /^v.*/
-  #           branches:
-  #             only:
-  #               - master
-
-  #     - publish:
-  #         requires:
-  #           - build
-  #         filters:
-  #           tags:
-  #             only: /^v.*/
-  #           branches:
-  #             only:
-  #               - master
-
-
-
-
-
-# docker:
-#   - image: docker
-# branches:
-#   only:
-#     - master
-# steps:
-#   - setup_remote_docker
-#   - run: curl https://sh.rustup.rs -sSf | sh
-#   - run: cargo install cross
-#   - run: cargo install cross
-#   - run: cross build --target aarch64-unknown-linux-gnu
-#   - checkout
-
-
-# I could docker run <rust-container> --cross build --target <target>
-
-#   - run: echo "Building..."
-#   - run: cargo build --release
-#   - run: ls target/release/
-#   - run: target/release/lambda_core -c '(print "Hello World!")'
-#   - run: cargo test --release
-#   - run: echo "Done"
-
