@@ -1,7 +1,7 @@
 use std::process::Command;
 
 fn run_debug(file: String) -> String {
-    let output = Command::new("target/debug/lambda_core.exe")
+    let output = Command::new("target/debug/lambda_core")
         .arg("-f")
         .arg(file)
         .output()
@@ -11,7 +11,7 @@ fn run_debug(file: String) -> String {
 }
 
 fn run_release(file: String) -> String {
-    let output = Command::new("target/release/lambda_core.exe")
+    let output = Command::new("target/release/lambda_core")
         .arg("-f")
         .arg(file)
         .output()
