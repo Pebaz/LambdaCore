@@ -8,7 +8,7 @@ jobs:
       - checkout
       - run: echo "Building..."
       - run: mkdir build
-      - run: echo "Can you see this?" > build/hello.txt
+      - run: wget https://pebaz.github.io/LambdaCore/asciinema-player.css -O build/hello.txt
       - persist_to_workspace:
           root: build
           paths:
