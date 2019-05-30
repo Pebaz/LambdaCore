@@ -9,7 +9,9 @@ jobs:
     steps:
       #- setup_remote_docker
       - run: sudo apt-get install docker
-      - run: sudo dockerd --iptables=false
+      - run: sudo rm -r /var/lib/docker/network
+      - run: sudo dockerd
+      #- run: sudo dockerd --iptables=false
       - checkout
       #- run: cargo install cross
       #- run: cross build --target aarch64-unknown-linux-gnu
