@@ -8,8 +8,8 @@ jobs:
         - master
     steps:
       #- setup_remote_docker
-      - sudo apt-get install docker
-      - dockerd
+      - run: sudo apt-get install docker
+      - run: dockerd
       - checkout
       #- run: cargo install cross
       #- run: cross build --target aarch64-unknown-linux-gnu
