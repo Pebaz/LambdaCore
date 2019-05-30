@@ -38,9 +38,10 @@ workflows:
   untagged-build:
     jobs:
       - build:
-          branches:
-            only:
-              - master
+          filters:
+            branches:
+              only:
+                - master
 
   tagged-build:
     jobs:
