@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  lambda-core:
+  build:
     docker:
       - image: circleci/rust
     steps:
