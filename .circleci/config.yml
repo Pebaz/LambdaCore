@@ -25,6 +25,7 @@ jobs:
           at: target
       - run: ls target
       - run: ls target/x86_64-pc-windows-gnu
+      - run: ls target/x86_64-pc-windows-gnu/release
       # - run:
       #     name: "Publish Release on GitHub"
       #     command: |
@@ -35,24 +36,11 @@ jobs:
 workflows:
   version: 2
 
-  untagged-build:
+  # Run `build` in any case.
+  # Only run publish when tags are given
+  main:
     jobs:
-      - build:
-          filters:
-            branches:
-              only:
-                - master
-
-  tagged-build:
-    jobs:
-      - build:
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              only:
-                - master
-
+      - build
       - publish:
           requires:
             - build
@@ -62,6 +50,34 @@ workflows:
             branches:
               only:
                 - master
+
+  # untagged-build:
+  #   jobs:
+  #     - build:
+  #         filters:
+  #           branches:
+  #             only:
+  #               - master
+
+  # tagged-build:
+  #   jobs:
+  #     - build:
+  #         filters:
+  #           tags:
+  #             only: /^v.*/
+  #           branches:
+  #             only:
+  #               - master
+
+  #     - publish:
+  #         requires:
+  #           - build
+  #         filters:
+  #           tags:
+  #             only: /^v.*/
+  #           branches:
+  #             only:
+  #               - master
 
 
 
