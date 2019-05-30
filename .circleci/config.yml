@@ -26,11 +26,11 @@ jobs:
       - run: ls target
       - run: ls target/x86_64-pc-windows-gnu
       - run: ls target/x86_64-pc-windows-gnu/release
-      # - run:
-      #     name: "Publish Release on GitHub"
-      #     command: |
-      #       VERSION=$(my-binary --version)
-      #       ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} target/
+      - run:
+          name: "Publish Release on GitHub"
+          command: |
+            VERSION=$(my-binary --version)
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} target/
 
 
 workflows:
