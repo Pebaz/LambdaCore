@@ -9,7 +9,7 @@ jobs:
     steps:
       #- setup_remote_docker
       - run: sudo apt-get install docker
-      - run: dockerd
+      - run: sudo dockerd
       - checkout
       #- run: cargo install cross
       #- run: cross build --target aarch64-unknown-linux-gnu
