@@ -1,0 +1,38 @@
+version: 2
+jobs:
+
+  lc-build:
+    docker:
+      - image: circleci/node:4.8.2
+    steps:
+      - checkout
+      - run: echo "Building..."
+      - run: mkdir build
+      - run: echo "Can you see this?" > build/hello.txt
+      - persist_to_workspace:
+        root: build
+        paths:
+          - hello.txt
+      - run: echo "Done"
+
+  lc-test:
+    docker:
+      - image: circleci/node:4.8.2
+    steps:
+      - checkout
+      - run: echo "Testing..."
+      - attach_workspace:
+        at: build
+      - run: cat build/hello.txt
+      - run: echo "Done"
+
+
+workflows:
+  version: 2
+
+  lc-build-and-run:
+    jobs:
+      - lc-build
+      - lc-test:
+        requires:
+          - lc-build
