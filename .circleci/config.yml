@@ -33,7 +33,7 @@ jobs:
           name: "Publish Release on GitHub"
           command: |
             VERSION=v$(cat target/VERSION)
-            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete $VERSION target/x86_64-pc-windows-gnu/release/lambda_core.exe
+            ghr -t $GITHUB_TOKEN -u $CIRCLE_PROJECT_USERNAME -r $CIRCLE_PROJECT_REPONAME -c $CIRCLE_SHA1 -delete $VERSION target/x86_64-pc-windows-gnu/release/lambda_core.exe
 
 
 workflows:
