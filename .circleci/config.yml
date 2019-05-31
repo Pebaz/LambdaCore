@@ -14,7 +14,6 @@ jobs:
       - run: ls target
       - run:
           name: Parse LambdaCore version
-          #command: cat Cargo.toml | head -n 3 | tail -n 1 | cut -c 12- | cut -c -5 > target/VERSION
           command: cat Cargo.toml | head -n 3 | tail -n 1 | cut -c 12- | rev | cut -c 2- | rev > target/VERSION
       - persist_to_workspace:
           root: target
@@ -26,25 +25,21 @@ jobs:
   publish:
     docker:
       - image: cibuilds/github:0.10
-    environment:
-      FOO: bar
-      
     steps:
       - attach_workspace:
           at: target
-      - run: ls target
-      - run: ls target/x86_64-pc-windows-gnu
-      - run: ls target/x86_64-pc-windows-gnu/release
       - run:
-          name: "Publish Release on GitHub"
+          name: "Publish Windows Release on GitHub"
           command: |
             VERSION=v$(cat target/VERSION)
             ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} target/x86_64-pc-windows-gnu/release/lambda_core.exe
+      - run:
+          name: "Publish Linux Release on GitHub"
+          command: |
+            VERSION=v$(cat target/VERSION)
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} target/x86_64-unknown-linux-gnu/release/lambda_core
 
 
-# Perhaps I should just deploy every time someone
-# pushes to master. It would be easier than this
-# tag nonesense.
 workflows:
   version: 2
   main:
