@@ -28,9 +28,11 @@ jobs:
     steps:
       - attach_workspace:
           at: target
+      - run: ls target
+      - run: ls target/x86_64-pc-windows-gnu
       - run: mkdir target/RELEASE
-      - run: cp target/x86_64-pc-windows-gnu/lambda_core.exe target/RELEASE/
-      - run: cp target/x86_64-unknown-linux-gnu/lambda_core target/RELEASE/
+      - run: cp target/x86_64-pc-windows-gnu/release/lambda_core.exe target/RELEASE/
+      - run: cp target/x86_64-unknown-linux-gnu/release/lambda_core target/RELEASE/
       - run:
           name: "Publish Windows Release on GitHub"
           command: |
