@@ -40,6 +40,9 @@ jobs:
             ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} target/x86_64-pc-windows-gnu/release/lambda_core.exe
 
 
+# Perhaps I should just deploy every time someone
+# pushes to master. It would be easier than this
+# tag nonesense.
 workflows:
   version: 2
   main:
@@ -50,6 +53,7 @@ workflows:
               only: /^v.*/
             branches:
               only: master
+              ignore: /.*/
       - publish:
           requires:
             - build
