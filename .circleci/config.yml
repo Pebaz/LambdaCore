@@ -7,8 +7,10 @@ jobs:
       - checkout
       - run: sudo apt-get install -y mingw-w64
       - run: rustup target add x86_64-pc-windows-gnu
+      - run: rustup target add x86_64-unknown-linux-gnu
       # https://github.com/rust-lang/rust/issues/33465
       - run: cargo rustc --release --target=x86_64-pc-windows-gnu -- -C linker=x86_64-w64-mingw32-gcc
+      - run: cargo rustc --release --target=x86_64-unknown-linux-gnu
       - run: ls target
       - run:
           name: Parse LambdaCore version
