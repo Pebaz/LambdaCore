@@ -12,11 +12,13 @@ jobs:
       - run: sudo apt-get install -y clang
       - run: rustup target add x86_64-pc-windows-gnu
       - run: rustup target add x86_64-unknown-linux-gnu
-
       - run: rustup target add x86_64-apple-darwin
+
       - run: git clone https://github.com/tpoechtrager/osxcross
       - run: cd osxcross
       - run: wget https://s3.dockerproject.org/darwin/v2/MacOSX10.11.sdk.tar.xz
+      - run: pwd
+      - run: ls
       - run: mv MacOSX10.11.sdk.tar.xz tarballs/
       - run: sed -i -e 's|-march=native||g' build_clang.sh wrapper/build.sh
       - run: UNATTENDED=yes OSX_VERSION_MIN=10.7 ./build.sh
