@@ -51,9 +51,6 @@ workflows:
           filters:  # required since `deploy` has tag filters AND requires `build`
             tags:
               only: /^v.*/
-            branches:
-              only: master
-              ignore: /.*/
       - publish:
           requires:
             - build
