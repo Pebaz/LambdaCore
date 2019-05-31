@@ -54,8 +54,11 @@ jobs:
       - run: ls target
       - run: ls target/x86_64-pc-windows-gnu
       - run: mkdir target/RELEASE
-      - run: cp target/x86_64-pc-windows-gnu/release/lambda_core.exe target/RELEASE/
-      - run: cp target/x86_64-unknown-linux-gnu/release/lambda_core target/RELEASE/
+      #- run: cp target/x86_64-pc-windows-gnu/release/lambda_core.exe target/RELEASE/
+      #- run: cp target/x86_64-unknown-linux-gnu/release/lambda_core target/RELEASE/
+      - run: mv target/x86_64-pc-windows-gnu/release/lambda_core.exe target/RELEASE/lambda_core-x86_64-win32.exe
+      - run: mv target/x86_64-unknown-linux-gnu/release/lambda_core target/RELEASE/lambda_core-x86_64-linux
+      - run: mv target/x86_64-apple-darwin/release/lambda_core target/RELEASE/lambda_core-x86_64-macos
       - run:
           name: "Publish Windows Release on GitHub"
           command: |
