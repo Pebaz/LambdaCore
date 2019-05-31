@@ -1,6 +1,6 @@
 [package]
 name = "lambda_core"
-version = "0.2.17"
+version = "0.2.18"
 authors = ["Samuel Wilder <pebazium@gmail.com>"]
 edition = "2018"
 
@@ -10,4 +10,3 @@ pest_derive = "2.1.0"
 colored = "1.7"
 flame = "0.2.2"
 clap = "2.33.0"
-
