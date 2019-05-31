@@ -49,8 +49,7 @@ workflows:
             tags:
               only: /^v.*/
             branches:
-              only:
-                - master
+              ignore: /.*/
       - publish:
           requires:
             - build
