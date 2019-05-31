@@ -1,6 +1,6 @@
 [package]
 name = "lambda_core"
-version = "0.2.13"
+version = "0.2.14"
 authors = ["Samuel Wilder <pebazium@gmail.com>"]
 edition = "2018"
 
