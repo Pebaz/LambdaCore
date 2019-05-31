@@ -3,14 +3,33 @@ jobs:
   build:
     docker:
       - image: circleci/rust
+
+    # https://github.com/rust-lang/rust/issues/33465
+    # https://www.reddit.com/r/rust/comments/6rxoty/tutorial_cross_compiling_from_linux_for_osx/
     steps:
       - checkout
       - run: sudo apt-get install -y mingw-w64
+      - run: sudo apt-get install -y clang
       - run: rustup target add x86_64-pc-windows-gnu
       - run: rustup target add x86_64-unknown-linux-gnu
-      # https://github.com/rust-lang/rust/issues/33465
+
+      - run: rustup target add x86_64-apple-darwin
+      - run: git clone https://github.com/tpoechtrager/osxcross
+      - run: cd osxcross
+      - run: wget https://s3.dockerproject.org/darwin/v2/MacOSX10.11.sdk.tar.xz
+      - run: mv MacOSX10.11.sdk.tar.xz tarballs/
+      - run: sed -i -e 's|-march=native||g' build_clang.sh wrapper/build.sh
+      - run: UNATTENDED=yes OSX_VERSION_MIN=10.7 ./build.sh
+      - run: sudo mkdir -p /usr/local/osx-ndk-x86
+      - run: sudo mv target/* /usr/local/osx-ndk-x86
+      - run: export PATH=/usr/local/osx-ndk-x86/bin:$PATH
+      - run: export PKG_CONFIG_ALLOW_CROSS=1
+
       - run: cargo rustc --release --target=x86_64-pc-windows-gnu -- -C linker=x86_64-w64-mingw32-gcc
       - run: cargo rustc --release --target=x86_64-unknown-linux-gnu
+      - run: cargo rustc --release --target=x86_64-apple-darwin -- -C linker=x86_64-apple-darwin15-cc -C ar=x86_64-apple-darwin15-ar
+
+
       - run: ls target
       - run:
           name: Parse LambdaCore version
@@ -39,6 +58,10 @@ jobs:
             VERSION=v$(cat target/VERSION)
             ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} target/RELEASE
 
+
+# Build for Windows, MacOS, and Linux
+# Test using VMs or Docker containers for all 3 platforms
+# Publish
 
 workflows:
   version: 2
