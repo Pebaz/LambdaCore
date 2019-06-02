@@ -913,7 +913,12 @@ pub fn lcore_if(
         } else {
             let element = block_false.as_value();
             let result = lcore_interpret_array(element, symbol_table);
-            let mut result = result.ok().unwrap();
+            //let mut result = result.ok().unwrap();
+
+            let mut result = match result {
+                Err(err) => return Err(err),
+                Ok(yeah) => yeah,
+            };
 
             if let Value::Array(ref mut r) = result {
                 let ret = r.pop().unwrap();
