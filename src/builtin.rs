@@ -940,10 +940,19 @@ pub fn lcore_sel(
                 if s == "default" {
                     let result =
                         lcore_interpret_array(code.as_value(), symbol_table);
-                    if let Err(..) = result {
+                    /*if let Err(..) = result {
                         return result;
                     }
-                    break;
+                    break;*/
+                    match result {
+                        Err(..) => return result,
+                        Ok(mut unwraped_result) => {
+                            if let Value::Array(ref mut r) = unwraped_result {
+                                let ret = r.pop().unwrap();
+                                return Ok(ret);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -956,10 +965,20 @@ pub fn lcore_sel(
             if *res.as_bool() {
                 let result =
                     lcore_interpret_array(code.as_value(), symbol_table);
-                if let Err(..) = result {
+                /*if let Err(..) = result {
                     return result;
                 }
-                break;
+                break;*/
+                
+                match result {
+                    Err(..) => return result,
+                    Ok(mut unwraped_result) => {
+                        if let Value::Array(ref mut r) = unwraped_result {
+                            let ret = r.pop().unwrap();
+                            return Ok(ret);
+                        }
+                    }
+                }
             }
         }
     }

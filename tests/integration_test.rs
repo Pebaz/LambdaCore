@@ -1,17 +1,14 @@
 use std::process::Command;
 
-fn run_debug(file: String) -> String {
-    let output = Command::new("target/debug/lambda_core")
-        .arg("-f")
-        .arg(file)
-        .output()
-        .unwrap();
 
-    String::from_utf8(output.stdout).unwrap()
-}
+fn run_file(file: String) -> String {
+    let target = if cfg!(debug_assertions) {
+        "target/debug/lambda_core"
+    } else {
+        "target/debug/lambda_core"
+    };
 
-fn run_release(file: String) -> String {
-    let output = Command::new("target/release/lambda_core")
+    let output = Command::new(target)
         .arg("-f")
         .arg(file)
         .output()
@@ -22,7 +19,7 @@ fn run_release(file: String) -> String {
 
 #[test]
 fn test_add() {
-    let stdout = run_release("examples/add.lcore".to_string());
+    let stdout = run_file("examples/add.lcore".to_string());
     let expect = "3\n\
                   3.2\n\
                   6\n\
@@ -34,7 +31,7 @@ fn test_add() {
 
 #[test]
 fn test_break() {
-    let stdout = run_release("examples/break.lcore".to_string());
+    let stdout = run_file("examples/break.lcore".to_string());
     let expect = "X: 0\n\
                   Y: 0\n\
                   Y: 1\n\
@@ -53,7 +50,7 @@ fn test_break() {
 
 #[test]
 fn test_comment() {
-    let stdout = run_release("examples/comment.lcore".to_string());
+    let stdout = run_file("examples/comment.lcore".to_string());
     let expect = "Line Comment\n\
                   Block Comment\n"
         .to_string();
@@ -62,7 +59,7 @@ fn test_comment() {
 
 #[test]
 fn test_compare() {
-    let stdout = run_release("examples/compare.lcore".to_string());
+    let stdout = run_file("examples/compare.lcore".to_string());
     let expect = "1      =    1       : True\n\
                   'a'    =    'a'     : True\n\
                   3.14   =    3.14    : True\n\
@@ -90,7 +87,7 @@ fn test_compare() {
 
 #[test]
 fn test_dict() {
-    let stdout = run_release("examples/dict.lcore".to_string());
+    let stdout = run_file("examples/dict.lcore".to_string());
     let expect1 = "{ \"first name\": \"David\", \"last name\": \"Wallace\", \"age\": 41 }\n\
         David\n\
         41\n\
@@ -163,7 +160,7 @@ fn test_dict() {
 
 #[test]
 fn test_error() {
-    let stdout = run_release("examples/error.lcore".to_string());
+    let stdout = run_file("examples/error.lcore".to_string());
     assert_eq!(
         stdout,
         "ArgumentError: Odd number of arguments passed to \"dict\"\n"
@@ -173,7 +170,7 @@ fn test_error() {
 
 #[test]
 fn test_eval() {
-    let stdout = run_release("examples/eval.lcore".to_string());
+    let stdout = run_file("examples/eval.lcore".to_string());
     let expect = "World\n\
                   [\"Hello\" Null]\n\
                   2\n"
@@ -183,13 +180,13 @@ fn test_eval() {
 
 #[test]
 fn test_fib() {
-    let stdout = run_release("examples/fib.lcore".to_string());
+    let stdout = run_file("examples/fib.lcore".to_string());
     assert_eq!(stdout, "(fib 40) = 63245986\n".to_string());
 }
 
 #[test]
 fn test_func() {
-    let stdout = run_release("examples/func.lcore".to_string());
+    let stdout = run_file("examples/func.lcore".to_string());
     let expect = "Hello Pebaz!\n\
                   Hello 0!\n\
                   Hello 1!\n\
@@ -202,19 +199,19 @@ fn test_func() {
 
 #[test]
 fn test_get() {
-    let stdout = run_release("examples/get.lcore".to_string());
+    let stdout = run_file("examples/get.lcore".to_string());
     assert_eq!(stdout, "2\n".to_string());
 }
 
 #[test]
 fn test_hello_world() {
-    let stdout = run_release("examples/hello-world.lcore".to_string());
+    let stdout = run_file("examples/hello-world.lcore".to_string());
     assert_eq!(stdout, "Hello World!\n".to_string());
 }
 
 #[test]
 fn test_if() {
-    let stdout = run_release("examples/if.lcore".to_string());
+    let stdout = run_file("examples/if.lcore".to_string());
     let expect = "It's True!\n\
                   One does in fact equal one!\n\
                   It's False!\n\
@@ -225,7 +222,7 @@ fn test_if() {
 
 #[test]
 fn test_import() {
-    let stdout = run_release("examples/import.lcore".to_string());
+    let stdout = run_file("examples/import.lcore".to_string());
     let expect = "You are importing the `add` function!\n\
                   10\n"
         .to_string();
@@ -234,19 +231,19 @@ fn test_import() {
 
 #[test]
 fn test_len() {
-    let stdout = run_release("examples/len.lcore".to_string());
+    let stdout = run_file("examples/len.lcore".to_string());
     assert_eq!(stdout, "3\n".to_string());
 }
 
 #[test]
 fn test_loop() {
-    let stdout = run_release("examples/loop.lcore".to_string());
+    let stdout = run_file("examples/loop.lcore".to_string());
     assert_eq!(stdout, "0\n1\n2\n".to_string());
 }
 
 #[test]
 fn test_math() {
-    let stdout = run_release("examples/math.lcore".to_string());
+    let stdout = run_file("examples/math.lcore".to_string());
     let expect = "--------------------\n\
                   Int\n\
                   6\n\
@@ -278,7 +275,7 @@ fn test_math() {
 
 #[test]
 fn test_order() {
-    let stdout = run_release("examples/order.lcore".to_string());
+    let stdout = run_file("examples/order.lcore".to_string());
     let expect = "First\n\
                   Second\n\
                   Null\n\
@@ -291,7 +288,7 @@ fn test_order() {
 //#[test]
 #[allow(dead_code)]
 fn test_print() {
-    let stdout = run_release("examples/order.lcore".to_string());
+    let stdout = run_file("examples/order.lcore".to_string());
 
     // TODO(pebaz): Use a regex for this:
     let expect = "String: Lambda Core version 0.1.0\n\
@@ -310,7 +307,7 @@ fn test_print() {
 
 #[test]
 fn test_quote() {
-    let stdout = run_release("examples/quote.lcore".to_string());
+    let stdout = run_file("examples/quote.lcore".to_string());
     let expect = "3\n\
                   quoted-thing: (quote [1 2 3])\n\
                   (quote [( print \"Hello World!\" )])\n"
@@ -320,25 +317,25 @@ fn test_quote() {
 
 #[test]
 fn test_ret() {
-    let stdout = run_release("examples/ret.lcore".to_string());
+    let stdout = run_file("examples/ret.lcore".to_string());
     assert_eq!(stdout, "-2\n6\n-2\n".to_string());
 }
 
 #[test]
 fn test_sel() {
-    let stdout = run_release("examples/sel.lcore".to_string());
-    assert_eq!(stdout, "It's Three!\n".to_string());
+    let stdout = run_file("examples/sel.lcore".to_string());
+    assert_eq!(stdout, "It's Three!\n55\n".to_string());
 }
 
 #[test]
 fn test_stdlib() {
-    let stdout = run_release("examples/stdlib.lcore".to_string());
+    let stdout = run_file("examples/stdlib.lcore".to_string());
     assert_eq!(stdout, "256\n".to_string());
 }
 
 #[test]
 fn test_swap() {
-    let stdout = run_release("examples/swap.lcore".to_string());
+    let stdout = run_file("examples/swap.lcore".to_string());
     let expect = "Swapping Nest Level: 1\n\
         Before: 3\n\
         After:  4\n\

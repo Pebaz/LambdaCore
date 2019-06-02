@@ -16,3 +16,6 @@
     'default '[
         (print "Nothing matched :(")
     ])
+
+:: `sel` returns the last value from the block that ran
+(print (sel 4 4 '[55]))
