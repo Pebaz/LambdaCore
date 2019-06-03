@@ -5,7 +5,7 @@ fn run_file(file: String) -> String {
     let target = if cfg!(debug_assertions) {
         "target/debug/lambda_core"
     } else {
-        "target/debug/lambda_core"
+        "target/release/lambda_core"
     };
 
     let output = Command::new(target)
