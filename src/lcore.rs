@@ -315,10 +315,6 @@ impl LCoreError {
     }
 }
 
-pub fn crash(msg: String) {
-    println!("\n{}", msg);
-    exit(1);
-}
 
 /// Turn tokens into intermediate code.
 ///

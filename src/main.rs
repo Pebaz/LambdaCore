@@ -1,7 +1,9 @@
-#![allow(unused_imports)]
-#![allow(dead_code)]
-#![allow(unused_variables)]
+#![cfg_attr(debug_assertions, allow(unused_imports))]
+#![cfg_attr(debug_assertions, allow(dead_code))]
+#![cfg_attr(debug_assertions, allow(unused_variables))]
+
 #![allow(non_snake_case)]
+
 
 #[macro_use]
 extern crate clap;
