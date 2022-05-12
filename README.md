@@ -10,7 +10,7 @@ A small Lisp written in Rust.
 ```clojure
 (print "Hello World")
 (set 'name "Pebaz")
-(prin "Hello ")
+(print "Hello ")
 (print name)
 ```
 
